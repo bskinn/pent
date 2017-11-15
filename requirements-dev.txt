@@ -1,0 +1,9 @@
+attrs<18
+sphinx==1.6.5
+sphinx_rtd_theme==0.2.4
+ipython
+flake8
+flake8-docstrings
+coverage
+tox
+wget
