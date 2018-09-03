@@ -1,17 +1,30 @@
-# ------------------------------------------------------------------------------
-# Name:        tests
-# Purpose:     Master script for pent testing suite
-#
-# Author:      Brian Skinn
-#                bskinn@alum.mit.edu
-#
-# Created:     2 Sep 2018
-# Copyright:   (c) Brian Skinn 2018
-# License:     The MIT License; see "LICENSE.txt" for full license terms.
-#
-#           http://www.github.com/bskinn/pent
-#
-# ------------------------------------------------------------------------------
+r"""*Master script for* ``pent`` *test suite*.
+
+``pent`` Extracts Numerical Text.
+
+**Author**
+    Brian Skinn (bskinn@alum.mit.edu)
+
+**File Created**
+    3 Sep 2018
+
+**Copyright**
+    \(c) Brian Skinn 2018
+
+**Source Repository**
+    http://www.github.com/bskinn/pent
+
+**Documentation**
+    http://pent.readthedocs.io
+
+**License**
+    The MIT License; see |license_txt|_ for full license terms
+
+**Members**
+
+*(none documented)*
+
+"""
 
 
 class AP(object):
@@ -74,26 +87,6 @@ def main():
     # Expect-good tests
     addsuiteif(pent.test.pent_base.suite_expect_good(),
                [AP.ALL])
-
-#    addsuiteif(sphobjinv.test.sphobjinv_api.suite_api_expect_good(),
-#               [AP.ALL, AP.LOCAL, AP.GOOD, AP.GOOD_LOCAL,
-#                AP.API, AP.API_LOCAL, AP.API_GOOD, AP.API_GOOD_LOCAL])
-#    addsuiteif(sphobjinv.test.sphobjinv_api.suite_api_expect_good_nonlocal(),
-#               [AP.ALL, AP.GOOD, AP.API, AP.API_GOOD])
-#    addsuiteif(sphobjinv.test.sphobjinv_cli.suite_cli_expect_good(),
-#               [AP.ALL, AP.LOCAL, AP.GOOD, AP.GOOD_LOCAL,
-#                AP.CLI, AP.CLI_LOCAL, AP.CLI_GOOD, AP.CLI_GOOD_LOCAL])
-#    addsuiteif(sphobjinv.test.sphobjinv_cli.suite_cli_expect_good_nonlocal(),
-#               [AP.ALL, AP.GOOD, AP.CLI, AP.CLI_GOOD])
-
-#    # Expect-fail tests
-#    addsuiteif(sphobjinv.test.sphobjinv_api.suite_api_expect_fail(),
-#               [AP.ALL, AP.LOCAL, AP.FAIL, AP.API, AP.API_LOCAL, AP.API_FAIL])
-#    addsuiteif(sphobjinv.test.sphobjinv_cli.suite_cli_expect_fail(),
-#               [AP.ALL, AP.LOCAL, AP.FAIL, AP.FAIL_LOCAL,
-#                AP.CLI, AP.CLI_LOCAL, AP.CLI_FAIL, AP.CLI_FAIL_LOCAL])
-#    addsuiteif(sphobjinv.test.sphobjinv_cli.suite_cli_expect_fail_nonlocal(),
-#               [AP.ALL, AP.FAIL, AP.CLI, AP.CLI_FAIL])
 
     # Create the test runner and execute
     ttr = ut.TextTestRunner(buffer=True,

@@ -1,21 +1,33 @@
-# ------------------------------------------------------------------------------
-# Name:        pent_base
-# Purpose:     Module defining common objects for pent tests
-#
-# Author:      Brian Skinn
-#                bskinn@alum.mit.edu
-#
-# Created:     2 Sep 2018
-# Copyright:   (c) Brian Skinn 2018
-# License:     The MIT License; see "LICENSE.txt" for full license terms.
-#
-#            https://www.github.com/bskinn/pent
-#
-# ------------------------------------------------------------------------------
+r"""*Test objects for* ``pent`` *test suite*.
 
-"""Module defining common objects for pent tests."""
+``pent`` Extracts Numerical Text.
+
+**Author**
+    Brian Skinn (bskinn@alum.mit.edu)
+
+**File Created**
+    3 Sep 2018
+
+**Copyright**
+    \(c) Brian Skinn 2018
+
+**Source Repository**
+    http://www.github.com/bskinn/pent
+
+**Documentation**
+    http://pent.readthedocs.io
+
+**License**
+    The MIT License; see |license_txt|_ for full license terms
+
+**Members**
+
+*(none documented)*
+
+"""
 
 
+import itertools as itt
 import os
 import os.path as osp
 import unittest as ut
@@ -24,182 +36,15 @@ import unittest as ut
 class TestPentCorePatterns(ut.TestCase):
     """Confirming basic pattern matching of the core pyparsing patterns."""
 
-    def test_dummy_test(self):
-        self.assertTrue(True)
+    def test_number_and_sign_matching(self):
+        """Confirm number and sign patterns match the right string patterns."""
+        from pent import Number, Sign
 
-# Test content from Jupyter testing
+        from .testdata import number_sign_vals as vals
 
-#~ # Set of all test values
-#~ vals = {'0': {
-                #~ Values.POSINT: True, Values.NEGINT: False, Values.ANYINT: True,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: False, Values.ANYDEC: False,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '-0': {
-                #~ Values.POSINT: False, Values.NEGINT: True, Values.ANYINT: True,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: False, Values.ANYDEC: False,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '+0.': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '-.00': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: True, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: True, Values.ANYDEC: True,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '+35': {
-                #~ Values.POSINT: True, Values.NEGINT: False, Values.ANYINT: True,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: False, Values.ANYDEC: False,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '23': {
-                #~ Values.POSINT: True, Values.NEGINT: False, Values.ANYINT: True,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: False, Values.ANYDEC: False,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '-12': {
-                #~ Values.POSINT: False, Values.NEGINT: True, Values.ANYINT: True,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: False, Values.ANYDEC: False,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '.12': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '35.': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+218.': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+.355': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '0.23': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: True, Values.NEGFLOAT: False, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '-.22': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: True, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: True, Values.ANYDEC: True,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '-234.': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: True, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: True, Values.ANYDEC: True,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '-392.34': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: True, Values.ANYFLOAT: True,
-                #~ Values.POSSCI: False, Values.NEGSCI: False, Values.ANYSCI: False,
-                #~ Values.POSDEC: False, Values.NEGDEC: True, Values.ANYDEC: True,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ },
-        #~ '+3e3': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+3e+3': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+3e+003': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '3e+003': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+3.e5': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+2e-04': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+.34e23': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '+.48e-2': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: True, Values.NEGSCI: False, Values.ANYSCI: True,
-                #~ Values.POSDEC: True, Values.NEGDEC: False, Values.ANYDEC: True,
-                #~ Values.POSNUM: True, Values.NEGNUM: False, Values.ANYNUM: True
-                #~ },
-        #~ '-2e-04': {
-                #~ Values.POSINT: False, Values.NEGINT: False, Values.ANYINT: False,
-                #~ Values.POSFLOAT: False, Values.NEGFLOAT: False, Values.ANYFLOAT: False,
-                #~ Values.POSSCI: False, Values.NEGSCI: True, Values.ANYSCI: True,
-                #~ Values.POSDEC: False, Values.NEGDEC: True, Values.ANYDEC: True,
-                #~ Values.POSNUM: False, Values.NEGNUM: True, Values.ANYNUM: True
-                #~ }
-        #~ # INVALID VALUES... '+-0.349', complex(?), etc.
-       #~ }
+        for (n, s) in itt.product(Number, Sign):
+            pass
+
 
 
 def suite_expect_good():

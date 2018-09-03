@@ -1,28 +1,34 @@
-# ----------------------------------------------------------------------------
-# Name:        __init__
-# Purpose:     Package definition module for pent
-#
-# Author:      Brian Skinn
-#                bskinn@alum.mit.edu
-#
-# Created:     14 Nov 2017
-# Copyright:   (c) Brian Skinn 2017
-# License:     The MIT License; see "LICENSE.txt" for full license terms
-#                   and contributor agreement.
-#
-#       This file is part of 'pent', a package for parsing of structured
-#       numerical text.
-#
-#       http://www.github.com/bskinn/pent
-#
-# ----------------------------------------------------------------------------
+r"""*Core package definition module for* ``pent``.
 
+``pent`` Extracts Numerical Text.
 
-"""Definition file for root of pent."""
+**Author**
+    Brian Skinn (bskinn@alum.mit.edu)
+
+**File Created**
+    3 Sep 2018
+
+**Copyright**
+    \(c) Brian Skinn 2018
+
+**Source Repository**
+    http://www.github.com/bskinn/pent
+
+**Documentation**
+    http://pent.readthedocs.io
+
+**License**
+    The MIT License; see |license_txt|_ for full license terms
+
+**Members**
+
+"""
 
 
 from __future__ import absolute_import
 
-__all__ = []
+__all__ = ['Number', 'Sign']
 
-__version__ = '0.0'
+from .enums import Number, Sign
+
+__version__ = '0.1dev1'
