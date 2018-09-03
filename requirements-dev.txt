@@ -7,3 +7,5 @@ flake8-docstrings
 coverage
 tox
 wget
+pyparsing
+
