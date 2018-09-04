@@ -1,6 +1,6 @@
 attrs<18
-sphinx==1.6.5
-sphinx_rtd_theme==0.2.4
+sphinx==1.7.8
+sphinx_rtd_theme==0.4.1
 ipython
 flake8
 flake8-docstrings

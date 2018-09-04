@@ -33,11 +33,6 @@ from .enums import Number, Sign
 #: notation.
 std_num_punct = "+-.de"
 
-#: |dict| of ``pyparsing`` patterns matching single numbers.
-number_patterns = {
-    (Number.Integer, Sign.Positive): pp.Combine(pp.Optional("+") + pp.Word(pp.nums))
-}
-
 
 def wordify_pattern(p, word_chars):
     """Wrap a pattern with word start/end markers using arbitrary word chars."""
@@ -52,25 +47,21 @@ def std_wordify(p):
     return wordify_pattern(p, pp.nums + std_num_punct)
 
 
+#: |dict| of ``pyparsing`` patterns matching single numbers.
+number_patterns = {
+    (Number.Integer, Sign.Positive): pp.Combine(
+        pp.Optional("+") + pp.Word(pp.nums)
+    ),
+    (Number.Integer, Sign.Negative): pp.Combine(
+        pp.Literal("-") + pp.Word(pp.nums)
+    ),
+    (Number.Integer, Sign.Any): pp.Combine(
+        pp.Optional(pp.Literal("-") ^ pp.Literal("+")) + pp.Word(pp.nums)
+    ),
+}
+
 # pyparsing patterns from initial work. Definitely remove the .WordStart
 # and .WordEnd tokens from these core definitions.
-
-# ~ ppps = {}
-# ~ num_punct = '+-.'
-# ~ ppps.update({Values.POSINT: pp.Combine(pp.WordStart(pp.alphanums + num_punct) +
-# ~ pp.Optional('+') +
-# ~ pp.Word(pp.nums) +
-# ~ pp.WordEnd(pp.alphanums + num_punct))})
-# ~ ppps.update({Values.NEGINT: pp.Combine(pp.WordStart(pp.alphanums + num_punct) +
-# ~ pp.Literal('-') +
-# ~ pp.Word(pp.nums) +
-# ~ pp.WordEnd(pp.alphanums + num_punct))})
-# ~ ppps.update({Values.ANYINT: pp.Combine(pp.WordStart(pp.alphanums + num_punct) +
-# ~ pp.Optional(pp.Literal('+') ^ pp.Literal('-')) +
-# ~ pp.Word(pp.nums) +
-# ~ pp.WordEnd(pp.alphanums + num_punct))})
-
-# Regex patterns from initial work:
 
 # ~ # Integers (code i)
 # ~ strs.update({Values.POSINT: '[+]?\\d+'})

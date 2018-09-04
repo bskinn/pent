@@ -38,17 +38,18 @@ class TestPentCorePatterns(ut.TestCase):
 
     def test_number_and_sign_matching(self):
         """Confirm number and sign patterns match the right string patterns."""
-        from pent import Number, Sign
-        from pent import number_patterns
+        import pent
 
         from .testdata import number_sign_vals as vals
 
-        for (v, n, s) in itt.product(vals, Number, Sign):
+        for (v, n, s) in itt.product(vals, pent.Number, pent.Sign):
             testname = "{0}_{1}_{2}".format(v, n, s)
             with self.subTest(testname):
-                p = number_patterns[(n, s)]
+                npat = pent.number_patterns[(n, s)]
+                npat = pent.std_wordify(npat)
+
                 try:
-                    p.parseString(v)
+                    npat.parseString(v)
                 except pp.ParseException:
                     res = False
                 else:
