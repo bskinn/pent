@@ -28,10 +28,16 @@ import pyparsing as pp
 
 from .enums import Number, Sign
 
+
+#: |str| with the standard allowed scientific notation exponent
+#: marker characters
+std_scinot_markers = "deDE"
+
+
 #: |str| with the standard numerical punctuation to include as not
 #: marking word boundaries. `de` is included to account for scientific
 #: notation.
-std_num_punct = "+-.de"
+std_num_punct = "+-." + std_scinot_markers
 
 
 def wordify_pattern(p, word_chars):
@@ -47,6 +53,33 @@ def std_wordify(p):
     return wordify_pattern(p, pp.nums + std_num_punct)
 
 
+_p_floatnums = pp.Or(
+    (
+        pp.Word(pp.nums) + pp.Literal(".") + pp.Optional(pp.Word(pp.nums)),
+        pp.Optional(pp.Word(pp.nums)) + pp.Literal(".") + pp.Word(pp.nums),
+    )
+)
+
+
+_p_scinums = pp.Or(
+    (
+        pp.Word(pp.nums)
+        + pp.Optional(pp.Literal("."))
+        + pp.Optional(pp.Word(pp.nums))
+        + pp.Word(std_scinot_markers)
+        + pp.Optional(pp.Word("+-"))
+        + pp.Word(pp.nums),
+        pp.Optional(pp.Word(pp.nums))
+        + pp.Literal(".")
+        + pp.Word(pp.nums)
+        + pp.Word(std_scinot_markers)
+        + pp.Optional(pp.Word("+-"))
+        + pp.Word(pp.nums),
+    )
+)
+# ~ strs.update({Values.POSSCI: '[+]?(\\d+\\.?\\d*[deDE][-+]?\\d+|\\d*\\.\\d+[deDE][-+]?\\d+)'})
+
+
 #: |dict| of ``pyparsing`` patterns matching single numbers.
 number_patterns = {
     (Number.Integer, Sign.Positive): pp.Combine(
@@ -56,7 +89,17 @@ number_patterns = {
         pp.Literal("-") + pp.Word(pp.nums)
     ),
     (Number.Integer, Sign.Any): pp.Combine(
-        pp.Optional(pp.Literal("-") ^ pp.Literal("+")) + pp.Word(pp.nums)
+        pp.Optional(pp.Word("-+")) + pp.Word(pp.nums)
+    ),
+    (Number.Float, Sign.Positive): pp.Combine(pp.Optional("+") + _p_floatnums),
+    (Number.Float, Sign.Negative): pp.Combine(pp.Literal("-") + _p_floatnums),
+    (Number.Float, Sign.Any): pp.Combine(
+        pp.Optional(pp.Word("+-")) + _p_floatnums
+    ),
+    (Number.SciNot, Sign.Positive): pp.Combine(pp.Optional("+") + _p_scinums),
+    (Number.SciNot, Sign.Negative): pp.Combine(pp.Literal("-") + _p_scinums),
+    (Number.SciNot, Sign.Any): pp.Combine(
+        pp.Optional(pp.Word("+-")) + _p_scinums
     ),
 }
 
