@@ -1,0 +1,4 @@
+#! /bin/bash
+
+black tests.py pent pent/test
+

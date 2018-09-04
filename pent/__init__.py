@@ -27,8 +27,9 @@ r"""*Core package definition module for* ``pent``.
 
 from __future__ import absolute_import
 
-__all__ = ['Number', 'Sign']
+__all__ = ["Number", "Sign", "number_patterns", "wordify_pattern", "std_wordify"]
 
 from .enums import Number, Sign
+from .patterns import number_patterns, wordify_pattern, std_wordify
 
-__version__ = '0.1dev1'
+__version__ = "0.1dev1"

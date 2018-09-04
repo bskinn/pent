@@ -28,9 +28,9 @@ r"""*Test objects for* ``pent`` *test suite*.
 
 
 import itertools as itt
-import os
-import os.path as osp
 import unittest as ut
+
+import pyparsing as pp
 
 
 class TestPentCorePatterns(ut.TestCase):
@@ -39,12 +39,22 @@ class TestPentCorePatterns(ut.TestCase):
     def test_number_and_sign_matching(self):
         """Confirm number and sign patterns match the right string patterns."""
         from pent import Number, Sign
+        from pent import number_patterns
 
         from .testdata import number_sign_vals as vals
 
-        for (n, s) in itt.product(Number, Sign):
-            pass
+        for (v, n, s) in itt.product(vals, Number, Sign):
+            testname = "{0}_{1}_{2}".format(v, n, s)
+            with self.subTest(testname):
+                p = number_patterns[(n, s)]
+                try:
+                    p.parseString(v)
+                except pp.ParseException:
+                    res = False
+                else:
+                    res = True
 
+                self.assertEqual(vals[v][(n, s)], res)
 
 
 def suite_expect_good():
@@ -55,5 +65,5 @@ def suite_expect_good():
     return s
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Module not executable.")

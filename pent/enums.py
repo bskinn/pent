@@ -26,33 +26,34 @@ r"""``Enums`` *for* ``pent``.
 
 from enum import Enum
 
+
 class Number(Enum):
     """Enumeration for the different kinds of recognized number primitives."""
 
     #: Integer value; no decimal or scientific/exponential notation
-    Integer = 'int'
+    Integer = "int"
 
     #: Floating-point value; no scientific/exponential notation
-    Float = 'float'
+    Float = "float"
 
     #: Scientific/exponential notation, where exponent is *required*
-    SciNot = 'sci'
+    SciNot = "sci"
 
     #: "Decimal" value; floating-point value with or without an exponent
-    Decimal = 'dec'
+    Decimal = "dec"
 
     #: "General" value; integer, float, or scientific notation
-    General = 'gen'
+    General = "gen"
 
 
 class Sign(Enum):
     """Enumeration for the different kinds of recognized numerical signs."""
 
     #: Positive value only (leading '+' optional; includes zero)
-    Positive = 'pos'
+    Positive = "pos"
 
     #: Negative value only (leading '-' required; includes negative zero)
-    Negative = 'neg'
+    Negative = "neg"
 
     #: Any sign
-    Any = 'any'
+    Any = "any"

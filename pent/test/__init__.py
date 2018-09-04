@@ -17,8 +17,6 @@
 
 from __future__ import absolute_import
 
-__all__ = ['suite_expect_good',
-           ]
+__all__ = ["suite_expect_good"]
 
 from .pent_base import suite_expect_good
-

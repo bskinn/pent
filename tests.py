@@ -33,7 +33,8 @@ class AP(object):
     Also includes PFX, a helper string for substitution/formatting.
 
     """
-    ALL = 'all'
+
+    ALL = "all"
 
     PFX = "--{0}"
 
@@ -45,15 +46,17 @@ def get_parser():
     prs = argparse.ArgumentParser(description="Run tests for pent")
 
     # Verbosity argument
-    prs.add_argument('-v', action='store_true',
-                     help="Show verbose output")
+    prs.add_argument("-v", action="store_true", help="Show verbose output")
 
     # Test subgroups
 
     # Options without subgroups
-    prs.add_argument(AP.PFX.format(AP.ALL), '-a',
-                     action='store_true',
-                     help="Run all tests (overrides any other selections)")
+    prs.add_argument(
+        AP.PFX.format(AP.ALL),
+        "-a",
+        action="store_true",
+        help="Run all tests (overrides any other selections)",
+    )
 
     # Return the parser
     return prs
@@ -85,18 +88,15 @@ def main():
 
     # Add commandline-indicated tests per-group
     # Expect-good tests
-    addsuiteif(pent.test.pent_base.suite_expect_good(),
-               [AP.ALL])
+    addsuiteif(pent.test.pent_base.suite_expect_good(), [AP.ALL])
 
     # Create the test runner and execute
-    ttr = ut.TextTestRunner(buffer=True,
-                            verbosity=(2 if params['v'] else 1),
-                            )
+    ttr = ut.TextTestRunner(buffer=True, verbosity=(2 if params["v"] else 1))
     success = ttr.run(ts).wasSuccessful()
 
     # Return based on success result (lets tox report success/fail)
     sys.exit(0 if success else 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
