@@ -99,3 +99,7 @@ class TokenField(Enum):
 
     #: Format of the numerical value (int, float, scinot, decimal, general)
     Number = "number"
+
+
+if __name__ == "__main__":  # pragma: no cover
+    print("Module not executable.")

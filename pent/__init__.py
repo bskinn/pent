@@ -37,10 +37,11 @@ __all__ = [
     "number_patterns",
     "wordify_pattern",
     "std_wordify",
+    "group_prefix",
 ]
 
 from .enums import Number, Sign, TokenField, NumberMatchType, StringMatchType
-from .parser import Parser
+from .parser import Parser, group_prefix
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
 

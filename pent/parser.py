@@ -39,6 +39,7 @@ def _concat_values(e):
     """Concatenate the values of the given Enum."""
     return "".join(_.value for _ in e)
 
+group_prefix = 'g'
 
 _s_any_flag = "~"
 
@@ -143,7 +144,7 @@ class Parser:
     @staticmethod
     def _group_open(group_id):
         """Create the opening pattern for a named group."""
-        return r"(?P<{}>".format(str(group_id))
+        return r"(?P<g{}>".format(str(group_id))
 
     @staticmethod
     def _group_close():
@@ -162,3 +163,7 @@ class Parser:
                 pattern += c
 
         return pattern
+
+
+if __name__ == "__main__":  # pragma: no cover
+    print("Module not executable.")
