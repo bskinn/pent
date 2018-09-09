@@ -38,7 +38,7 @@ std_scinot_markers = "deDE"
 #: |str| with the standard numerical punctuation to include as not
 #: marking word boundaries. `de` is included to account for scientific
 #: notation.
-std_num_punct = std_scinot_markers + "+.-"
+std_num_punct = std_scinot_markers + "+.-"  # MUST have '-' at the end!!
 
 
 def wordify_pattern(p, word_chars):

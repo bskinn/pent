@@ -31,12 +31,15 @@ __all__ = [
     "Parser",
     "Number",
     "Sign",
+    "TokenField",
+    "NumberMatchType",
+    "StringMatchType",
     "number_patterns",
     "wordify_pattern",
     "std_wordify",
 ]
 
-from .enums import Number, Sign
+from .enums import Number, Sign, TokenField, NumberMatchType, StringMatchType
 from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
