@@ -12,9 +12,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import os.path as osp
+import sys
+sys.path.insert(0, osp.abspath(osp.join(os.pardir, os.pardir)))
 
 
 # -- Project information -----------------------------------------------------
@@ -24,16 +25,16 @@ copyright = '2018, Brian Skinn'
 author = 'Brian Skinn'
 
 # The short X.Y version
-version = ''
+version = '0.1'
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '0.1dev1'
 
 
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
-# needs_sphinx = '1.0'
+needs_sphinx = '1.6'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -45,6 +46,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
+    'sphinx_issues',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -80,7 +82,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -156,7 +158,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'pent', 'pent Documentation',
-     author, 'pent', 'One line description of project.',
+     author, 'pent', 'pent Extracts Numerical Text.',
      'Miscellaneous'),
 ]
 
@@ -166,7 +168,7 @@ texinfo_documents = [
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/', 'isphx/objects_python.inv')}
 
 # -- Options for todo extension ----------------------------------------------
 

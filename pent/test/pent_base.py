@@ -36,6 +36,23 @@ import pyparsing as pp
 class TestPentCorePatterns(ut.TestCase):
     """Confirming basic pattern matching of the core pyparsing patterns."""
 
+    @staticmethod
+    def parsetest(npat, s):
+        """Run an individual parse test on `s` using pattern `npat`."""
+        try:
+            npat.parseString(s)
+        except pp.ParseException:
+            res = False
+        else:
+            res = True
+
+        return res
+
+    @staticmethod
+    def testname(v, n, s):
+        """Compose test name from a numerical value and pattern Number/Sign."""
+        return "{0}_{1}_{2}".format(v, n, s)
+
     def test_number_and_sign_matching(self):
         """Confirm number and sign patterns match the right string patterns."""
         import pent
@@ -43,19 +60,34 @@ class TestPentCorePatterns(ut.TestCase):
         from .testdata import number_sign_vals as vals
 
         for (v, n, s) in itt.product(vals, pent.Number, pent.Sign):
-            testname = "{0}_{1}_{2}".format(v, n, s)
-            with self.subTest(testname):
+            with self.subTest(self.testname(v, n, s)):
                 npat = pent.number_patterns[(n, s)]
                 npat = pent.std_wordify(npat)
 
-                try:
-                    npat.parseString(v)
-                except pp.ParseException:
-                    res = False
-                else:
-                    res = True
+                res = self.parsetest(npat, v)
 
                 self.assertEqual(vals[v][(n, s)], res)
+
+    def test_raw_single_value_space_delimited(self):
+        """Confirm single-value parsing works with raw pyparsing patterns."""
+        import pent
+
+        from .testdata import number_sign_vals as vals
+
+        test_line = "This line contains the value {} with space delimit."
+        #~ test_line = "This line contains the value -2e4 with space delimit."
+
+        for v in vals:
+            test_str = test_line.format(v)
+
+            for (n, s) in itt.product(pent.Number, pent.Sign):
+                with self.subTest(self.testname(v, n, s)):
+                    npat = pent.number_patterns[(n, s)]
+                    npat = pent.std_wordify(npat)
+
+                    res = self.parsetest(npat, test_str)
+
+                    self.assertEqual(vals[v][(n, s)], res, msg=test_str)
 
 
 def suite_expect_good():

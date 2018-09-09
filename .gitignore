@@ -105,3 +105,6 @@ ENV/
 *.bak
 *.tmp
 
+# objects.inv in docs
+doc/source/isphx/*.inv
+

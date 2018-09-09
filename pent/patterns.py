@@ -53,6 +53,9 @@ def std_wordify(p):
     return wordify_pattern(p, pp.nums + std_num_punct)
 
 
+_p_intnums = pp.Word(pp.nums)
+
+
 _p_floatnums = pp.Or(
     (
         pp.Word(pp.nums) + pp.Literal(".") + pp.Optional(pp.Word(pp.nums)),
@@ -77,19 +80,24 @@ _p_scinums = pp.Or(
         + pp.Word(pp.nums),
     )
 )
-# ~ strs.update({Values.POSSCI: '[+]?(\\d+\\.?\\d*[deDE][-+]?\\d+|\\d*\\.\\d+[deDE][-+]?\\d+)'})
+
+
+_p_decimalnums = pp.Or((_p_floatnums, _p_scinums))
+
+
+_p_generalnums = pp.Or((_p_floatnums, _p_scinums, _p_intnums))
 
 
 #: |dict| of ``pyparsing`` patterns matching single numbers.
 number_patterns = {
     (Number.Integer, Sign.Positive): pp.Combine(
-        pp.Optional("+") + pp.Word(pp.nums)
+        pp.Optional("+") + _p_intnums
     ),
     (Number.Integer, Sign.Negative): pp.Combine(
-        pp.Literal("-") + pp.Word(pp.nums)
+        pp.Literal("-") + _p_intnums
     ),
     (Number.Integer, Sign.Any): pp.Combine(
-        pp.Optional(pp.Word("-+")) + pp.Word(pp.nums)
+        pp.Optional(pp.Word("-+")) + _p_intnums
     ),
     (Number.Float, Sign.Positive): pp.Combine(pp.Optional("+") + _p_floatnums),
     (Number.Float, Sign.Negative): pp.Combine(pp.Literal("-") + _p_floatnums),
@@ -100,6 +108,16 @@ number_patterns = {
     (Number.SciNot, Sign.Negative): pp.Combine(pp.Literal("-") + _p_scinums),
     (Number.SciNot, Sign.Any): pp.Combine(
         pp.Optional(pp.Word("+-")) + _p_scinums
+    ),
+    (Number.Decimal, Sign.Positive): pp.Combine(pp.Optional("+") + _p_decimalnums),
+    (Number.Decimal, Sign.Negative): pp.Combine(pp.Literal("-") + _p_decimalnums),
+    (Number.Decimal, Sign.Any): pp.Combine(
+        pp.Optional(pp.Word("+-")) + _p_decimalnums
+    ),
+    (Number.General, Sign.Positive): pp.Combine(pp.Optional("+") + _p_generalnums),
+    (Number.General, Sign.Negative): pp.Combine(pp.Literal("-") + _p_generalnums),
+    (Number.General, Sign.Any): pp.Combine(
+        pp.Optional(pp.Word("+-")) + _p_generalnums
     ),
 }
 
