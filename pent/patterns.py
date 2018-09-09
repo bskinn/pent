@@ -1,4 +1,4 @@
-r"""``pyparsing`` *patterns for* ``pent``.
+r"""*Regex patterns for* ``pent``.
 
 ``pent`` Extracts Numerical Text.
 

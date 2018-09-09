@@ -28,6 +28,7 @@ r"""*Core package definition module for* ``pent``.
 from __future__ import absolute_import
 
 __all__ = [
+    "Parser",
     "Number",
     "Sign",
     "number_patterns",
@@ -36,6 +37,7 @@ __all__ = [
 ]
 
 from .enums import Number, Sign
+from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
 
