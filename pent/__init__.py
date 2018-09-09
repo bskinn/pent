@@ -38,4 +38,5 @@ __all__ = [
 from .enums import Number, Sign
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
+
 __version__ = "0.1dev1"

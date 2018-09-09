@@ -28,6 +28,7 @@ r"""*Test objects for* ``pent`` *test suite*.
 
 
 import itertools as itt
+import re
 import unittest as ut
 
 import pyparsing as pp
@@ -39,17 +40,12 @@ class TestPentCorePatterns(ut.TestCase):
     @staticmethod
     def parsetest(npat, s):
         """Run an individual parse test on `s` using pattern `npat`."""
-        try:
-            npat.parseString(s)
-        except pp.ParseException:
-            res = False
-        else:
-            res = True
+        m = re.search(npat, s)
 
-        return res
+        return m is not None
 
     @staticmethod
-    def testname(v, n, s):
+    def make_testname(v, n, s):
         """Compose test name from a numerical value and pattern Number/Sign."""
         return "{0}_{1}_{2}".format(v, n, s)
 
@@ -60,13 +56,13 @@ class TestPentCorePatterns(ut.TestCase):
         from .testdata import number_sign_vals as vals
 
         for (v, n, s) in itt.product(vals, pent.Number, pent.Sign):
-            with self.subTest(self.testname(v, n, s)):
+            with self.subTest(self.make_testname(v, n, s)):
                 npat = pent.number_patterns[(n, s)]
                 npat = pent.std_wordify(npat)
 
                 res = self.parsetest(npat, v)
 
-                self.assertEqual(vals[v][(n, s)], res)
+                self.assertEqual(vals[v][(n, s)], res, msg=npat)
 
     def test_raw_single_value_space_delimited(self):
         """Confirm single-value parsing works with raw pyparsing patterns."""
@@ -75,13 +71,12 @@ class TestPentCorePatterns(ut.TestCase):
         from .testdata import number_sign_vals as vals
 
         test_line = "This line contains the value {} with space delimit."
-        #~ test_line = "This line contains the value -2e4 with space delimit."
 
         for v in vals:
             test_str = test_line.format(v)
 
             for (n, s) in itt.product(pent.Number, pent.Sign):
-                with self.subTest(self.testname(v, n, s)):
+                with self.subTest(self.make_testname(v, n, s)):
                     npat = pent.number_patterns[(n, s)]
                     npat = pent.std_wordify(npat)
 
