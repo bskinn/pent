@@ -29,7 +29,7 @@ import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
 from .enums import NumberMatchType, StringMatchType
-from .patterns import number_patterns, wordify_pattern, std_wordify
+from .patterns import number_patterns, std_wordify
 
 
 # ## MINI-LANGUAGE PARSER DEFINITION ##
@@ -39,9 +39,12 @@ def _concat_values(e):
     """Concatenate the values of the given Enum."""
     return "".join(_.value for _ in e)
 
-group_prefix = 'g'
+
+group_prefix = "g"
 
 _s_any_flag = "~"
+
+_s_num_no_space = "x"
 
 # ## ARBITRARY CONTENT ##
 # Tilde says anything may be here, including multiple words
@@ -68,9 +71,16 @@ _pp_num_sign = pp.Word(_concat_values(Sign), exact=1)
 _pp_num_type = pp.Word(_concat_values(Number), exact=1)
 
 # Composite pattern for a number
-_pp_number = _pp_num_flag.setResultsName(TokenField.Type.value) + pp.Group(
-    _pp_num_sign.setResultsName(TokenField.Sign.value)
-    + _pp_num_type.setResultsName(TokenField.Number.value)
+_pp_number = (
+    _pp_num_flag.setResultsName(TokenField.Type.value)
+    + pp.Group(
+        _pp_num_sign.setResultsName(TokenField.Sign.value)
+        + _pp_num_type.setResultsName(TokenField.Number.value)
+    ).setResultsName(TokenField.SignNumber.value)
+    + pp.Optional(pp.Literal(_s_num_no_space)).setResultsName(
+        TokenField.NoSpace.value
+    )
+    + pp.WordEnd()
 )
 
 # ## COMBINED TOKEN PARSER ##
@@ -102,34 +112,46 @@ class Parser:
         for i, t in enumerate(tokens):
             # Optional whitespace before the first token;
             # mandatory whitespace before all others
-            pattern += r"\s*" if i == 0 else r"\s+"
+            pre_space = r"\s*" if i == 0 else r"\s+"
 
             # Will raise parse error here if bad token
             pr = _pp_token.parseString(t)
 
             if pr[0] == _s_any_flag:
-                pattern += ".*?"
+                pattern += pre_space + ".*?"
 
             elif pr[0] == StringMatchType.Ignore.value:
-                pattern += cls._string_pattern(pr[1])
+                pattern += pre_space + cls._string_pattern(pr[1])
 
             elif pr[0] == StringMatchType.Capture.value:
-                if capture_groups:
-                    group_id += 1
-                    pattern += cls._group_open(group_id)
-
-                pattern += cls._string_pattern(pr[1])
-
-                if capture_groups:
-                    pattern += cls._group_close()
+                subpat, group_id = cls._group_enclose(
+                    cls._string_pattern(pr[1]),
+                    group_id,
+                    do_enclose=capture_groups,
+                )
+                pattern += pre_space + subpat
 
             elif pr[0] == NumberMatchType.Suppress.value:
-                num_pat = cls._get_number_pattern(pr[1])
-                pattern += std_wordify(num_pat)
+                # THE 'NO-SPACE BEFORE' FEATURE IS GOING TO BE COMPLEX, SINCE
+                # IT WON'T WORK TO WORDIFY THE PATTERNS FROM EACH TOKEN
+                # BECAUSE THERE'S NO ACTUAL WORD BREAK WHEN THERE'S NO
+                # PRECEDING SPACE
+                pattern += "" if TokenField.NoSpace.value in pr else pre_space
+                pattern += std_wordify(
+                    cls._get_number_pattern(pr[TokenField.SignNumber.value])
+                )
+
+            elif pr[0] == NumberMatchType.Single.value:
+                subpat, group_id = cls._group_enclose(
+                    cls._get_number_pattern(pr[1]),
+                    group_id,
+                    do_enclose=capture_groups,
+                )
+                pattern += pre_space + std_wordify(subpat)
 
         # Plus possible whitespace to the end of the line
         # THIS APPROACH *MAY* END UP BEING PROBLEMATIC
-        pattern += r"[ ]*($|(?=\n))"
+        pattern += r"[ \t]*($|(?=\n))"
 
         return pattern
 
@@ -141,10 +163,29 @@ class Parser:
 
         return number_patterns[num, sign]
 
+    @classmethod
+    def _group_enclose(cls, pat, group_id, *, do_enclose=True):
+        """Enclose the pattern in the group, if told to do so.
+
+        Returns the pattern, modified or not, and the updated group_id.
+
+        """
+        outpat = ""
+        if do_enclose:
+            group_id += 1
+            outpat += cls._group_open(group_id)
+
+        outpat += pat
+
+        if do_enclose:
+            outpat += cls._group_close()
+
+        return outpat, group_id
+
     @staticmethod
     def _group_open(group_id):
         """Create the opening pattern for a named group."""
-        return r"(?P<g{}>".format(str(group_id))
+        return r"(?P<{0}{1}>".format(group_prefix, str(group_id))
 
     @staticmethod
     def _group_close():

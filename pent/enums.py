@@ -100,6 +100,12 @@ class TokenField(Enum):
     #: Format of the numerical value (int, float, scinot, decimal, general)
     Number = "number"
 
+    #: Combined sign and number, for initial pattern group retrieval
+    SignNumber = "sign_number"
+
+    #: Flag to suppress preceding space in the generated pattern
+    NoSpace = "no_space"
+
 
 if __name__ == "__main__":  # pragma: no cover
     print("Module not executable.")

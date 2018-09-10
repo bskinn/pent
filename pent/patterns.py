@@ -25,7 +25,6 @@ r"""*Regex patterns for* ``pent``.
 """
 
 import itertools as itt
-import re
 
 from .enums import Number, Sign
 
@@ -42,7 +41,7 @@ std_num_punct = std_scinot_markers + "+.-"  # MUST have '-' at the end!!
 
 
 def wordify_pattern(p, word_chars):
-    """Wrap a pattern with word start/end markers using arbitrary word chars."""
+    """Wrap pattern with word start/end markers using arbitrary word chars."""
     return r"(?<![{0}]){1}(?![{0}])".format(word_chars, p)
 
 
