@@ -1,4 +1,4 @@
 @echo off
 
-black.exe tests.py pent pent\test -l 79
+black.exe setup.py tests.py pent pent\test -l 79
 

@@ -51,4 +51,4 @@ from .parser import Parser, Token, group_prefix
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
 
-__version__ = "0.1dev1"
+__version__ = "0.1.dev1"

@@ -190,7 +190,9 @@ class Token:
     @property
     def number(self):
         if self.is_num:
-            return Number(self._pr[TokenField.SignNumber.value][TokenField.Number.value])
+            return Number(
+                self._pr[TokenField.SignNumber.value][TokenField.Number.value]
+            )
         else:
             return None
 
@@ -198,7 +200,9 @@ class Token:
     @property
     def sign(self):
         if self.is_num:
-            return Sign(self._pr[TokenField.SignNumber.value][TokenField.Sign.value])
+            return Sign(
+                self._pr[TokenField.SignNumber.value][TokenField.Sign.value]
+            )
         else:
             return None
 
@@ -218,7 +222,7 @@ class Token:
             raise BadTokenError(self.token) from e
 
         if self.is_any:
-            self._pattern = '.*?'
+            self._pattern = ".*?"
 
         elif self.is_str:
             self._pattern = self._string_pattern(self._pr[1])
@@ -251,8 +255,12 @@ class Token:
     @classmethod
     def _get_number_pattern(cls, parse_result):
         """Return the correct number pattern given the parse result."""
-        num = Number(parse_result[TokenField.SignNumber.value][TokenField.Number.value])
-        sign = Sign(parse_result[TokenField.SignNumber.value][TokenField.Sign.value])
+        num = Number(
+            parse_result[TokenField.SignNumber.value][TokenField.Number.value]
+        )
+        sign = Sign(
+            parse_result[TokenField.SignNumber.value][TokenField.Sign.value]
+        )
 
         return cls._numpats[num, sign]
 

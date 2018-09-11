@@ -10,7 +10,7 @@ python:
  - 3.7-dev
 script:
  - coverage run tests.py -a
-# - flake8 sphobjinv
+# - flake8 pent
 # - echo $TRAVIS_PYTHON_VERSION | grep -e '^3\.6' && sh -c 'cd doc; make doctest' || echo 'No doctest.'
  - echo $TRAVIS_PYTHON_VERSION | grep -e '^3\.6' && codecov || echo "No codecov."
 

@@ -24,11 +24,12 @@ r"""*Custom exceptions for* ``pent``.
 
 """
 
-class PentError(Exception):
+
+class PentError(Exception):  # pragma: no cover
     pass
 
 
-class BadTokenError(PentError):
+class BadTokenError(PentError):  # pragma: no cover
     """Raised during attempts to parse an invalid token."""
 
     def __init__(self, token):
