@@ -40,14 +40,38 @@ std_scinot_markers = "deDE"
 std_num_punct = std_scinot_markers + "+.-"  # MUST have '-' at the end!!
 
 
+#: Standard word marker characters for pent
+std_word_chars = "a-zA-Z0-9" + std_num_punct
+
+
+def wordify_open(p, word_chars):
+    """Prepend the word start markers."""
+    return r"(?<![{0}]){1}".format(word_chars, p)
+
+
+def wordify_close(p, word_chars):
+    """Append the word end markers."""
+    return r"{1}(?![{0}])".format(word_chars, p)
+
+
 def wordify_pattern(p, word_chars):
     """Wrap pattern with word start/end markers using arbitrary word chars."""
-    return r"(?<![{0}]){1}(?![{0}])".format(word_chars, p)
+    return wordify_open(wordify_close(p, word_chars), word_chars)
 
 
 def std_wordify(p):
     """Wrap a token in the ``pent`` standard word start/end markers."""
-    return wordify_pattern(p, "a-zA-Z0-9" + std_num_punct)
+    return wordify_pattern(p, std_word_chars)
+
+
+def std_wordify_open(p):
+    """Prepend the standard word start markers."""
+    return r"(?<![{0}]){1}".format(std_word_chars, p)
+
+
+def std_wordify_close(p):
+    """Append the standard word end markers."""
+    return r"{1}(?![{0}])".format(std_word_chars, p)
 
 
 _p_intnums = r"\d+"

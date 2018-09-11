@@ -30,7 +30,7 @@ import pyparsing as pp
 from .enums import Number, Sign, TokenField
 from .enums import NumberMatchType, StringMatchType, AnyMatchType
 from .errors import BadTokenError
-from .patterns import number_patterns, std_wordify
+from .patterns import number_patterns, std_wordify_open, std_wordify_close
 
 
 # ## MINI-LANGUAGE PARSER DEFINITION ##
@@ -115,21 +115,44 @@ class Parser:
         # Zero-length start of line (or of entire string) match
         pattern = r"(^|(?<=\n))"
 
+        # Always have optional starting whitespace
+        pattern += r"[ \t]*"
+
+        # Must initialize
         group_id = 0
 
-        for i, t in enumerate(tokens):
-            # IGNORING SPACE_AFTER FOR NOW
-            pattern += r"\s*" if i == 0 else r"\s+"
+        # Initialize flag for a preceding no-space-after num token
+        prior_no_space_token = False
 
+        for i, t in enumerate(tokens):
             tok_pattern = t.pattern
             if t.needs_group_id:
                 group_id += 1
                 tok_pattern = tok_pattern.format(str(group_id))
 
-            pattern += tok_pattern
+            if t.is_num:
+                if not prior_no_space_token:
+                    tok_pattern = std_wordify_open(tok_pattern)
 
-        # Plus possible whitespace to the end of the line
-        # THIS APPROACH *MAY* END UP BEING PROBLEMATIC
+                if t.space_after:
+                    tok_pattern = std_wordify_close(tok_pattern)
+                    prior_no_space_token = False
+                else:
+                    prior_no_space_token = True
+
+                pattern += tok_pattern
+
+            else:
+                pattern += tok_pattern
+                prior_no_space_token = False
+
+            # Add required space or no space, depending on
+            # what the token calls for, as long as it's not
+            # the last token
+            if i < len(tokens) - 1 and t.space_after:
+                pattern += r"[ \t]+"
+
+        # Always put possible whitespace to the end of the line
         pattern += r"[ \t]*($|(?=\n))"
 
         return pattern
@@ -211,8 +234,10 @@ class Token:
     def space_after(self):
         if self.is_num:
             return not TokenField.NoSpace.value in self._pr
+        elif self.is_str:
+            return True
         else:
-            return None
+            return False
 
     def __attrs_post_init__(self):
         """Handle automatic creation stuff."""
