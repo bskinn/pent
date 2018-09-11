@@ -59,6 +59,13 @@ class Sign(Enum):
     Any = "."
 
 
+class AnyMatchType(Enum):
+    """Enumeration for various 'any' match types."""
+
+    #: Non-captured match
+    Ignore = "~"
+
+
 class StringMatchType(Enum):
     """Enumeration for the various match types on literal string fields."""
 

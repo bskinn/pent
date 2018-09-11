@@ -174,6 +174,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     if m is not None:
                         self.assertEqual(m.group(pent.group_prefix + "1"), v)
 
+    @ut.skip("Awaiting refactor and implement")
     def test_single_nums_no_space(self):
         """Confirm two-number capture works, with no intervening space.
 
@@ -186,7 +187,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_str = "This is a string with 123-456 in it."
-        test_pat = "~ ..i #-ix ~"
+        test_pat = "~ ..ix #-i ~"
 
         npat = self.prs.convert_line(test_pat)
 

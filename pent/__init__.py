@@ -29,19 +29,25 @@ from __future__ import absolute_import
 
 __all__ = [
     "Parser",
+    "Token",
     "Number",
     "Sign",
     "TokenField",
+    "AnyMatchType",
     "NumberMatchType",
     "StringMatchType",
     "number_patterns",
     "wordify_pattern",
     "std_wordify",
     "group_prefix",
+    "PentError",
+    "BadTokenError",
 ]
 
-from .enums import Number, Sign, TokenField, NumberMatchType, StringMatchType
-from .parser import Parser, group_prefix
+from .enums import Number, Sign, TokenField
+from .enums import AnyMatchType, NumberMatchType, StringMatchType
+from .errors import PentError, BadTokenError
+from .parser import Parser, Token, group_prefix
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
 
