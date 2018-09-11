@@ -1,0 +1,16 @@
+install:
+ - pip install -r requirements-travis.txt
+# - pip install -e .
+# - sh -c 'cd doc; make html; mkdir scratch'
+language: python
+python:
+ - 3.4
+ - 3.5
+ - 3.6
+ - 3.7-dev
+script:
+ - coverage run tests.py -a
+# - flake8 sphobjinv
+# - echo $TRAVIS_PYTHON_VERSION | grep -e '^3\.6' && sh -c 'cd doc; make doctest' || echo 'No doctest.'
+ - echo $TRAVIS_PYTHON_VERSION | grep -e '^3\.6' && codecov || echo "No codecov."
+
