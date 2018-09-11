@@ -27,7 +27,7 @@ r"""``Enums`` *for* ``pent``.
 from enum import Enum
 
 
-class Number(Enum):
+class Number(str, Enum):
     """Enumeration for the different kinds of recognized number primitives."""
 
     #: Integer value; no decimal or scientific/exponential notation
@@ -46,7 +46,7 @@ class Number(Enum):
     General = "g"
 
 
-class Sign(Enum):
+class Sign(str, Enum):
     """Enumeration for the different kinds of recognized numerical signs."""
 
     #: Positive value only (leading '+' optional; includes zero)
@@ -59,14 +59,14 @@ class Sign(Enum):
     Any = "."
 
 
-class AnyMatchType(Enum):
+class AnyMatchType(str, Enum):
     """Enumeration for various 'any' match types."""
 
     #: Non-captured match
     Ignore = "~"
 
 
-class StringMatchType(Enum):
+class StringMatchType(str, Enum):
     """Enumeration for the various match types on literal string fields."""
 
     #: Captured match
@@ -76,7 +76,7 @@ class StringMatchType(Enum):
     Ignore = "!"
 
 
-class NumberMatchType(Enum):
+class NumberMatchType(str, Enum):
     """Enumeration for the various match types on the numeric fields."""
 
     #: Single value match
@@ -95,7 +95,7 @@ class NumberMatchType(Enum):
     Suppress = "#"
 
 
-class TokenField(Enum):
+class TokenField(str, Enum):
     """Enumeration for fields within a mini-language number token."""
 
     #: Type of number field (single value, one-or-more, zero-or-more, etc.)

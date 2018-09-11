@@ -30,27 +30,16 @@ import pyparsing as pp
 from .enums import Number, Sign, TokenField
 from .enums import NumberMatchType, StringMatchType, AnyMatchType
 from .errors import BadTokenError
-from .patterns import number_patterns, std_wordify_open, std_wordify_close
+from .patterns import std_wordify_open, std_wordify_close
 
 
 # ## MINI-LANGUAGE PARSER DEFINITION ##
 
 # ## HELPERS ##
-def _concat_values(e):
-    """Concatenate the values of the given Enum."""
-    return "".join(_.value for _ in e)
-
-
-def _has_value(e, v):
-    """Check if Enum 'e' has value 'v'."""
-    return v in (_.value for _ in e)
-
-
 group_prefix = "g"
-
 _s_any_flag = "~"
-
 _s_num_no_space = "x"
+
 
 # ## ARBITRARY CONTENT ##
 # Tilde says anything may be here, including multiple words
@@ -58,7 +47,7 @@ _pp_any_flag = pp.Literal(_s_any_flag)
 
 # ## LITERAL STRING ##
 # Marker for the rest of the token to be a literal string
-_pp_str_flag = pp.Word(_concat_values(StringMatchType), exact=1)
+_pp_str_flag = pp.Word("".join(StringMatchType), exact=1)
 
 # Remainder of the content after the marker, spaces included
 _pp_str_content = pp.Word(pp.printables + " ")
@@ -68,23 +57,23 @@ _pp_string = _pp_str_flag + _pp_str_content
 
 # ## NUMERICAL VALUE ##
 # Initial marker for a numerical value
-_pp_num_flag = pp.Word(_concat_values(NumberMatchType), exact=1)
+_pp_num_flag = pp.Word("".join(NumberMatchType), exact=1)
 
 # Marker for the sign of the value; period indicates either sign
-_pp_num_sign = pp.Word(_concat_values(Sign), exact=1)
+_pp_num_sign = pp.Word("".join(Sign), exact=1)
 
 # Marker for the number type to look for
-_pp_num_type = pp.Word(_concat_values(Number), exact=1)
+_pp_num_type = pp.Word("".join(Number), exact=1)
 
 # Composite pattern for a number
 _pp_number = (
-    _pp_num_flag.setResultsName(TokenField.Type.value)
+    _pp_num_flag.setResultsName(TokenField.Type)
     + pp.Group(
-        _pp_num_sign.setResultsName(TokenField.Sign.value)
-        + _pp_num_type.setResultsName(TokenField.Number.value)
-    ).setResultsName(TokenField.SignNumber.value)
+        _pp_num_sign.setResultsName(TokenField.Sign)
+        + _pp_num_type.setResultsName(TokenField.Number)
+    ).setResultsName(TokenField.SignNumber)
     + pp.Optional(pp.Literal(_s_num_no_space)).setResultsName(
-        TokenField.NoSpace.value
+        TokenField.NoSpace
     )
     + pp.WordEnd()
 )
@@ -181,17 +170,17 @@ class Token:
     #: Flag for whether the token is an "any content" token
     @property
     def is_any(self):
-        return _has_value(AnyMatchType, self._pr[0])
+        return self._pr[0] in list(AnyMatchType)
 
     #: Flag for whether the token matches a literal string
     @property
     def is_str(self):
-        return _has_value(StringMatchType, self._pr[0])
+        return self._pr[0] in list(StringMatchType)
 
     #: Flag for whether the token matches a number
     @property
     def is_num(self):
-        return _has_value(NumberMatchType, self._pr[0])
+        return self._pr[0] in list(NumberMatchType)
 
     #: String matching type; |None| if token doesn't match a string
     @property
@@ -213,9 +202,7 @@ class Token:
     @property
     def number(self):
         if self.is_num:
-            return Number(
-                self._pr[TokenField.SignNumber.value][TokenField.Number.value]
-            )
+            return Number(self._pr[TokenField.SignNumber][TokenField.Number])
         else:
             return None
 
@@ -223,9 +210,7 @@ class Token:
     @property
     def sign(self):
         if self.is_num:
-            return Sign(
-                self._pr[TokenField.SignNumber.value][TokenField.Sign.value]
-            )
+            return Sign(self._pr[TokenField.SignNumber][TokenField.Sign])
         else:
             return None
 
@@ -233,7 +218,7 @@ class Token:
     @property
     def space_after(self):
         if self.is_num:
-            return not TokenField.NoSpace.value in self._pr
+            return not TokenField.NoSpace in self._pr
         elif self.is_str:
             return True
         else:
@@ -252,14 +237,14 @@ class Token:
         elif self.is_str:
             self._pattern = self._string_pattern(self._pr[1])
 
-            if self.capture and self._pr[0] == StringMatchType.Capture.value:
+            if self.capture and self._pr[0] == StringMatchType.Capture:
                 self.needs_group_id = True
                 self._pattern = self._group_enclose(self._pattern)
 
         elif self.is_num:
             self._pattern = self._get_number_pattern(self._pr)
 
-            if self.capture and self._pr[0] == NumberMatchType.Single.value:
+            if self.capture and self._pr[0] == NumberMatchType.Single:
                 self.needs_group_id = True
                 self._pattern = self._group_enclose(self._pattern)
 
@@ -280,12 +265,8 @@ class Token:
     @classmethod
     def _get_number_pattern(cls, parse_result):
         """Return the correct number pattern given the parse result."""
-        num = Number(
-            parse_result[TokenField.SignNumber.value][TokenField.Number.value]
-        )
-        sign = Sign(
-            parse_result[TokenField.SignNumber.value][TokenField.Sign.value]
-        )
+        num = Number(parse_result[TokenField.SignNumber][TokenField.Number])
+        sign = Sign(parse_result[TokenField.SignNumber][TokenField.Sign])
 
         return cls._numpats[num, sign]
 
