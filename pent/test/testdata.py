@@ -438,6 +438,23 @@ number_sign_vals = {
         (Number.General, Sign.Positive): False,
         (Number.General, Sign.Negative): True,
         (Number.General, Sign.Any): True,
-    }
-    # INVALID VALUES... '+-0.349', complex(?), etc.
+    },
+    "+-0.39": {
+        (Number.Integer, Sign.Positive): False,
+        (Number.Integer, Sign.Negative): False,
+        (Number.Integer, Sign.Any): False,
+        (Number.Float, Sign.Positive): False,
+        (Number.Float, Sign.Negative): False,
+        (Number.Float, Sign.Any): False,
+        (Number.SciNot, Sign.Positive): False,
+        (Number.SciNot, Sign.Negative): False,
+        (Number.SciNot, Sign.Any): False,
+        (Number.Decimal, Sign.Positive): False,
+        (Number.Decimal, Sign.Negative): False,
+        (Number.Decimal, Sign.Any): False,
+        (Number.General, Sign.Positive): False,
+        (Number.General, Sign.Negative): False,
+        (Number.General, Sign.Any): False,
+    },
+    # INVALID VALUES... complex(?), etc.
 }
