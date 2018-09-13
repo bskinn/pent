@@ -29,6 +29,27 @@ r"""*Supporting test data for* ``pent`` *test suite*.
 
 from pent import Number, Sign
 
+number_token_template = "#{{0}}{{1}}{{2}}{0}"
+
+number_patterns = {
+    "123": number_token_template.format(".i"),
+    "-123": number_token_template.format("-i"),
+    "+123": number_token_template.format("+i"),
+    "0.2": number_token_template.format(".f"),
+    "-.285": number_token_template.format("-f"),
+    "+315.": number_token_template.format("+f"),
+    "3e5": number_token_template.format(".s"),
+    "-.13e+5": number_token_template.format("-s"),
+    "+3.1e-5": number_token_template.format("+s"),
+    ".266": number_token_template.format(".d"),
+    "-15.285": number_token_template.format("-d"),
+    "+315.185": number_token_template.format("+d"),
+    "35": number_token_template.format(".g"),
+    "-.13": number_token_template.format("-g"),
+    "+3.1e+15": number_token_template.format("+g"),
+}
+
+assert len(number_patterns) == 15
 
 number_sign_vals = {
     "0": {

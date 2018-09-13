@@ -36,6 +36,8 @@ class AP(object):
 
     ALL = "all"
 
+    FAST = "fast"
+
     PFX = "--{0}"
 
 
@@ -56,6 +58,12 @@ def get_parser():
         "-a",
         action="store_true",
         help="Run all tests (overrides any other selections)",
+    )
+    prs.add_argument(
+        AP.PFX.format(AP.FAST),
+        "-f",
+        action="store_true",
+        help="Run only 'fast' tests",
     )
 
     # Return the parser
@@ -87,8 +95,11 @@ def main():
             ts.addTest(suite)
 
     # Add commandline-indicated tests per-group
-    # Expect-good tests
-    addsuiteif(pent.test.pent_base.suite_expect_good(), [AP.ALL])
+    # Fast tests
+    addsuiteif(pent.test.pent_base.suite_base(), [AP.ALL, AP.FAST])
+
+    # Slow tests
+    addsuiteif(pent.test.pent_base.suite_base_slow(), [AP.ALL])
 
     # Create the test runner and execute
     ttr = ut.TextTestRunner(buffer=True, verbosity=(2 if params["v"] else 1))

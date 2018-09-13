@@ -196,7 +196,6 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(m.group(pent.group_prefix + "1"), "123")
         self.assertEqual(m.group(pent.group_prefix + "2"), "-456")
 
-    #    @ut.skip("Implementing no-space-preceding first")
     def test_single_num_preceding_colon_capture(self):
         """Confirm single-number capture works, with preceding colon."""
         import pent
@@ -265,16 +264,128 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertTrue(self.does_parse_match(pat, test_line))
 
 
-def suite_expect_good():
-    """Create and return the test suite for expect-good tests."""
+class TestPentTokens(ut.TestCase, SuperPent):
+    """Direct tests on the Token class."""
+
+    def test_group_enclosures(self):
+        """Ensure 'ignore' flag is properly set."""
+        import pent
+
+        testname_fmt = "{0}_{1}"
+        token_fmt = {
+            pent.Content.Any: "~{0}",
+            pent.Content.String: "@{0}.thing",
+            pent.Content.Number: "#{0}..i",
+        }
+
+        for c, i in itt.product(pent.Content, (True, False)):
+            t = pent.Token(token_fmt[c].format("!" if i else ""))
+            with self.subTest(testname_fmt.format(c, i)):
+                self.assertEqual(t.ignore, i)
+
+
+class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
+    """SLOW tests confirming pattern matching of Parser regexes."""
+
+    import pent
+
+    prs = pent.Parser()
+
+    def test_three_token_sequence(self):
+        "Ensure combinatorial token sequence parses correctly." ""
+        import pent
+
+        from .testdata import number_patterns as nps
+
+        pat_template = "~! {0} {1} {2} ~!"
+        str_template = "String! {0}{1}{2}{3}{4} More String!"
+        str_pat = {"foo": "@{0}{1}{2}foo"}
+
+        testname_template = "{0}_{1}_{2}_{3}_{4}"
+
+        str_or_num = (pent.Content.String, pent.Content.Number)
+        t_f = (True, False)
+
+        for c1, s1, c2, s2, c3 in itt.product(
+            str_or_num, t_f, str_or_num, t_f, str_or_num
+        ):
+            if (c1 is c2 and not s1) or (c2 is c3 and not s2):
+                # No reason to have no-space strings against one another.
+                # No-space numbers adjacent to one another make no syntactic sense.
+                continue
+
+            vals1 = str_pat if c1 == pent.Content.String else nps.keys()
+            vals2 = str_pat if c2 == pent.Content.String else nps.keys()
+            vals3 = str_pat if c3 == pent.Content.String else nps.keys()
+
+            for v1, v2, v3 in itt.product(vals1, vals2, vals3):
+                p1 = (str_pat if c1 == pent.Content.String else nps)[
+                    v1
+                ].format(
+                    pent.parser._s_no_space if not s1 else "",
+                    "",
+                    pent.Quantity.Single,
+                )
+                p2 = (str_pat if c2 == pent.Content.String else nps)[
+                    v2
+                ].format(
+                    pent.parser._s_no_space if not s2 else "",
+                    "",
+                    pent.Quantity.Single,
+                )
+                p3 = (str_pat if c3 == pent.Content.String else nps)[
+                    v3
+                ].format("", "", pent.Quantity.Single)
+
+                test_pat = pat_template.format(p1, p2, p3)
+                test_str = str_template.format(
+                    v1, " " if s1 else "", v2, " " if s2 else "", v3
+                )
+
+                with self.subTest(
+                    testname_template.format(v1, s1, v2, s2, v3)
+                ):
+                    npat = self.prs.convert_line(test_pat)
+
+                    m = re.search(npat, test_str)
+
+                    self.assertIsNotNone(m, msg=test_pat)
+                    self.assertEqual(
+                        m.group(pent.group_prefix + "1"),
+                        v1,
+                        msg=test_pat + " :: " + test_str,
+                    )
+                    self.assertEqual(
+                        m.group(pent.group_prefix + "2"),
+                        v2,
+                        msg=test_pat + " :: " + test_str,
+                    )
+                    self.assertEqual(
+                        m.group(pent.group_prefix + "3"),
+                        v3,
+                        msg=test_pat + " :: " + test_str,
+                    )
+
+
+def suite_base():
+    """Create and return the test suite for base tests."""
     s = ut.TestSuite()
     tl = ut.TestLoader()
     s.addTests(
         [
             tl.loadTestsFromTestCase(TestPentCorePatterns),
             tl.loadTestsFromTestCase(TestPentParserPatterns),
+            tl.loadTestsFromTestCase(TestPentTokens),
         ]
     )
+    return s
+
+
+def suite_base_slow():
+    """Create and return the test suite for SLOW base tests."""
+    s = ut.TestSuite()
+    tl = ut.TestLoader()
+    s.addTests([tl.loadTestsFromTestCase(TestPentParserPatternsSlow)])
     return s
 
 
