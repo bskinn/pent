@@ -33,9 +33,8 @@ __all__ = [
     "Number",
     "Sign",
     "TokenField",
-    "AnyMatchType",
-    "NumberMatchType",
-    "StringMatchType",
+    "Content",
+    "Quantity",
     "number_patterns",
     "wordify_pattern",
     "std_wordify",
@@ -45,10 +44,10 @@ __all__ = [
 ]
 
 from .enums import Number, Sign, TokenField
-from .enums import AnyMatchType, NumberMatchType, StringMatchType
+from .enums import Content, Quantity
 from .errors import PentError, BadTokenError
 from .parser import Parser, Token, group_prefix
 from .patterns import number_patterns, wordify_pattern, std_wordify
 
 
-__version__ = "0.1.dev1"
+__version__ = "0.1.dev2"
