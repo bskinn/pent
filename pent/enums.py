@@ -72,23 +72,6 @@ class Content(str, Enum):
     Number = "#"
 
 
-# class AnyMatchType(str, Enum):
-#    """Enumeration for various 'any' match types."""
-#
-#    #: Non-captured match
-#    Ignore = "~"
-
-
-# class Capture(str, Enum):
-#    """Enumeration for whether to store the matched content."""
-#
-#    #: Captured match
-#    Capture = "="
-#
-#    #: Ignored match
-#    Ignore = "!"
-
-
 class Quantity(str, Enum):
     """Enumeration for the various match quantities."""
 
