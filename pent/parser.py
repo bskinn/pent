@@ -28,7 +28,7 @@ import attr
 import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
-from .enums import NumberMatchType, StringMatchType, AnyMatchType
+from .enums import Content, Quantity
 from .errors import BadTokenError
 from .patterns import std_wordify_open, std_wordify_close
 
@@ -38,48 +38,70 @@ from .patterns import std_wordify_open, std_wordify_close
 # ## HELPERS ##
 group_prefix = "g"
 _s_any_flag = "~"
-_s_num_no_space = "x"
+_s_ignore = "!"
+_s_no_space = "x"
+
+_pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
+    TokenField.NoSpace
+)
+_pp_ignore = pp.Optional(pp.Literal(_s_ignore)).setResultsName(
+    TokenField.Ignore
+)
+_pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
+    TokenField.Quantity
+)
 
 
 # ## ARBITRARY CONTENT ##
 # Tilde says anything may be here, including multiple words
-_pp_any_flag = pp.Literal(_s_any_flag)
+# Definitely want to give the option not to capture. Might ideally
+# be the default NOT to capture here...
+_pp_any_flag = (
+    pp.Literal(_s_any_flag).setResultsName(TokenField.Type) + _pp_ignore
+)
 
 # ## LITERAL STRING ##
 # Marker for the rest of the token to be a literal string
-_pp_str_flag = pp.Word("".join(StringMatchType), exact=1)
+_pp_str_flag = pp.Literal(Content.String.value).setResultsName(TokenField.Type)
 
 # Remainder of the content after the marker, spaces included
-_pp_str_content = pp.Word(pp.printables + " ")
+_pp_str_value = pp.Word(pp.printables + " ").setResultsName(TokenField.Str)
 
 # Composite pattern for a literal string
-_pp_string = _pp_str_flag + _pp_str_content
+_pp_string = (
+    _pp_str_flag + _pp_no_space + _pp_ignore + _pp_quantity + _pp_str_value
+)
 
 # ## NUMERICAL VALUE ##
 # Initial marker for a numerical value
-_pp_num_flag = pp.Word("".join(NumberMatchType), exact=1)
+_pp_num_flag = pp.Literal(Content.Number.value).setResultsName(TokenField.Type)
 
 # Marker for the sign of the value; period indicates either sign
-_pp_num_sign = pp.Word("".join(Sign), exact=1)
+_pp_num_sign = pp.Word("".join(Sign), exact=1).setResultsName(TokenField.Sign)
 
 # Marker for the number type to look for
-_pp_num_type = pp.Word("".join(Number), exact=1)
+_pp_num_type = pp.Word("".join(Number), exact=1).setResultsName(
+    TokenField.Number
+)
 
 # Composite pattern for a number
 _pp_number = (
-    _pp_num_flag.setResultsName(TokenField.Type)
-    + pp.Group(
-        _pp_num_sign.setResultsName(TokenField.Sign)
-        + _pp_num_type.setResultsName(TokenField.Number)
-    ).setResultsName(TokenField.SignNumber)
-    + pp.Optional(pp.Literal(_s_num_no_space)).setResultsName(
-        TokenField.NoSpace
+    _pp_num_flag
+    + _pp_no_space
+    + _pp_ignore
+    + _pp_quantity
+    + pp.Group(_pp_num_sign + _pp_num_type).setResultsName(
+        TokenField.SignNumber
     )
-    + pp.WordEnd()
 )
 
+
 # ## COMBINED TOKEN PARSER ##
-_pp_token = _pp_any_flag ^ _pp_string ^ _pp_number
+_pp_token = (
+    pp.StringStart()
+    + (_pp_any_flag ^ _pp_string ^ _pp_number)
+    + pp.StringEnd()
+)
 
 # Will (presumably) eventually need to implement preceding/following
 # literal strings on the number specifications
@@ -94,12 +116,18 @@ class Parser:
 
     @classmethod
     def convert_line(cls, line, *, capture_groups=True):
-        """Implement dirt-oversimple line converter."""
+        """Convert line of tokens to regex.
+
+        The constructed regex is required to match the entirety of a
+        line of text, using lookbehind and lookahead at the
+        start and end of the pattern, respectively.
+
+        """
         import shlex
 
         # Parse line into tokens, and then into Tokens
         tokens = shlex.split(line)
-        tokens = list(Token(_, capture=capture_groups) for _ in tokens)
+        tokens = list(Token(_, do_capture=capture_groups) for _ in tokens)
 
         # Zero-length start of line (or of entire string) match
         pattern = r"(^|(?<=\n))"
@@ -119,7 +147,11 @@ class Parser:
                 group_id += 1
                 tok_pattern = tok_pattern.format(str(group_id))
 
-            if t.is_num:
+            if t.is_any:
+                pattern += tok_pattern
+                prior_no_space_token = False
+
+            else:
                 if not prior_no_space_token:
                     tok_pattern = std_wordify_open(tok_pattern)
 
@@ -130,10 +162,6 @@ class Parser:
                     prior_no_space_token = True
 
                 pattern += tok_pattern
-
-            else:
-                pattern += tok_pattern
-                prior_no_space_token = False
 
             # Add required space or no space, depending on
             # what the token calls for, as long as it's not
@@ -156,13 +184,13 @@ class Token:
     #: Mini-language token string to be parsed
     token = attr.ib()
 
-    #: Whether group captures should be added or not
-    capture = attr.ib(default=True)
+    #: Whether group capture should be added or not
+    do_capture = attr.ib(default=True)
 
     #: Flag for whether group ID substitution needs to be done
     needs_group_id = attr.ib(default=False, init=False, repr=False)
 
-    #: Compiled regex pattern from the token
+    #: Assembled regex pattern from the token, as |str|
     @property
     def pattern(self):
         return self._pattern
@@ -170,33 +198,25 @@ class Token:
     #: Flag for whether the token is an "any content" token
     @property
     def is_any(self):
-        return self._pr[0] in list(AnyMatchType)
+        return self._pr[TokenField.Type] == Content.Any
 
     #: Flag for whether the token matches a literal string
     @property
     def is_str(self):
-        return self._pr[0] in list(StringMatchType)
+        return self._pr[TokenField.Type] == Content.String
 
     #: Flag for whether the token matches a number
     @property
     def is_num(self):
-        return self._pr[0] in list(NumberMatchType)
+        return self._pr[TokenField.Type] == Content.Number
 
-    #: String matching type; |None| if token doesn't match a string
+    #: Match quantity; |None| for :attr:`pent.enums.Content.Any`
     @property
-    def str_match_type(self):
-        if self.is_str:
-            return StringMatchType(self._pr[0])
-        else:
+    def match_quantity(self):
+        if self.is_any:
             return None
-
-    #: Number matching type; |None| if token doesn't match a number
-    @property
-    def num_match_type(self):
-        if self.is_num:
-            return NumberMatchType(self._pr[0])
         else:
-            return None
+            return Quantity(self._pr[TokenField.Quantity])
 
     #: Number format matched; |None| if token doesn't match a number
     @property
@@ -217,12 +237,15 @@ class Token:
     #: Flag for whether space should be provided for after the match
     @property
     def space_after(self):
-        if self.is_num:
-            return not TokenField.NoSpace in self._pr
-        elif self.is_str:
-            return True
-        else:
+        if self.is_any:
             return False
+        else:
+            return TokenField.NoSpace not in self._pr
+
+    #: Flag for whether result should be ignored in returned output
+    @property
+    def ignore(self):
+        return TokenField.Ignore in self._pr
 
     def __attrs_post_init__(self):
         """Handle automatic creation stuff."""
@@ -232,21 +255,25 @@ class Token:
             raise BadTokenError(self.token) from e
 
         if self.is_any:
-            self._pattern = ".*?"
+            self._pattern, self.needs_group_id = self._selective_group_enclose(
+                ".*?"
+            )
+            return
 
-        elif self.is_str:
-            self._pattern = self._string_pattern(self._pr[1])
-
-            if self.capture and self._pr[0] == StringMatchType.Capture:
-                self.needs_group_id = True
-                self._pattern = self._group_enclose(self._pattern)
-
+        # Only single, non-optional captures implemented for now, regardless of
+        # the Quantity flag in the token
+        if self.is_str:
+            self._pattern = self._string_pattern(self._pr[TokenField.Str])
         elif self.is_num:
             self._pattern = self._get_number_pattern(self._pr)
+        else:
+            raise NotImplementedError(
+                "Unknown content type somehow specified!"
+            )
 
-            if self.capture and self._pr[0] == NumberMatchType.Single:
-                self.needs_group_id = True
-                self._pattern = self._group_enclose(self._pattern)
+        self._pattern, self.needs_group_id = self._selective_group_enclose(
+            self._pattern
+        )
 
     @staticmethod
     def _string_pattern(s):
@@ -285,10 +312,16 @@ class Token:
         """Create the closing pattern for a named group."""
         return ")"
 
-    @classmethod
-    def _group_enclose(cls, pat):
-        """Enclose the pattern in the group enclosure."""
-        return cls._group_open() + pat + cls._group_close()
+    def _selective_group_enclose(self, pat):
+        """Return token pattern enclosed in group IF it should be grouped.
+
+        FIX THIS DOCSTRING, IT'S OUT OF DATE!!!
+
+        """
+        if self.do_capture and not self.ignore:
+            return (self._group_open() + pat + self._group_close(), True)
+        else:
+            return pat, False
 
 
 if __name__ == "__main__":  # pragma: no cover

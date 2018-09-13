@@ -59,25 +59,38 @@ class Sign(str, Enum):
     Any = "."
 
 
-class AnyMatchType(str, Enum):
-    """Enumeration for various 'any' match types."""
+class Content(str, Enum):
+    """Enumeration for the possible types of content."""
 
-    #: Non-captured match
-    Ignore = "~"
+    #: Arbitrary match
+    Any = "~"
 
+    #: Literal string
+    String = "@"
 
-class StringMatchType(str, Enum):
-    """Enumeration for the various match types on literal string fields."""
-
-    #: Captured match
-    Capture = "="
-
-    #: Ignored match
-    Ignore = "!"
+    #: Number
+    Number = "#"
 
 
-class NumberMatchType(str, Enum):
-    """Enumeration for the various match types on the numeric fields."""
+# class AnyMatchType(str, Enum):
+#    """Enumeration for various 'any' match types."""
+#
+#    #: Non-captured match
+#    Ignore = "~"
+
+
+# class Capture(str, Enum):
+#    """Enumeration for whether to store the matched content."""
+#
+#    #: Captured match
+#    Capture = "="
+#
+#    #: Ignored match
+#    Ignore = "!"
+
+
+class Quantity(str, Enum):
+    """Enumeration for the various match quantities."""
 
     #: Single value match
     Single = "."
@@ -91,27 +104,33 @@ class NumberMatchType(str, Enum):
     #: Zero-or-more match
     ZeroOrMore = "*"
 
-    #: Suppressed match
-    Suppress = "#"
-
 
 class TokenField(str, Enum):
     """Enumeration for fields within a mini-language number token."""
 
-    #: Type of number field (single value, one-or-more, zero-or-more, etc.)
+    #: Content type (any, string, number)
     Type = "type"
 
-    #: Sign of acceptable values (any, positive, negative)
-    Sign = "sign"
+    #: Flag to suppress preceding space in the generated pattern
+    NoSpace = "no_space"
 
-    #: Format of the numerical value (int, float, scinot, decimal, general)
-    Number = "number"
+    #: Flag to ignore matched content when collecting into regex groups
+    Ignore = "ignore"
+
+    #: Match quantity of the field (single value, one-or-more, zero-or-more, etc.)
+    Quantity = "quantity"
+
+    #: Literal content, for a string match
+    Str = "str"
 
     #: Combined sign and number, for initial pattern group retrieval
     SignNumber = "sign_number"
 
-    #: Flag to suppress preceding space in the generated pattern
-    NoSpace = "no_space"
+    #: Format of the numerical value (int, float, scinot, decimal, general)
+    Number = "number"
+
+    #: Sign of acceptable values (any, positive, negative)
+    Sign = "sign"
 
 
 if __name__ == "__main__":  # pragma: no cover

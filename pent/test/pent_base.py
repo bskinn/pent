@@ -105,7 +105,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This line contains the value {} with space delimit."
-        test_pat_template = "~ !contains ~ #{0}{1} ~"
+        test_pat_template = "~! @.contains ~ #.{0}{1} ~!"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -125,9 +125,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         import pent
 
         test_line = "This is a string with a word and [symbol] in it."
-        test_pat_capture = "~ =word ~"
-        test_pat_ignore = "~ !word ~"
-        test_pat_symbol = "~ =[symbol] ~"
+        test_pat_capture = "~! @.word ~!"
+        test_pat_ignore = "~! @!.word ~!"
+        test_pat_symbol = "~! @.[symbol] ~!"
 
         with self.subTest("capture"):
             pat = self.prs.convert_line(test_pat_capture)
@@ -154,7 +154,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with {} in it."
-        test_pat_template = "~ .{0}{1} ~"
+        test_pat_template = "~! #.{0}{1} ~!"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -186,7 +186,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_str = "This is a string with 123-456 in it."
-        test_pat = "~ ..ix .-i ~"
+        test_pat = "~! #x.+i #.-i ~!"
 
         npat = self.prs.convert_line(test_pat)
 
@@ -196,7 +196,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(m.group(pent.group_prefix + "1"), "123")
         self.assertEqual(m.group(pent.group_prefix + "2"), "-456")
 
-    @ut.skip("Implementing no-space-preceding first")
+    #    @ut.skip("Implementing no-space-preceding first")
     def test_single_num_preceding_colon_capture(self):
         """Confirm single-number capture works, with preceding colon."""
         import pent
@@ -204,7 +204,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with :{} in it, after a colon."
-        test_pat_template = "~ .{0}{1} ~"
+        test_pat_template = "~! @x!.: #.{0}{1} ~!"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -231,7 +231,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with {} in it."
-        test_pat_template = "~ =string ~ .{0}{1} ~"
+        test_pat_template = "~! @.string ~! #.{0}{1} ~!"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -257,9 +257,11 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
         test_line = "This is a line with whatever weird (*#$(*&23646{}}{#$"
-        test_pat = "~"
 
-        pat = self.prs.convert_line(test_pat)
+        pat = self.prs.convert_line("~")
+        self.assertTrue(self.does_parse_match(pat, test_line))
+
+        pat = self.prs.convert_line("~!")
         self.assertTrue(self.does_parse_match(pat, test_line))
 
 
