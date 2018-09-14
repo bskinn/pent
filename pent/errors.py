@@ -26,6 +26,8 @@ r"""*Custom exceptions for* ``pent``.
 
 
 class PentError(Exception):  # pragma: no cover
+    """Superclass for all custom |pent| errors."""
+
     pass
 
 
@@ -33,9 +35,11 @@ class BadTokenError(PentError):  # pragma: no cover
     """Raised during attempts to parse an invalid token."""
 
     def __init__(self, token):
+        """Instantiate a ``BadTokenError``."""
         self.token = token
 
     def __str__(self):
+        """Generate a more-informative error message."""
         return "'{}' is an invalid pent token".format(self.token)
 
 

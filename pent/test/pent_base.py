@@ -183,8 +183,6 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         """
         import pent
 
-        from .testdata import number_sign_vals as vals
-
         test_str = "This is a string with 123-456 in it."
         test_pat = "~! #x.+i #.-i ~!"
 
@@ -292,7 +290,7 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     prs = pent.Parser()
 
     def test_three_token_sequence(self):
-        "Ensure combinatorial token sequence parses correctly." ""
+        """Ensure combinatorial token sequence parses correctly."""
         import pent
 
         from .testdata import number_patterns as nps
@@ -310,8 +308,9 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
             str_or_num, t_f, str_or_num, t_f, str_or_num
         ):
             if (c1 is c2 and not s1) or (c2 is c3 and not s2):
-                # No reason to have no-space strings against one another.
-                # No-space numbers adjacent to one another make no syntactic sense.
+                # No reason to have no-space strings against one another;
+                # no-space numbers adjacent to one another make
+                # no syntactic sense.
                 continue
 
             vals1 = str_pat if c1 == pent.Content.String else nps.keys()
