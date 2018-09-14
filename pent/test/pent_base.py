@@ -268,6 +268,24 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         )
                         self.assertEqual(m.group(pent.group_prefix + "2"), v)
 
+    def number_ending_sentence(self):
+        """Check that a number at the end of a sentence is matched correctly."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        test_line = "This sentence ends with a number {}."
+        test_pat = "~! {} @!.."
+
+        for n in npats:
+            token = npats[n].format("", "", ".")
+            with self.subTest(token):
+                pat = test_pat.format(token)
+                m = re.search(pat, test_line.format(n))
+
+                self.assertIsNotNone(m, msg=token)
+                self.assertEqual(n, m.group(pent.group_prefix + "1"))
+
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
         import pent
