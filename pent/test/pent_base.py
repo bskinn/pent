@@ -269,7 +269,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         self.assertEqual(m.group(pent.group_prefix + "2"), v)
 
     def number_ending_sentence(self):
-        """Check that a number at the end of a sentence is matched correctly."""
+        """Check that a number at the end of a sentence matches correctly."""
         import pent
 
         from .testdata import number_patterns as npats
@@ -321,6 +321,20 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(m.group(pent.group_prefix + "1"), test_line_start)
         self.assertEqual(m.group(pent.group_prefix + "2"), test_num)
         self.assertEqual(m.group(pent.group_prefix + "3"), test_line_end)
+
+    def test_manual_two_lines(self):
+        """Run manual check on concatenating two single-line regexes."""
+        test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"
+
+        test_pat_1 = "~! @!.one: #!.+i"
+        test_pat_2 = "~! @!.two: #!.-s"
+
+        cp_1 = self.prs.convert_line(test_pat_1)
+        cp_2 = self.prs.convert_line(test_pat_2)
+
+        m = re.search(cp_1 + r"\n" + cp_2, test_str)
+
+        self.assertIsNotNone(m)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
