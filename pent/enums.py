@@ -100,7 +100,8 @@ class TokenField(str, Enum):
     #: Flag to ignore matched content when collecting into regex groups
     Ignore = "ignore"
 
-    #: Match quantity of the field (single value, one-or-more, zero-or-more, etc.)
+    #: Match quantity of the field (single value, optional,
+    #: one-or-more, zero-or-more, etc.)
     Quantity = "quantity"
 
     #: Literal content, for a string match

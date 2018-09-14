@@ -94,6 +94,23 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     prs = pent.Parser()
 
+    def test_group_tags_or_not(self):
+        """Confirm group tags are added when needed; omitted when not."""
+        import pent
+
+        patterns = {
+            pent.Content.Any: "~{}",
+            pent.Content.String: "@{}.this",
+            pent.Content.Number: "#{}..g",
+        }
+
+        for content, capture in itt.product(pent.Content, (True, False)):
+            test_name = "{0}_{1}".format(content, capture)
+            with self.subTest(test_name):
+                test_pat = patterns[content].format("" if capture else "!")
+                test_rx = self.prs.convert_line(test_pat)
+                self.assertEqual(capture, "(?P<" in test_rx, msg=test_pat)
+
     def test_parser_single_line_space_delim(self):
         """Confirm parser works on single lines with space-delimited values.
 
@@ -183,8 +200,6 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         """
         import pent
 
-        from .testdata import number_sign_vals as vals
-
         test_str = "This is a string with 123-456 in it."
         test_pat = "~! #x.+i #.-i ~!"
 
@@ -253,15 +268,73 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         )
                         self.assertEqual(m.group(pent.group_prefix + "2"), v)
 
+    def number_ending_sentence(self):
+        """Check that a number at the end of a sentence matches correctly."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        test_line = "This sentence ends with a number {}."
+        test_pat = "~! {} @!.."
+
+        for n in npats:
+            token = npats[n].format("", "", ".")
+            with self.subTest(token):
+                pat = test_pat.format(token)
+                m = re.search(pat, test_line.format(n))
+
+                self.assertIsNotNone(m, msg=token)
+                self.assertEqual(n, m.group(pent.group_prefix + "1"))
+
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
+        import pent
+
         test_line = "This is a line with whatever weird (*#$(*&23646{}}{#$"
 
-        pat = self.prs.convert_line("~")
-        self.assertTrue(self.does_parse_match(pat, test_line))
+        with self.subTest("capture"):
+            pat = self.prs.convert_line("~")
+            self.assertTrue(self.does_parse_match(pat, test_line))
 
-        pat = self.prs.convert_line("~!")
-        self.assertTrue(self.does_parse_match(pat, test_line))
+            m = re.search(pat, test_line)
+            self.assertEqual(test_line, m.group(pent.group_prefix + "1"))
+
+        with self.subTest("no_capture"):
+            pat = self.prs.convert_line("~!")
+            self.assertTrue(self.does_parse_match(pat, test_line))
+
+            m = re.search(pat, test_line)
+            self.assertRaises(IndexError, m.group, pent.group_prefix + "1")
+
+    def test_any_token_capture_ranges(self):
+        """Confirm 'any' captures work as expected with other tokens."""
+        import pent
+
+        test_line_start = "This is a line "
+        test_line_end = " with a number in brackets in the middle."
+        test_num = "2e-4"
+        test_line = test_line_start + "[" + test_num + "]" + test_line_end
+
+        pat = pent.Parser().convert_line("~ @x!.[ #x..g @x!.] ~")
+        m = re.search(pat, test_line)
+
+        self.assertEqual(m.group(pent.group_prefix + "1"), test_line_start)
+        self.assertEqual(m.group(pent.group_prefix + "2"), test_num)
+        self.assertEqual(m.group(pent.group_prefix + "3"), test_line_end)
+
+    def test_manual_two_lines(self):
+        """Run manual check on concatenating two single-line regexes."""
+        test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"
+
+        test_pat_1 = "~! @!.one: #!.+i"
+        test_pat_2 = "~! @!.two: #!.-s"
+
+        cp_1 = self.prs.convert_line(test_pat_1)
+        cp_2 = self.prs.convert_line(test_pat_2)
+
+        m = re.search(cp_1 + r"\n" + cp_2, test_str)
+
+        self.assertIsNotNone(m)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
@@ -292,7 +365,7 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     prs = pent.Parser()
 
     def test_three_token_sequence(self):
-        "Ensure combinatorial token sequence parses correctly." ""
+        """Ensure combinatorial token sequence parses correctly."""
         import pent
 
         from .testdata import number_patterns as nps
@@ -310,8 +383,9 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
             str_or_num, t_f, str_or_num, t_f, str_or_num
         ):
             if (c1 is c2 and not s1) or (c2 is c3 and not s2):
-                # No reason to have no-space strings against one another.
-                # No-space numbers adjacent to one another make no syntactic sense.
+                # No reason to have no-space strings against one another;
+                # no-space numbers adjacent to one another make
+                # no syntactic sense.
                 continue
 
             vals1 = str_pat if c1 == pent.Content.String else nps.keys()

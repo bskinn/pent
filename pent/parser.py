@@ -190,61 +190,61 @@ class Token:
     #: Flag for whether group ID substitution needs to be done
     needs_group_id = attr.ib(default=False, init=False, repr=False)
 
-    #: Assembled regex pattern from the token, as |str|
     @property
     def pattern(self):
+        """Return assembled regex pattern from the token, as |str|."""
         return self._pattern
 
-    #: Flag for whether the token is an "any content" token
     @property
     def is_any(self):
+        """Return flag for whether the token is an "any content" token."""
         return self._pr[TokenField.Type] == Content.Any
 
-    #: Flag for whether the token matches a literal string
     @property
     def is_str(self):
+        """Return flag for whether the token matches a literal string."""
         return self._pr[TokenField.Type] == Content.String
 
-    #: Flag for whether the token matches a number
     @property
     def is_num(self):
+        """Return flag for whether the token matches a number."""
         return self._pr[TokenField.Type] == Content.Number
 
-    #: Match quantity; |None| for :attr:`pent.enums.Content.Any`
     @property
     def match_quantity(self):
+        """Return match quantity; |None| for :attr:`pent.enums.Content.Any`."""
         if self.is_any:
             return None
         else:
             return Quantity(self._pr[TokenField.Quantity])
 
-    #: Number format matched; |None| if token doesn't match a number
     @property
     def number(self):
+        """#: Return number format; |None| if token doesn't match a number."""
         if self.is_num:
             return Number(self._pr[TokenField.SignNumber][TokenField.Number])
         else:
             return None
 
-    #: Number sign matched; |None| if token doesn't match a number
     @property
     def sign(self):
+        """#: Return number sign; |None| if token doesn't match a number."""
         if self.is_num:
             return Sign(self._pr[TokenField.SignNumber][TokenField.Sign])
         else:
             return None
 
-    #: Flag for whether space should be provided for after the match
     @property
     def space_after(self):
+        """Return flag for whether post-match space should be provided for."""
         if self.is_any:
             return False
         else:
             return TokenField.NoSpace not in self._pr
 
-    #: Flag for whether result should be ignored in returned output
     @property
     def ignore(self):
+        """Return flag for whether a regex match group should be created."""
         return TokenField.Ignore in self._pr
 
     def __attrs_post_init__(self):

@@ -2,3 +2,6 @@ attrs<18
 pyparsing
 coverage
 codecov
+flake8
+flake8-docstrings
+
