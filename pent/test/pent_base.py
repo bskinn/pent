@@ -94,6 +94,23 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     prs = pent.Parser()
 
+    def test_group_tags_or_not(self):
+        """Confirm group tags are added when needed; omitted when not."""
+        import pent
+
+        patterns = {
+            pent.Content.Any: "~{}",
+            pent.Content.String: "@{}.this",
+            pent.Content.Number: "#{}..g",
+        }
+
+        for content, capture in itt.product(pent.Content, (True, False)):
+            test_name = "{0}_{1}".format(content, capture)
+            with self.subTest(test_name):
+                test_pat = patterns[content].format("" if capture else "!")
+                test_rx = self.prs.convert_line(test_pat)
+                self.assertEqual(capture, "(?P<" in test_rx, msg=test_pat)
+
     def test_parser_single_line_space_delim(self):
         """Confirm parser works on single lines with space-delimited values.
 
