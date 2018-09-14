@@ -270,13 +270,39 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
+        import pent
+
         test_line = "This is a line with whatever weird (*#$(*&23646{}}{#$"
 
-        pat = self.prs.convert_line("~")
-        self.assertTrue(self.does_parse_match(pat, test_line))
+        with self.subTest("capture"):
+            pat = self.prs.convert_line("~")
+            self.assertTrue(self.does_parse_match(pat, test_line))
 
-        pat = self.prs.convert_line("~!")
-        self.assertTrue(self.does_parse_match(pat, test_line))
+            m = re.search(pat, test_line)
+            self.assertEqual(test_line, m.group(pent.group_prefix + "1"))
+
+        with self.subTest("no_capture"):
+            pat = self.prs.convert_line("~!")
+            self.assertTrue(self.does_parse_match(pat, test_line))
+
+            m = re.search(pat, test_line)
+            self.assertRaises(IndexError, m.group, pent.group_prefix + "1")
+
+    def test_any_token_capture_ranges(self):
+        """Confirm 'any' captures work as expected with other tokens."""
+        import pent
+
+        test_line_start = "This is a line "
+        test_line_end = " with a number in brackets in the middle."
+        test_num = "2e-4"
+        test_line = test_line_start + "[" + test_num + "]" + test_line_end
+
+        pat = pent.Parser().convert_line("~ @x!.[ #x..g @x!.] ~")
+        m = re.search(pat, test_line)
+
+        self.assertEqual(m.group(pent.group_prefix + "1"), test_line_start)
+        self.assertEqual(m.group(pent.group_prefix + "2"), test_num)
+        self.assertEqual(m.group(pent.group_prefix + "3"), test_line_end)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
