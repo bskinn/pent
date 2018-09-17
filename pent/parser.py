@@ -38,14 +38,14 @@ from .patterns import std_wordify_open, std_wordify_close
 # ## HELPERS ##
 group_prefix = "g"
 _s_any_flag = "~"
-_s_ignore = "!"
+_s_capture = "!"
 _s_no_space = "x"
 
 _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
     TokenField.NoSpace
 )
-_pp_ignore = pp.Optional(pp.Literal(_s_ignore)).setResultsName(
-    TokenField.Ignore
+_pp_capture = pp.Optional(pp.Literal(_s_capture)).setResultsName(
+    TokenField.Capture
 )
 _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
     TokenField.Quantity
@@ -57,7 +57,7 @@ _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
 # Definitely want to give the option not to capture. Might ideally
 # be the default NOT to capture here...
 _pp_any_flag = (
-    pp.Literal(_s_any_flag).setResultsName(TokenField.Type) + _pp_ignore
+    pp.Literal(_s_any_flag).setResultsName(TokenField.Type) + _pp_capture
 )
 
 # ## LITERAL STRING ##
@@ -69,7 +69,7 @@ _pp_str_value = pp.Word(pp.printables + " ").setResultsName(TokenField.Str)
 
 # Composite pattern for a literal string
 _pp_string = (
-    _pp_str_flag + _pp_no_space + _pp_ignore + _pp_quantity + _pp_str_value
+    _pp_str_flag + _pp_no_space + _pp_capture + _pp_quantity + _pp_str_value
 )
 
 # ## NUMERICAL VALUE ##
@@ -88,7 +88,7 @@ _pp_num_type = pp.Word("".join(Number), exact=1).setResultsName(
 _pp_number = (
     _pp_num_flag
     + _pp_no_space
-    + _pp_ignore
+    + _pp_capture
     + _pp_quantity
     + pp.Group(_pp_num_sign + _pp_num_type).setResultsName(
         TokenField.SignNumber
@@ -102,9 +102,6 @@ _pp_token = (
     + (_pp_any_flag ^ _pp_string ^ _pp_number)
     + pp.StringEnd()
 )
-
-# Will (presumably) eventually need to implement preceding/following
-# literal strings on the number specifications
 
 
 # ## PARSER CLASS FOR EXTERNAL USE ##
@@ -143,9 +140,10 @@ class Parser:
 
         for i, t in enumerate(tokens):
             tok_pattern = t.pattern
+
             if t.needs_group_id:
-                group_id += 1
                 tok_pattern = tok_pattern.format(str(group_id))
+                group_id += 1
 
             if t.is_any:
                 pattern += tok_pattern
@@ -247,9 +245,9 @@ class Token:
             return TokenField.NoSpace not in self._pr
 
     @property
-    def ignore(self):
-        """Return flag for whether a regex match group should be created."""
-        return TokenField.Ignore in self._pr
+    def capture(self):
+        """Return flag for whether a regex capture group should be created."""
+        return TokenField.Capture in self._pr
 
     def __attrs_post_init__(self):
         """Handle automatic creation stuff."""
@@ -322,7 +320,7 @@ class Token:
         FIX THIS DOCSTRING, IT'S OUT OF DATE!!!
 
         """
-        if self.do_capture and not self.ignore:
+        if self.do_capture and self.capture:
             return (self._group_open() + pat + self._group_close(), True)
         else:
             return pat, False

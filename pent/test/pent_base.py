@@ -37,7 +37,7 @@ class SuperPent:
 
     @staticmethod
     def does_parse_match(re_pat, s):
-        """Run an individual parse test on `s` using regex pattern `re_pat`."""
+        """Run match-or-not test on `s` using regex pattern `re_pat`."""
         m = re.search(re_pat, s)
 
         return m is not None
@@ -107,7 +107,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for content, capture in itt.product(pent.Content, (True, False)):
             test_name = "{0}_{1}".format(content, capture)
             with self.subTest(test_name):
-                test_pat = patterns[content].format("" if capture else "!")
+                test_pat = patterns[content].format("!" if capture else "")
                 test_rx = self.prs.convert_line(test_pat)
                 self.assertEqual(capture, "(?P<" in test_rx, msg=test_pat)
 
@@ -122,7 +122,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This line contains the value {} with space delimit."
-        test_pat_template = "~! @.contains ~ #.{0}{1} ~!"
+        test_pat_template = "~ @!.contains ~! #!.{0}{1} ~"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -142,27 +142,27 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         import pent
 
         test_line = "This is a string with a word and [symbol] in it."
-        test_pat_capture = "~! @.word ~!"
-        test_pat_ignore = "~! @!.word ~!"
-        test_pat_symbol = "~! @.[symbol] ~!"
+        test_pat_capture = "~ @!.word ~"
+        test_pat_ignore = "~ @.word ~"
+        test_pat_symbol = "~ @!.[symbol] ~"
 
         with self.subTest("capture"):
             pat = self.prs.convert_line(test_pat_capture)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertEqual(m.group(pent.group_prefix + "1"), "word")
+            self.assertEqual(m.group(pent.group_prefix + "0"), "word")
 
         with self.subTest("ignore"):
             pat = self.prs.convert_line(test_pat_ignore)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertRaises(IndexError, m.group, pent.group_prefix + "1")
+            self.assertRaises(IndexError, m.group, pent.group_prefix + "0")
 
         with self.subTest("symbol"):
             pat = self.prs.convert_line(test_pat_symbol)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertEqual(m.group(pent.group_prefix + "1"), "[symbol]")
+            self.assertEqual(m.group(pent.group_prefix + "0"), "[symbol]")
 
     def test_single_num_capture(self):
         """Confirm single-number capture works."""
@@ -171,7 +171,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with {} in it."
-        test_pat_template = "~! #.{0}{1} ~!"
+        test_pat_template = "~ #!.{0}{1} ~"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -189,7 +189,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     )
 
                     if m is not None:
-                        self.assertEqual(m.group(pent.group_prefix + "1"), v)
+                        self.assertEqual(m.group(pent.group_prefix + "0"), v)
 
     def test_single_nums_no_space(self):
         """Confirm two-number capture works, with no intervening space.
@@ -201,15 +201,15 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         import pent
 
         test_str = "This is a string with 123-456 in it."
-        test_pat = "~! #x.+i #.-i ~!"
+        test_pat = "~ #x!.+i #!.-i ~"
 
         npat = self.prs.convert_line(test_pat)
 
         m = re.search(npat, test_str)
 
         self.assertIsNotNone(m)
-        self.assertEqual(m.group(pent.group_prefix + "1"), "123")
-        self.assertEqual(m.group(pent.group_prefix + "2"), "-456")
+        self.assertEqual(m.group(pent.group_prefix + "0"), "123")
+        self.assertEqual(m.group(pent.group_prefix + "1"), "-456")
 
     def test_single_num_preceding_colon_capture(self):
         """Confirm single-number capture works, with preceding colon."""
@@ -218,7 +218,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with :{} in it, after a colon."
-        test_pat_template = "~! @x!.: #.{0}{1} ~!"
+        test_pat_template = "~ @x.: #!.{0}{1} ~"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -236,7 +236,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     )
 
                     if m is not None:
-                        self.assertEqual(m.group(pent.group_prefix + "1"), v)
+                        self.assertEqual(m.group(pent.group_prefix + "0"), v)
 
     def test_string_and_single_num_capture(self):
         """Confirm multiple capture of string and single number."""
@@ -245,7 +245,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import number_sign_vals as vals
 
         test_line = "This is a string with {} in it."
-        test_pat_template = "~! @.string ~! #.{0}{1} ~!"
+        test_pat_template = "~ @!.string ~ #!.{0}{1} ~"
 
         for v in vals:
             test_str = test_line.format(v)
@@ -264,27 +264,31 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
                     if m is not None:
                         self.assertEqual(
-                            m.group(pent.group_prefix + "1"), "string"
+                            m.group(pent.group_prefix + "0"), "string"
                         )
-                        self.assertEqual(m.group(pent.group_prefix + "2"), v)
+                        self.assertEqual(m.group(pent.group_prefix + "1"), v)
 
-    def number_ending_sentence(self):
+    def test_number_ending_sentence(self):
         """Check that a number at the end of a sentence matches correctly."""
         import pent
 
         from .testdata import number_patterns as npats
 
         test_line = "This sentence ends with a number {}."
-        test_pat = "~! {} @!.."
+        test_pat = "~ {} @.."
 
         for n in npats:
-            token = npats[n].format("", "", ".")
+            token = npats[n].format(
+                pent.parser._s_no_space,
+                pent.parser._s_capture,
+                pent.Quantity.Single,
+            )
             with self.subTest(token):
-                pat = test_pat.format(token)
+                pat = self.prs.convert_line(test_pat.format(token))
                 m = re.search(pat, test_line.format(n))
 
-                self.assertIsNotNone(m, msg=token)
-                self.assertEqual(n, m.group(pent.group_prefix + "1"))
+                self.assertIsNotNone(m, msg=test_line.format(n) + token)
+                self.assertEqual(n, m.group(pent.group_prefix + "0"))
 
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
@@ -293,18 +297,18 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_line = "This is a line with whatever weird (*#$(*&23646{}}{#$"
 
         with self.subTest("capture"):
-            pat = self.prs.convert_line("~")
-            self.assertTrue(self.does_parse_match(pat, test_line))
-
-            m = re.search(pat, test_line)
-            self.assertEqual(test_line, m.group(pent.group_prefix + "1"))
-
-        with self.subTest("no_capture"):
             pat = self.prs.convert_line("~!")
             self.assertTrue(self.does_parse_match(pat, test_line))
 
             m = re.search(pat, test_line)
-            self.assertRaises(IndexError, m.group, pent.group_prefix + "1")
+            self.assertEqual(test_line, m.group(pent.group_prefix + "0"))
+
+        with self.subTest("no_capture"):
+            pat = self.prs.convert_line("~")
+            self.assertTrue(self.does_parse_match(pat, test_line))
+
+            m = re.search(pat, test_line)
+            self.assertRaises(IndexError, m.group, pent.group_prefix + "0")
 
     def test_any_token_capture_ranges(self):
         """Confirm 'any' captures work as expected with other tokens."""
@@ -315,19 +319,19 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_num = "2e-4"
         test_line = test_line_start + "[" + test_num + "]" + test_line_end
 
-        pat = pent.Parser().convert_line("~ @x!.[ #x..g @x!.] ~")
+        pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")
         m = re.search(pat, test_line)
 
-        self.assertEqual(m.group(pent.group_prefix + "1"), test_line_start)
-        self.assertEqual(m.group(pent.group_prefix + "2"), test_num)
-        self.assertEqual(m.group(pent.group_prefix + "3"), test_line_end)
+        self.assertEqual(m.group(pent.group_prefix + "0"), test_line_start)
+        self.assertEqual(m.group(pent.group_prefix + "1"), test_num)
+        self.assertEqual(m.group(pent.group_prefix + "2"), test_line_end)
 
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
         test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"
 
-        test_pat_1 = "~! @!.one: #!.+i"
-        test_pat_2 = "~! @!.two: #!.-s"
+        test_pat_1 = "~ @.one: #.+i"
+        test_pat_2 = "~ @.two: #.-s"
 
         cp_1 = self.prs.convert_line(test_pat_1)
         cp_2 = self.prs.convert_line(test_pat_2)
@@ -357,10 +361,10 @@ class TestPentTokens(ut.TestCase, SuperPent):
             pent.Content.Number: "#{0}..i",
         }
 
-        for c, i in itt.product(pent.Content, (True, False)):
-            t = pent.Token(token_fmt[c].format("!" if i else ""))
-            with self.subTest(testname_fmt.format(c, i)):
-                self.assertEqual(t.ignore, i)
+        for ct, cap in itt.product(pent.Content, (True, False)):
+            t = pent.Token(token_fmt[ct].format("!" if cap else ""))
+            with self.subTest(testname_fmt.format(ct, cap)):
+                self.assertEqual(t.capture, cap)
 
     def test_number_property(self):
         """Ensure t.number properties return correct values."""
@@ -410,7 +414,7 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
 
         from .testdata import number_patterns as nps
 
-        pat_template = "~! {0} {1} {2} ~!"
+        pat_template = "~ {0} {1} {2} ~"
         str_template = "String! {0}{1}{2}{3}{4} More String!"
         str_pat = {"foo": "@{0}{1}{2}foo"}
 
@@ -437,19 +441,19 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
                     v1
                 ].format(
                     pent.parser._s_no_space if not s1 else "",
-                    "",
+                    pent.parser._s_capture,
                     pent.Quantity.Single,
                 )
                 p2 = (str_pat if c2 == pent.Content.String else nps)[
                     v2
                 ].format(
                     pent.parser._s_no_space if not s2 else "",
-                    "",
+                    pent.parser._s_capture,
                     pent.Quantity.Single,
                 )
                 p3 = (str_pat if c3 == pent.Content.String else nps)[
                     v3
-                ].format("", "", pent.Quantity.Single)
+                ].format("", pent.parser._s_capture, pent.Quantity.Single)
 
                 test_pat = pat_template.format(p1, p2, p3)
                 test_str = str_template.format(
@@ -465,17 +469,17 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
 
                     self.assertIsNotNone(m, msg=test_pat)
                     self.assertEqual(
-                        m.group(pent.group_prefix + "1"),
+                        m.group(pent.group_prefix + "0"),
                         v1,
                         msg=test_pat + " :: " + test_str,
                     )
                     self.assertEqual(
-                        m.group(pent.group_prefix + "2"),
+                        m.group(pent.group_prefix + "1"),
                         v2,
                         msg=test_pat + " :: " + test_str,
                     )
                     self.assertEqual(
-                        m.group(pent.group_prefix + "3"),
+                        m.group(pent.group_prefix + "2"),
                         v3,
                         msg=test_pat + " :: " + test_str,
                     )

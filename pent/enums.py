@@ -98,7 +98,7 @@ class TokenField(str, Enum):
     NoSpace = "no_space"
 
     #: Flag to ignore matched content when collecting into regex groups
-    Ignore = "ignore"
+    Capture = "capture"
 
     #: Match quantity of the field (single value, optional,
     #: one-or-more, zero-or-more, etc.)
