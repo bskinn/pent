@@ -265,7 +265,17 @@ class Token:
         # Only single, non-optional captures implemented for now, regardless of
         # the Quantity flag in the token
         if self.is_str:
+            # Always store the string pattern
             self._pattern = self._string_pattern(self._pr[TokenField.Str])
+
+            # Modify, depending on the Quantity
+            # ~ if self.match_quantity is Quantity.Optional:
+            # ~ self._pattern = "(" + self._pattern + ")?"
+            if self.match_quantity is Quantity.OneOrMore:
+                self._pattern = "(" + self._pattern + ")+"
+            # ~ if self.match_quantity is Quantity.ZeroOrMore:
+            # ~ self._pattern = "(" + self._pattern + ")*"
+
         elif self.is_num:
             self._pattern = self._get_number_pattern(self._pr)
         else:  # pragma: no cover

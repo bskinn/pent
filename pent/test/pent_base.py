@@ -326,6 +326,103 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(m.group(pent.group_prefix + "1"), test_num)
         self.assertEqual(m.group(pent.group_prefix + "2"), test_line_end)
 
+    @ut.skip("Developing without optional/zero-or-more for now")
+    def test_optional_str(self):
+        """Confirm single optional str token works as expected."""
+        import pent
+
+        test_string = "This is a test {} string."
+        test_pat = "~ @.test @{}?foo @x.string ~"
+
+        for there, cap in itt.product(*itt.repeat((True, False), 2)):
+            with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
+                pat = test_pat.format(pent.parser._s_capture if cap else "")
+                prs_pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo" if there else "")
+
+                m = re.search(prs_pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    if there:
+                        self.assertEqual(
+                            "foo",
+                            m.group(pent.group_prefix + "0"),
+                            msg=work_str + pat,
+                        )
+                    else:
+                        self.assertEqual("", m.group(pent.group_prefix + "0"))
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.group_prefix + "0"
+                    )
+
+    def test_one_or_more_str(self):
+        """Confirm one-or-more str token works as expected."""
+        import pent
+
+        test_string = "This is a test {} string."
+        test_pat = "~ @{}+foo ~"
+
+        for qty, cap in itt.product((1, 2, 3), (True, False)):
+            with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
+                pat = test_pat.format(pent.parser._s_capture if cap else "")
+                pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo" * qty)
+
+                m = re.search(pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    self.assertEqual(
+                        "foo" * qty, m.group(pent.group_prefix + "0")
+                    )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.group_prefix + "0"
+                    )
+
+    @ut.skip("Skipping until resolve Optional.")
+    def test_zero_or_more_str(self):
+        """Confirm zero-or-more str token works as expected."""
+        import pent
+
+        test_string = "This is a test {}string."
+        test_pat = "~ @{}*foo ~"
+
+        for qty, cap in itt.product((0, 1, 2, 3), (True, False)):
+            with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
+                pat = test_pat.format(pent.parser._s_capture if cap else "")
+                pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo " * qty)
+
+                m = re.search(pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    self.assertEqual(
+                        "foo " * qty, m.group(pent.group_prefix + "0")
+                    )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.group_prefix + "0"
+                    )
+
+    @ut.skip("Developing w/o optional/zero-or-more for now")
+    def test_one_or_more_doesnt_match_zero_reps(self):
+        """Confirm one-or-more str doesn't match if string isn't there."""
+        import pent
+
+        test_string = "This is  a test string."
+        test_pat = "~ @.is @!?absolutely @.a ~"
+
+        m = re.search(self.prs.convert_line(test_pat), test_string)
+
+        self.assertEqual("", m.group(pent.group_prefix + "0"))
+
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
         test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"

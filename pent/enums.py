@@ -78,14 +78,14 @@ class Quantity(str, Enum):
     #: Single value match
     Single = "."
 
-    #: Optional single value match
-    Optional = "?"
+    # ~ #: Optional single value match
+    # ~ Optional = "?"
 
     #: One-or-more match
     OneOrMore = "+"
 
-    #: Zero-or-more match
-    ZeroOrMore = "*"
+    # ~ #: Zero-or-more match
+    # ~ ZeroOrMore = "*"
 
 
 class TokenField(str, Enum):
