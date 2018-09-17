@@ -110,7 +110,7 @@ _pp_token = (
 # ## PARSER CLASS FOR EXTERNAL USE ##
 
 
-@attr.s
+@attr.s(slots=True)
 class Parser:
     """Mini-language parser for structured numerical data."""
 
@@ -175,7 +175,7 @@ class Parser:
         return pattern
 
 
-@attr.s
+@attr.s(slots=True)
 class Token:
     """Encapsulates transforming mini-language patterns tokens into regex."""
 
@@ -189,6 +189,10 @@ class Token:
 
     #: Flag for whether group ID substitution needs to be done
     needs_group_id = attr.ib(default=False, init=False, repr=False)
+
+    # Internal pyparsing result and generated regex pattern
+    _pr = attr.ib(default=None, init=False, repr=False)
+    _pattern = attr.ib(default=None, init=False, repr=False)
 
     @property
     def pattern(self):
