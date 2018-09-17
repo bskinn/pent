@@ -266,7 +266,7 @@ class Token:
             self._pattern = self._string_pattern(self._pr[TokenField.Str])
         elif self.is_num:
             self._pattern = self._get_number_pattern(self._pr)
-        else:
+        else:  # pragma: no cover
             raise NotImplementedError(
                 "Unknown content type somehow specified!"
             )

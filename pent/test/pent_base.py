@@ -340,6 +340,12 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
 
+    def test_arbitrary_bad_token(self):
+        """Confirm bad tokens raise errors."""
+        import pent
+
+        self.assertRaises(pent.BadTokenError, pent.Token, "abcd")
+
     def test_group_enclosures(self):
         """Ensure 'ignore' flag is properly set."""
         import pent
@@ -355,6 +361,40 @@ class TestPentTokens(ut.TestCase, SuperPent):
             t = pent.Token(token_fmt[c].format("!" if i else ""))
             with self.subTest(testname_fmt.format(c, i)):
                 self.assertEqual(t.ignore, i)
+
+    def test_number_property(self):
+        """Ensure t.number properties return correct values."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        for p in npats.values():
+            pat = p.format("", "", pent.Quantity.Single)
+            with self.subTest(pat):
+                self.assertEqual(pent.Token(pat).number, pent.Number(p[-1]))
+
+        with self.subTest("string"):
+            self.assertEqual(pent.Token("@.abcd").number, None)
+
+        with self.subTest("any"):
+            self.assertEqual(pent.Token("~").number, None)
+
+    def test_sign_property(self):
+        """Ensure t.sign properties return correct values."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        for p in npats.values():
+            pat = p.format("", "", pent.Quantity.Single)
+            with self.subTest(pat):
+                self.assertEqual(pent.Token(pat).sign, pent.Sign(p[-2]))
+
+        with self.subTest("string"):
+            self.assertEqual(pent.Token("@.abcd").sign, None)
+
+        with self.subTest("any"):
+            self.assertEqual(pent.Token("~").sign, None)
 
 
 class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
