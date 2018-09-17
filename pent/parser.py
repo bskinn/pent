@@ -112,12 +112,15 @@ class Parser:
     """Mini-language parser for structured numerical data."""
 
     @classmethod
-    def convert_line(cls, line, *, capture_groups=True):
+    def convert_line(cls, line, *, capture_groups=True, group_id=0):
         """Convert line of tokens to regex.
 
         The constructed regex is required to match the entirety of a
         line of text, using lookbehind and lookahead at the
         start and end of the pattern, respectively.
+
+        `group_id` indicates the starting value of the index for any
+        capture groups added.
 
         """
         import shlex
@@ -131,9 +134,6 @@ class Parser:
 
         # Always have optional starting whitespace
         pattern += r"[ \t]*"
-
-        # Must initialize
-        group_id = 0
 
         # Initialize flag for a preceding no-space-after num token
         prior_no_space_token = False

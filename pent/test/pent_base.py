@@ -425,17 +425,23 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
+        import pent
+
         test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"
 
-        test_pat_1 = "~ @.one: #.+i"
-        test_pat_2 = "~ @.two: #.-s"
+        test_pat_1 = "~ @!.one: #!.+i"
+        test_pat_2 = "~ @!.two: #!.-s"
 
         cp_1 = self.prs.convert_line(test_pat_1)
-        cp_2 = self.prs.convert_line(test_pat_2)
+        cp_2 = self.prs.convert_line(test_pat_2, group_id=2)
 
         m = re.search(cp_1 + r"\n" + cp_2, test_str)
 
         self.assertIsNotNone(m)
+        self.assertEqual("one:", m.group(pent.group_prefix + "0"))
+        self.assertEqual("12345", m.group(pent.group_prefix + "1"))
+        self.assertEqual("two:", m.group(pent.group_prefix + "2"))
+        self.assertEqual("-3e-5", m.group(pent.group_prefix + "3"))
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
