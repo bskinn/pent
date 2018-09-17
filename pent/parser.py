@@ -278,6 +278,10 @@ class Token:
 
         elif self.is_num:
             self._pattern = self._get_number_pattern(self._pr)
+
+            if self.match_quantity is Quantity.OneOrMore:
+                self._pattern += r"([ \t]+{})*".format(self._pattern)
+
         else:  # pragma: no cover
             raise NotImplementedError(
                 "Unknown content type somehow specified!"
