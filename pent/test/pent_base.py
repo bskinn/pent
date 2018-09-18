@@ -145,24 +145,37 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_pat_capture = "~ @!.word ~"
         test_pat_ignore = "~ @.word ~"
         test_pat_symbol = "~ @!.[symbol] ~"
+        test_pat_with_space = "~ '@!.string with' ~"
 
         with self.subTest("capture"):
             pat = self.prs.convert_line(test_pat_capture)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertEqual(m.group(pent.group_prefix + "0"), "word")
+            self.assertEqual(m.group(pent.Token.group_prefix + "0"), "word")
 
         with self.subTest("ignore"):
             pat = self.prs.convert_line(test_pat_ignore)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertRaises(IndexError, m.group, pent.group_prefix + "0")
+            self.assertRaises(
+                IndexError, m.group, pent.Token.group_prefix + "0"
+            )
 
         with self.subTest("symbol"):
             pat = self.prs.convert_line(test_pat_symbol)
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
-            self.assertEqual(m.group(pent.group_prefix + "0"), "[symbol]")
+            self.assertEqual(
+                m.group(pent.Token.group_prefix + "0"), "[symbol]"
+            )
+
+        with self.subTest("with_space"):
+            pat = self.prs.convert_line(test_pat_with_space)
+            m = re.search(pat, test_line)
+            self.assertIsNotNone(m)
+            self.assertEqual(
+                m.group(pent.Token.group_prefix + "0"), "string with"
+            )
 
     def test_single_num_capture(self):
         """Confirm single-number capture works."""
@@ -189,7 +202,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     )
 
                     if m is not None:
-                        self.assertEqual(m.group(pent.group_prefix + "0"), v)
+                        self.assertEqual(
+                            m.group(pent.Token.group_prefix + "0"), v
+                        )
 
     def test_single_nums_no_space(self):
         """Confirm two-number capture works, with no intervening space.
@@ -208,8 +223,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         m = re.search(npat, test_str)
 
         self.assertIsNotNone(m)
-        self.assertEqual(m.group(pent.group_prefix + "0"), "123")
-        self.assertEqual(m.group(pent.group_prefix + "1"), "-456")
+        self.assertEqual(m.group(pent.Token.group_prefix + "0"), "123")
+        self.assertEqual(m.group(pent.Token.group_prefix + "1"), "-456")
 
     def test_single_num_preceding_colon_capture(self):
         """Confirm single-number capture works, with preceding colon."""
@@ -236,7 +251,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     )
 
                     if m is not None:
-                        self.assertEqual(m.group(pent.group_prefix + "0"), v)
+                        self.assertEqual(
+                            m.group(pent.Token.group_prefix + "0"), v
+                        )
 
     def test_string_and_single_num_capture(self):
         """Confirm multiple capture of string and single number."""
@@ -264,9 +281,11 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
                     if m is not None:
                         self.assertEqual(
-                            m.group(pent.group_prefix + "0"), "string"
+                            m.group(pent.Token.group_prefix + "0"), "string"
                         )
-                        self.assertEqual(m.group(pent.group_prefix + "1"), v)
+                        self.assertEqual(
+                            m.group(pent.Token.group_prefix + "1"), v
+                        )
 
     def test_number_ending_sentence(self):
         """Check that a number at the end of a sentence matches correctly."""
@@ -279,8 +298,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         for n in npats:
             token = npats[n].format(
-                pent.parser._s_no_space,
-                pent.parser._s_capture,
+                pent.Token._s_no_space,
+                pent.Token._s_capture,
                 pent.Quantity.Single,
             )
             with self.subTest(token):
@@ -288,7 +307,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 m = re.search(pat, test_line.format(n))
 
                 self.assertIsNotNone(m, msg=test_line.format(n) + token)
-                self.assertEqual(n, m.group(pent.group_prefix + "0"))
+                self.assertEqual(n, m.group(pent.Token.group_prefix + "0"))
 
     def test_match_entire_line(self):
         """Confirm the tilde works to match an entire line."""
@@ -301,14 +320,16 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             self.assertTrue(self.does_parse_match(pat, test_line))
 
             m = re.search(pat, test_line)
-            self.assertEqual(test_line, m.group(pent.group_prefix + "0"))
+            self.assertEqual(test_line, m.group(pent.Token.group_prefix + "0"))
 
         with self.subTest("no_capture"):
             pat = self.prs.convert_line("~")
             self.assertTrue(self.does_parse_match(pat, test_line))
 
             m = re.search(pat, test_line)
-            self.assertRaises(IndexError, m.group, pent.group_prefix + "0")
+            self.assertRaises(
+                IndexError, m.group, pent.Token.group_prefix + "0"
+            )
 
     def test_any_token_capture_ranges(self):
         """Confirm 'any' captures work as expected with other tokens."""
@@ -322,23 +343,185 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")
         m = re.search(pat, test_line)
 
-        self.assertEqual(m.group(pent.group_prefix + "0"), test_line_start)
-        self.assertEqual(m.group(pent.group_prefix + "1"), test_num)
-        self.assertEqual(m.group(pent.group_prefix + "2"), test_line_end)
+        self.assertEqual(
+            m.group(pent.Token.group_prefix + "0"), test_line_start
+        )
+        self.assertEqual(m.group(pent.Token.group_prefix + "1"), test_num)
+        self.assertEqual(m.group(pent.Token.group_prefix + "2"), test_line_end)
+
+    @ut.skip("Developing without optional/zero-or-more for now")
+    def test_optional_str(self):
+        """Confirm single optional str token works as expected."""
+        import pent
+
+        test_string = "This is a test {} string."
+        test_pat = "~ @.test @{}?foo @x.string ~"
+
+        for there, cap in itt.product(*itt.repeat((True, False), 2)):
+            with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
+                pat = test_pat.format(pent.Token._s_capture if cap else "")
+                prs_pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo" if there else "")
+
+                m = re.search(prs_pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    if there:
+                        self.assertEqual(
+                            "foo",
+                            m.group(pent.Token.group_prefix + "0"),
+                            msg=work_str + pat,
+                        )
+                    else:
+                        self.assertEqual(
+                            "", m.group(pent.Token.group_prefix + "0")
+                        )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.Token.group_prefix + "0"
+                    )
+
+    def test_one_or_more_str_nospace(self):
+        """Confirm one-or-more str token works as expected w/no space."""
+        import pent
+
+        test_string = "This is a test {} string."
+        test_pat = "~ @{}+foo ~"
+
+        for qty, cap in itt.product((1, 2, 3), (True, False)):
+            with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
+                pat = test_pat.format(pent.Token._s_capture if cap else "")
+                pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo" * qty)
+
+                m = re.search(pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    self.assertEqual(
+                        "foo" * qty, m.group(pent.Token.group_prefix + "0")
+                    )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.Token.group_prefix + "0"
+                    )
+
+    def test_one_or_more_str_with_space(self):
+        """Confirm one-or-more str token works as expected w/space."""
+        import pent
+
+        test_string = "This is a test {}string."
+        test_pat = "~ '@x{}+foo ' ~"
+
+        for qty, cap in itt.product((1, 2, 3), (True, False)):
+            with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
+                pat = test_pat.format(pent.Token._s_capture if cap else "")
+                pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo " * qty)
+
+                m = re.search(pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    self.assertEqual(
+                        "foo " * qty, m.group(pent.Token.group_prefix + "0")
+                    )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.Token.group_prefix + "0"
+                    )
+
+    @ut.skip("Skipping until resolve Optional.")
+    def test_zero_or_more_str(self):
+        """Confirm zero-or-more str token works as expected."""
+        import pent
+
+        test_string = "This is a test {}string."
+        test_pat = "~ @{}*foo ~"
+
+        for qty, cap in itt.product((0, 1, 2, 3), (True, False)):
+            with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
+                pat = test_pat.format(pent.Token._s_capture if cap else "")
+                pat = pent.Parser().convert_line(pat)
+
+                work_str = test_string.format("foo " * qty)
+
+                m = re.search(pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    self.assertEqual(
+                        "foo " * qty, m.group(pent.Token.group_prefix + "0")
+                    )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.Token.group_prefix + "0"
+                    )
+
+    @ut.skip("Developing w/o optional/zero-or-more for now")
+    def test_one_or_more_doesnt_match_zero_reps(self):
+        """Confirm one-or-more str doesn't match if string isn't there."""
+        import pent
+
+        test_string = "This is  a test string."
+        test_pat = "~ @.is @!?absolutely @.a ~"
+
+        m = re.search(self.prs.convert_line(test_pat), test_string)
+
+        self.assertEqual("", m.group(pent.Token.group_prefix + "0"))
 
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
+        import pent
+
         test_str = "This is line one: 12345  \nAnd this is line two: -3e-5"
 
-        test_pat_1 = "~ @.one: #.+i"
-        test_pat_2 = "~ @.two: #.-s"
+        test_pat_1 = "~ @!.one: #!.+i"
+        test_pat_2 = "~ @!.two: #!.-s"
 
         cp_1 = self.prs.convert_line(test_pat_1)
-        cp_2 = self.prs.convert_line(test_pat_2)
+        cp_2 = self.prs.convert_line(test_pat_2, group_id=2)
 
         m = re.search(cp_1 + r"\n" + cp_2, test_str)
 
         self.assertIsNotNone(m)
+        self.assertEqual("one:", m.group(pent.Token.group_prefix + "0"))
+        self.assertEqual("12345", m.group(pent.Token.group_prefix + "1"))
+        self.assertEqual("two:", m.group(pent.Token.group_prefix + "2"))
+        self.assertEqual("-3e-5", m.group(pent.Token.group_prefix + "3"))
+
+    def test_quick_one_or_more_number(self):
+        """Run quick check on capture of one-or-more number token."""
+        import pent
+
+        numbers = "2 5 -54 3.8 -1.e-12"
+
+        test_str = "This has numbers {} with end space.".format(numbers)
+        test_str_period = "This has numbers {}.".format(numbers)
+
+        test_pat = "~ #!+.g ~"
+        test_pat_period = "~ #x!+.g @.."
+
+        re_pat = self.prs.convert_line(test_pat)
+        re_pat_period = self.prs.convert_line(test_pat_period)
+
+        with self.subTest("end_space"):
+            m_pat = re.search(re_pat, test_str)
+            self.assertIsNotNone(m_pat)
+            self.assertEqual(
+                m_pat.group(pent.Token.group_prefix + "0"), numbers
+            )
+
+        with self.subTest("period"):
+            m_pat_period = re.search(re_pat_period, test_str_period)
+            self.assertIsNotNone(m_pat_period)
+            self.assertEqual(
+                m_pat_period.group(pent.Token.group_prefix + "0"), numbers
+            )
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
@@ -400,6 +583,12 @@ class TestPentTokens(ut.TestCase, SuperPent):
         with self.subTest("any"):
             self.assertEqual(pent.Token("~").sign, None)
 
+    def test_qty_property_on_any(self):
+        """Ensure t.match_quantity property returns correct value on 'any'."""
+        import pent
+
+        self.assertEqual(pent.Token("~").match_quantity, None)
+
 
 class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     """SLOW tests confirming pattern matching of Parser regexes."""
@@ -440,20 +629,20 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
                 p1 = (str_pat if c1 == pent.Content.String else nps)[
                     v1
                 ].format(
-                    pent.parser._s_no_space if not s1 else "",
-                    pent.parser._s_capture,
+                    pent.Token._s_no_space if not s1 else "",
+                    pent.Token._s_capture,
                     pent.Quantity.Single,
                 )
                 p2 = (str_pat if c2 == pent.Content.String else nps)[
                     v2
                 ].format(
-                    pent.parser._s_no_space if not s2 else "",
-                    pent.parser._s_capture,
+                    pent.Token._s_no_space if not s2 else "",
+                    pent.Token._s_capture,
                     pent.Quantity.Single,
                 )
                 p3 = (str_pat if c3 == pent.Content.String else nps)[
                     v3
-                ].format("", pent.parser._s_capture, pent.Quantity.Single)
+                ].format("", pent.Token._s_capture, pent.Quantity.Single)
 
                 test_pat = pat_template.format(p1, p2, p3)
                 test_str = str_template.format(
@@ -469,17 +658,17 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
 
                     self.assertIsNotNone(m, msg=test_pat)
                     self.assertEqual(
-                        m.group(pent.group_prefix + "0"),
+                        m.group(pent.Token.group_prefix + "0"),
                         v1,
                         msg=test_pat + " :: " + test_str,
                     )
                     self.assertEqual(
-                        m.group(pent.group_prefix + "1"),
+                        m.group(pent.Token.group_prefix + "1"),
                         v2,
                         msg=test_pat + " :: " + test_str,
                     )
                     self.assertEqual(
-                        m.group(pent.group_prefix + "2"),
+                        m.group(pent.Token.group_prefix + "2"),
                         v3,
                         msg=test_pat + " :: " + test_str,
                     )
