@@ -24,10 +24,13 @@ r"""*Mini-language parser for* ``pent``.
 
 """
 
+import itertools as itt
+import re
+
 import attr
 import pyparsing as pp
 
-from .enums import Number, Sign, TokenField
+from .enums import Number, Sign, TokenField, ParserField
 from .enums import Content, Quantity
 from .errors import TokenError, SectionError
 from .patterns import std_wordify_open, std_wordify_close
@@ -45,8 +48,11 @@ class Parser:
     def pattern(self):
         """Return the regex pattern for the entire parser.
 
-        The capture groups are NEVER inserted when regex is
-        generated this way.
+        The individual capture groups are NEVER inserted when
+        regex is generated this way.
+
+        Instead, head/body/tail capture groups are inserted,
+        in order to subdivide matched text by these subsets.
 
         """
         # Relies on the convert_section default for 'capture_groups'
@@ -58,18 +64,44 @@ class Parser:
         rx = ""
 
         if rx_head:
-            rx += rx_head + "\n"
+            rx += "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
 
         try:
             # At least one line of the body, followed by however many more
-            rx += rx_body + "(\n" + rx_body + ")*"
+            rx += (
+                "(?P<{}>".format(ParserField.Body)
+                + rx_body
+                + "(\n"
+                + rx_body
+                + ")*)"
+            )
         except TypeError as e:
             raise SectionError("'body' required to generate 'pattern'") from e
 
         if rx_tail:
-            rx += "\n" + rx_tail
+            rx += "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
 
         return rx
+
+    def capture_head(self, text):
+        """Capture all marked values from the pattern head."""
+        m_entire = re.search(self.pattern, text)
+        head = m_entire.group(ParserField.Head)
+
+        pat_capture = self.convert_section(self.head, capture_groups=True)
+        m_head = re.search(pat_capture, head)
+
+        return list(*map(str.split, self.generate_captures(m_head)))
+
+    def capture_tail(self, text):
+        """Capture all marked values from the pattern tail."""
+        m_entire = re.search(self.pattern, text)
+        tail = m_entire.group(ParserField.Tail)
+
+        pat_capture = self.convert_section(self.tail, capture_groups=True)
+        m_tail = re.search(pat_capture, tail)
+
+        return list(*map(str.split, self.generate_captures(m_tail)))
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False):
@@ -91,10 +123,16 @@ class Parser:
             pass
 
         # If it's an iterable of lines
+        def gen_converted_lines():
+            id = 0
+            for line in sec:
+                pat, id = cls.convert_line(
+                    line, capture_groups=capture_groups, group_id=id
+                )
+                yield pat
+
         try:
-            return "\n".join(
-                cls.convert_line(_, capture_groups=False)[0] for _ in sec
-            )
+            return "\n".join(gen_converted_lines())
         except AttributeError:
             # Most likely is that the iterable members don't have
             # the .pattern attribute
@@ -160,6 +198,15 @@ class Parser:
         pattern += r"[ \t]*($|(?=\n))"
 
         return pattern, group_id
+
+    @staticmethod
+    def generate_captures(m):
+        """Generate captures from a regex match."""
+        for i in itt.count(0):
+            try:
+                yield m.group(Token.group_prefix + str(i))
+            except IndexError:
+                raise StopIteration
 
 
 @attr.s(slots=True)

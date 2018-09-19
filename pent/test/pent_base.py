@@ -534,12 +534,12 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         # from .testdata import orca_hess_freqs
 
-        head_pattern = ("@.$vibrational_frequencies", "#.+i")
+        head_pattern = ("@.$vibrational_frequencies", "#!.+i")
         body_pattern = "#.+i #!..f"
 
         # Trivial application of the tail, but serves to check that
         # it works correctly.
-        tail_pattern = ("~", "@.$normal_modes", "#++i")
+        tail_pattern = ("~", "@.$normal_modes", "#!++i")
 
         file_path = str(testdir_path / "C2F4_01.hess")
 
@@ -553,6 +553,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         m = re.search(freq_parser.pattern, data)
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
+
+        self.assertEqual(freq_parser.capture_head(data), ["18"])
+        self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
 
         # ... more stuff here
 

@@ -33,6 +33,7 @@ __all__ = [
     "Number",
     "Sign",
     "TokenField",
+    "ParserField",
     "Content",
     "Quantity",
     "number_patterns",

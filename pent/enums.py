@@ -117,5 +117,18 @@ class TokenField(str, Enum):
     Sign = "sign"
 
 
+class ParserField(str, Enum):
+    """Enumeration for the fields/subsections of a Parser pattern."""
+
+    #: Header
+    Head = "head"
+
+    #: Body
+    Body = "body"
+
+    #: Tail/footer
+    Tail = "tail"
+
+
 if __name__ == "__main__":  # pragma: no cover
     print("Module not executable.")
