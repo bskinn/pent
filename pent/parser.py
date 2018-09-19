@@ -29,13 +29,78 @@ import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
 from .enums import Content, Quantity
-from .errors import BadTokenError
+from .errors import BadTokenError, BadSectionError
 from .patterns import std_wordify_open, std_wordify_close
 
 
 @attr.s(slots=True)
 class Parser:
     """Mini-language parser for structured numerical data."""
+
+    head = attr.ib(default=None)
+    body = attr.ib(default=None)
+    tail = attr.ib(default=None)
+
+    @property
+    def pattern(self):
+        """Return the regex pattern for the entire parser.
+
+        The capture groups are NEVER inserted when regex is
+        generated this way.
+
+        """
+        # Relies on the convert_section default for 'capture_groups'
+        # as False.
+        rx_head, rx_body, rx_tail = map(
+            self.convert_section, (self.head, self.body, self.tail)
+        )
+
+        rx = ""
+
+        if rx_head:
+            rx += rx_head + "\n"
+
+        try:
+            # At least one line of the body, followed by however many more
+            rx += rx_body + "(\n" + rx_body + ")*"
+        except TypeError as e:
+            raise BadSectionError(
+                "'body' required to generate 'pattern'"
+            ) from e
+
+        if rx_tail:
+            rx += "\n" + rx_tail
+
+        return rx
+
+    @classmethod
+    def convert_section(cls, sec, capture_groups=False):
+        """Convert the head, body or tail to regex."""
+        # Could be None
+        if sec is None:
+            return None
+
+        # If it's a Parser
+        try:
+            return sec.pattern
+        except AttributeError:
+            pass
+
+        # If it's a single line
+        try:
+            return cls.convert_line(sec, capture_groups=capture_groups)[0]
+        except AttributeError:
+            pass
+
+        # If it's an iterable of lines
+        try:
+            return "\n".join(
+                cls.convert_line(_, capture_groups=False)[0] for _ in sec
+            )
+        except AttributeError:
+            # Most likely is that the iterable members don't have
+            # the .pattern attribute
+            raise BadSectionError("Unrecognized format")
 
     @classmethod
     def convert_line(cls, line, *, capture_groups=True, group_id=0):
@@ -96,7 +161,7 @@ class Parser:
         # Always put possible whitespace to the end of the line
         pattern += r"[ \t]*($|(?=\n))"
 
-        return pattern
+        return pattern, group_id
 
 
 @attr.s(slots=True)

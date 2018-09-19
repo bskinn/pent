@@ -29,6 +29,33 @@ r"""*Supporting test data for* ``pent`` *test suite*.
 
 from pent import Number, Sign
 
+
+# ## RESULTS FROM THE ORCA HESS FILE ##
+
+orca_hess_freqs = [
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    0.000000,
+    194.490162,
+    198.587114,
+    389.931897,
+    402.713910,
+    538.244274,
+    542.017838,
+    548.246738,
+    800.613516,
+    1203.096114,
+    1342.200360,
+    1349.543713,
+    1885.157022,
+]
+
+
+# ## SAMPLE NUMBERS AND MATCHING TOKENS ##
+
 number_token_template = "#{{0}}{{1}}{{2}}{0}"
 
 number_patterns = {
@@ -50,6 +77,9 @@ number_patterns = {
 }
 
 assert len(number_patterns) == 15
+
+
+# ## EXHAUSTIVE MATCHES OF NUMBERS TO NUMBER/SIGN TYPES ##
 
 number_sign_vals = {
     "0": {

@@ -43,5 +43,17 @@ class BadTokenError(PentError):  # pragma: no cover
         return "'{}' is an invalid pent token".format(self.token)
 
 
+class BadSectionError(PentError):  # pragma: no cover
+    """Raised from failed attempts to parse a Parser section."""
+
+    def __init__(self, msg=""):
+        """Instantiate a ``BadSectionError``."""
+        self.msg = msg
+
+    def __str__(self):
+        """Generate a more-informative error message."""
+        return "Bad Parser section: {}".format(self.msg)
+
+
 if __name__ == "__main__":  # pragma: no cover
     print("Module not executable.")
