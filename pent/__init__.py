@@ -39,12 +39,13 @@ __all__ = [
     "wordify_pattern",
     "std_wordify",
     "PentError",
-    "BadTokenError",
+    "TokenError",
+    "SectionError",
 ]
 
 from .enums import Number, Sign, TokenField
 from .enums import Content, Quantity
-from .errors import PentError, BadTokenError
+from .errors import PentError, TokenError, SectionError
 from .parser import Parser, Token
 from .patterns import number_patterns, wordify_pattern, std_wordify
 

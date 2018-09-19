@@ -29,7 +29,7 @@ import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
 from .enums import Content, Quantity
-from .errors import BadTokenError, BadSectionError
+from .errors import TokenError, SectionError
 from .patterns import std_wordify_open, std_wordify_close
 
 
@@ -64,9 +64,7 @@ class Parser:
             # At least one line of the body, followed by however many more
             rx += rx_body + "(\n" + rx_body + ")*"
         except TypeError as e:
-            raise BadSectionError(
-                "'body' required to generate 'pattern'"
-            ) from e
+            raise SectionError("'body' required to generate 'pattern'") from e
 
         if rx_tail:
             rx += "\n" + rx_tail
@@ -100,7 +98,7 @@ class Parser:
         except AttributeError:
             # Most likely is that the iterable members don't have
             # the .pattern attribute
-            raise BadSectionError("Unrecognized format")
+            raise SectionError("Unrecognized format")
 
     @classmethod
     def convert_line(cls, line, *, capture_groups=True, group_id=0):
@@ -322,7 +320,7 @@ class Token:
         try:
             self._pr = self._pp_token.parseString(self.token)
         except pp.ParseException as e:
-            raise BadTokenError(self.token) from e
+            raise TokenError(self.token) from e
 
         if self.is_any:
             self._pattern, self.needs_group_id = self._selective_group_enclose(

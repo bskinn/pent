@@ -564,7 +564,7 @@ class TestPentTokens(ut.TestCase, SuperPent):
         """Confirm bad tokens raise errors."""
         import pent
 
-        self.assertRaises(pent.BadTokenError, pent.Token, "abcd")
+        self.assertRaises(pent.TokenError, pent.Token, "abcd")
 
     def test_group_enclosures(self):
         """Ensure 'ignore' flag is properly set."""

@@ -31,11 +31,11 @@ class PentError(Exception):  # pragma: no cover
     pass
 
 
-class BadTokenError(PentError):  # pragma: no cover
+class TokenError(PentError):  # pragma: no cover
     """Raised during attempts to parse an invalid token."""
 
     def __init__(self, token):
-        """Instantiate a ``BadTokenError``."""
+        """Instantiate a ``TokenError``."""
         self.token = token
 
     def __str__(self):
@@ -43,11 +43,11 @@ class BadTokenError(PentError):  # pragma: no cover
         return "'{}' is an invalid pent token".format(self.token)
 
 
-class BadSectionError(PentError):  # pragma: no cover
+class SectionError(PentError):  # pragma: no cover
     """Raised from failed attempts to parse a Parser section."""
 
     def __init__(self, msg=""):
-        """Instantiate a ``BadSectionError``."""
+        """Instantiate a ``SectionError``."""
         self.msg = msg
 
     def __str__(self):
