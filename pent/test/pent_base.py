@@ -537,6 +537,19 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 m_pat_period.group(pent.Token.group_prefix + "0"), numbers
             )
 
+    def test_multiline_body_parser(self):
+        """Confirm parsing w/multi-line body works ok."""
+        import pent
+
+        result = [["1", "2", "4"]]
+
+        text = "\n1\n\n2\n\n\n4"
+
+        pat = ("", "#!.+i", "", "#!.+i", "", "", "#!.+i")
+        prs = pent.Parser(body=pat)
+
+        self.assertEqual(prs.capture_body(text), result)
+
     def test_orca_hess_freq_parser(self):
         """Confirm 1-D data parser for ORCA freqs works."""
         import pent

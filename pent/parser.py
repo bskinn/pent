@@ -113,19 +113,20 @@ class Parser:
         except AttributeError:
             pass
 
-        # If the 'body' pattern is a string
+        # If the 'body' pattern is a string or iterable of strings
         try:
-            pat = self.convert_line(self.body, capture_groups=True)[0]
+            pat = self.convert_section(self.body, capture_groups=True)
         except AttributeError:
             raise SectionError("Invalid 'body' pattern for capture")
         else:
             caps = []
             for m in re.finditer(pat, body_text):
-                caps.append(list(*map(str.split, self.generate_captures(m))))
+                line_caps = []
+                for c in self.generate_captures(m):
+                    line_caps.extend(str.split(c))
+                caps.append(line_caps)
 
             return caps
-
-        # Iterable of lines?
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False):
@@ -230,7 +231,7 @@ class Parser:
             try:
                 yield m.group(Token.group_prefix + str(i))
             except IndexError:
-                raise StopIteration
+                break
 
 
 if __name__ == "__main__":  # pragma: no cover
