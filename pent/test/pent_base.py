@@ -532,7 +532,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         """Confirm 1-D data parser for ORCA freqs works."""
         import pent
 
-        # from .testdata import orca_hess_freqs
+        from .testdata import orca_hess_freqs
 
         head_pattern = ("@.$vibrational_frequencies", "#!.+i")
         body_pattern = "#.+i #!..f"
@@ -557,7 +557,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(freq_parser.capture_head(data), ["18"])
         self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
 
-        # ... more stuff here
+        self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
+
+        # ... more stuff here?
 
 
 class TestPentTokens(ut.TestCase, SuperPent):

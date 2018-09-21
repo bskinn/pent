@@ -102,6 +102,31 @@ class Parser:
 
         return list(*map(str.split, self.generate_captures(m_tail)))
 
+    def capture_body(self, text):
+        """Capture all values from the pattern body, recursing if needed."""
+        m_entire = re.search(self.pattern, text)
+        body = m_entire.group(ParserField.Body)
+
+        # If the 'body' pattern is a Parser
+        try:
+            return self.body.capture_body(body)
+        except AttributeError:
+            pass
+
+        # If the 'body' pattern is a string
+        try:
+            pat = self.convert_line(self.body, capture_groups=True)[0]
+        except AttributeError:
+            raise SectionError("Invalid 'body' pattern for capture")
+        else:
+            caps = []
+            for m in re.finditer(pat, text):
+                caps.append(list(*map(str.split, self.generate_captures(m))))
+
+            return caps
+
+        # Iterable of lines?
+
     @classmethod
     def convert_section(cls, sec, capture_groups=False):
         """Convert the head, body or tail to regex."""
