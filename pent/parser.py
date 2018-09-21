@@ -105,11 +105,11 @@ class Parser:
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
         m_entire = re.search(self.pattern, text)
-        body = m_entire.group(ParserField.Body)
+        body_text = m_entire.group(ParserField.Body)
 
         # If the 'body' pattern is a Parser
         try:
-            return self.body.capture_body(body)
+            return self.body.capture_body(body_text)
         except AttributeError:
             pass
 
@@ -120,7 +120,7 @@ class Parser:
             raise SectionError("Invalid 'body' pattern for capture")
         else:
             caps = []
-            for m in re.finditer(pat, text):
+            for m in re.finditer(pat, body_text):
                 caps.append(list(*map(str.split, self.generate_captures(m))))
 
             return caps

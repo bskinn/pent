@@ -99,6 +99,15 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     prs = pent.Parser()
 
+    def test_empty_pattern_matches_blank_line(self):
+        """Confirm an empty pattern matches only a blank line."""
+        import pent
+
+        prs = pent.Parser(body="")
+
+        self.assertIsNotNone(re.search(prs.pattern, ""))
+        self.assertIsNone(re.search(prs.pattern, "3"))
+
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
         import pent
@@ -559,7 +568,23 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
 
-        # ... more stuff here?
+    def test_orca_hess_dipders_parser(self):
+        """Confirm 2-D single-block data parser for ORCA dipders works."""
+        import pent
+
+        from .testdata import orca_hess_dipders
+
+        head_pattern = ("@.$dipole_derivatives", "#.+i")
+        body_pattern = "#!+.f"
+
+        file_path = str(testdir_path / "C2F4_01.hess")
+
+        freq_parser = pent.Parser(head=head_pattern, body=body_pattern)
+
+        with open(file_path) as f:
+            data = f.read()
+
+        self.assertEqual(freq_parser.capture_body(data), orca_hess_dipders)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
