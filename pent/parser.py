@@ -122,33 +122,38 @@ class Parser:
 
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
-        m_entire = re.search(self.pattern(), text)
-        body_text = m_entire.group(ParserField.Body)
+        cap_blocks = []
+        for m_entire in re.finditer(self.pattern(), text):
+            block_text = m_entire.group(ParserField.Body)
 
-        # If the 'body' pattern is a Parser
-        if isinstance(self.body, self.__class__):
-            data = []
-            body_subpat = self.body.pattern(capture_sections=True)
+            # If the 'body' pattern is a Parser
+            if isinstance(self.body, self.__class__):
+                data = []
+                body_subpat = self.body.pattern(capture_sections=True)
 
-            for m in re.finditer(body_subpat, body_text):
-                data.append(self.body.capture_body(m.group(0)))
+                for m in re.finditer(body_subpat, block_text):
+                    data.extend(self.body.capture_body(m.group(0)))
 
-            return data
+                cap_blocks.append(data)
+                continue
 
-        # If the 'body' pattern is a string or iterable of strings
-        try:
-            pat = self.convert_section(self.body, capture_groups=True)
-        except AttributeError:
-            raise SectionError("Invalid 'body' pattern for capture")
-        else:
-            caps = []
-            for m in re.finditer(pat, body_text):
-                line_caps = []
-                for c in self.generate_captures(m):
-                    line_caps.extend(c.split())
-                caps.append(line_caps)
+            # If the 'body' pattern is a string or iterable of strings
+            try:
+                pat = self.convert_section(self.body, capture_groups=True)
+            except AttributeError:
+                raise SectionError("Invalid 'body' pattern for capture")
+            else:
+                data = []
+                for m in re.finditer(pat, block_text):
+                    line_caps = []
+                    for c in self.generate_captures(m):
+                        line_caps.extend(c.split())
+                    data.append(line_caps)
 
-            return caps
+                cap_blocks.append(data)
+                continue
+
+        return cap_blocks
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False, capture_sections=True):

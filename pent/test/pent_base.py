@@ -541,7 +541,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         """Confirm parsing w/multi-line body works ok."""
         import pent
 
-        result = [["1", "2", "4"]]
+        result = [[["1", "2", "4"]]]
 
         text = "\n1\n\n2\n\n\n4"
 
@@ -629,6 +629,39 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         prs_outer = pent.Parser(head="@.$data", body=prs_inner)
 
         self.assertEqual(prs_outer.capture_body(data), mblock_result)
+
+    def test_repeated_multiblock(self):
+        """Confirm repeated multiblock parser works correctly."""
+        from textwrap import dedent
+
+        import pent
+
+        from .testdata import mblock_repeated_result
+
+        data = dedent(
+            """
+            $top
+                1     2     3
+                0.2   0.3   0.4
+                0.3   0.4   0.6
+                4     5     6
+                0.1   0.1   0.1
+                0.5   0.5   0.5
+
+            $top
+                7     8     9
+                0.2   0.2   0.2
+                0.6   0.6   0.6
+                1     2     3
+                0.4   0.4   0.4
+                0.8   0.8   0.8
+        """
+        )
+
+        prs_inner = pent.Parser(head="#++i", body="#!+.f")
+        prs_outer = pent.Parser(head="@.$top", body=prs_inner)
+
+        self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
