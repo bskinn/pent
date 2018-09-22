@@ -24,18 +24,171 @@ r"""*Mini-language parser for* ``pent``.
 
 """
 
-import attr
-import pyparsing as pp
+import itertools as itt
+import re
 
-from .enums import Number, Sign, TokenField
-from .enums import Content, Quantity
-from .errors import BadTokenError
+import attr
+
+from .enums import ParserField
+from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
+from .token import Token
 
 
 @attr.s(slots=True)
 class Parser:
     """Mini-language parser for structured numerical data."""
+
+    head = attr.ib(default=None)
+    body = attr.ib(default=None)
+    tail = attr.ib(default=None)
+
+    def pattern(self, capture_sections=True):
+        """Return the regex pattern for the entire parser.
+
+        The individual capture groups are NEVER inserted when
+        regex is generated this way.
+
+        Instead, head/body/tail capture groups are inserted,
+        in order to subdivide matched text by these subsets.
+        These 'section' capture groups are ONLY inserted for the
+        top-level Parser, though -- they are suppressed for inner
+        nested Parsers.
+
+        """
+        # Relies on the convert_section default for 'capture_groups'
+        # as False.
+        rx_head = self.convert_section(self.head, capture_sections=False)
+        rx_body = self.convert_section(self.body, capture_sections=False)
+        rx_tail = self.convert_section(self.tail, capture_sections=False)
+        #        rx_head, rx_body, rx_tail = map(
+        #            self.convert_section, (self.head, self.body, self.tail)
+        #        )
+
+        rx = ""
+
+        if rx_head:
+            rx += (
+                "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
+                if capture_sections
+                else rx_head + "\n"
+            )
+
+        try:
+            # At least one line of the body, followed by however many more
+            rx += (
+                (
+                    "(?P<{}>".format(ParserField.Body)
+                    if capture_sections
+                    else ""
+                )
+                + rx_body
+                + "(\n"
+                + rx_body
+                + ")*"
+                + (")" if capture_sections else "")
+            )
+        except TypeError as e:
+            raise SectionError("'body' required to generate 'pattern'") from e
+
+        if rx_tail:
+            rx += (
+                "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
+                if capture_sections
+                else "\n" + rx_tail
+            )
+
+        return rx
+
+    def capture_head(self, text):
+        """Capture all marked values from the pattern head."""
+        m_entire = re.search(self.pattern(), text)
+        head = m_entire.group(ParserField.Head)
+
+        pat_capture = self.convert_section(self.head, capture_groups=True)
+        m_head = re.search(pat_capture, head)
+
+        return list(*map(str.split, self.generate_captures(m_head)))
+
+    def capture_tail(self, text):
+        """Capture all marked values from the pattern tail."""
+        m_entire = re.search(self.pattern(), text)
+        tail = m_entire.group(ParserField.Tail)
+
+        pat_capture = self.convert_section(self.tail, capture_groups=True)
+        m_tail = re.search(pat_capture, tail)
+
+        return list(*map(str.split, self.generate_captures(m_tail)))
+
+    def capture_body(self, text):
+        """Capture all values from the pattern body, recursing if needed."""
+        cap_blocks = []
+        for m_entire in re.finditer(self.pattern(), text):
+            block_text = m_entire.group(ParserField.Body)
+
+            # If the 'body' pattern is a Parser
+            if isinstance(self.body, self.__class__):
+                data = []
+                body_subpat = self.body.pattern(capture_sections=True)
+
+                for m in re.finditer(body_subpat, block_text):
+                    data.extend(self.body.capture_body(m.group(0)))
+
+                cap_blocks.append(data)
+                continue
+
+            # If the 'body' pattern is a string or iterable of strings
+            try:
+                pat = self.convert_section(self.body, capture_groups=True)
+            except AttributeError:
+                raise SectionError("Invalid 'body' pattern for capture")
+            else:
+                data = []
+                for m in re.finditer(pat, block_text):
+                    line_caps = []
+                    for c in self.generate_captures(m):
+                        line_caps.extend(c.split())
+                    data.append(line_caps)
+
+                cap_blocks.append(data)
+                continue
+
+        return cap_blocks
+
+    @classmethod
+    def convert_section(cls, sec, capture_groups=False, capture_sections=True):
+        """Convert the head, body or tail to regex."""
+        # Could be None
+        if sec is None:
+            return None
+
+        # If it's a Parser
+        try:
+            return sec.pattern(capture_sections=capture_sections)
+        except AttributeError:
+            pass
+
+        # If it's a single line
+        try:
+            return cls.convert_line(sec, capture_groups=capture_groups)[0]
+        except AttributeError:
+            pass
+
+        # If it's an iterable of lines
+        def gen_converted_lines():
+            id = 0
+            for line in sec:
+                pat, id = cls.convert_line(
+                    line, capture_groups=capture_groups, group_id=id
+                )
+                yield pat
+
+        try:
+            return "\n".join(gen_converted_lines())
+        except AttributeError:
+            # Most likely is that the iterable members don't have
+            # the .pattern attribute
+            raise SectionError("Unrecognized format")
 
     @classmethod
     def convert_line(cls, line, *, capture_groups=True, group_id=0):
@@ -96,247 +249,16 @@ class Parser:
         # Always put possible whitespace to the end of the line
         pattern += r"[ \t]*($|(?=\n))"
 
-        return pattern
-
-
-@attr.s(slots=True)
-class Token:
-    """Encapsulates transforming mini-language patterns tokens into regex."""
-
-    from .patterns import number_patterns as _numpats
-
-    #: Mini-language token string to be parsed
-    token = attr.ib()
-
-    #: Whether group capture should be added or not
-    do_capture = attr.ib(default=True)
-
-    #: Flag for whether group ID substitution needs to be done
-    needs_group_id = attr.ib(default=False, init=False, repr=False)
-
-    # Internal pyparsing parse result and generated regex pattern
-    _pr = attr.ib(default=None, init=False, repr=False)
-    _pattern = attr.ib(default=None, init=False, repr=False)
-
-    # #####  pyparsing pattern internals #####
-
-    # ## MINOR PATTERN COMPONENTS ##
-    group_prefix = "g"
-    _s_any_flag = "~"
-    _s_capture = "!"
-    _s_no_space = "x"
-
-    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
-        TokenField.NoSpace
-    )
-    _pp_capture = pp.Optional(pp.Literal(_s_capture)).setResultsName(
-        TokenField.Capture
-    )
-    _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
-        TokenField.Quantity
-    )
-
-    # ## ARBITRARY CONTENT TOKEN ##
-    # Anything may be matched here, including multiple words.
-    _pp_any_flag = (
-        pp.Literal(_s_any_flag).setResultsName(TokenField.Type) + _pp_capture
-    )
-
-    # ## LITERAL STRING TOKEN ##
-    # Marker for the rest of the token to be a literal string
-    _pp_str_flag = pp.Literal(Content.String.value).setResultsName(
-        TokenField.Type
-    )
-
-    # Remainder of the content after the marker, spaces included
-    _pp_str_value = pp.Word(pp.printables + " ").setResultsName(TokenField.Str)
-
-    # Composite pattern for a literal string
-    _pp_string = (
-        _pp_str_flag
-        + _pp_no_space
-        + _pp_capture
-        + _pp_quantity
-        + _pp_str_value
-    )
-
-    # ## NUMERICAL VALUE TOKEN ##
-    # Initial marker for a numerical value
-    _pp_num_flag = pp.Literal(Content.Number.value).setResultsName(
-        TokenField.Type
-    )
-
-    # Marker for the sign of the value; period indicates either sign
-    _pp_num_sign = pp.Word("".join(Sign), exact=1).setResultsName(
-        TokenField.Sign
-    )
-
-    # Marker for the number type to look for
-    _pp_num_type = pp.Word("".join(Number), exact=1).setResultsName(
-        TokenField.Number
-    )
-
-    # Composite pattern for a number
-    _pp_number = (
-        _pp_num_flag
-        + _pp_no_space
-        + _pp_capture
-        + _pp_quantity
-        + pp.Group(_pp_num_sign + _pp_num_type).setResultsName(
-            TokenField.SignNumber
-        )
-    )
-
-    # ## COMBINED TOKEN PARSER ##
-    _pp_token = (
-        pp.StringStart()
-        + (_pp_any_flag ^ _pp_string ^ _pp_number)
-        + pp.StringEnd()
-    )
-
-    # Informational properties
-    @property
-    def pattern(self):
-        """Return assembled regex pattern from the token, as |str|."""
-        return self._pattern
-
-    @property
-    def is_any(self):
-        """Return flag for whether the token is an "any content" token."""
-        return self._pr[TokenField.Type] == Content.Any
-
-    @property
-    def is_str(self):
-        """Return flag for whether the token matches a literal string."""
-        return self._pr[TokenField.Type] == Content.String
-
-    @property
-    def is_num(self):
-        """Return flag for whether the token matches a number."""
-        return self._pr[TokenField.Type] == Content.Number
-
-    @property
-    def match_quantity(self):
-        """Return match quantity; |None| for :attr:`pent.enums.Content.Any`."""
-        if self.is_any:
-            return None
-        else:
-            return Quantity(self._pr[TokenField.Quantity])
-
-    @property
-    def number(self):
-        """#: Return number format; |None| if token doesn't match a number."""
-        if self.is_num:
-            return Number(self._pr[TokenField.SignNumber][TokenField.Number])
-        else:
-            return None
-
-    @property
-    def sign(self):
-        """#: Return number sign; |None| if token doesn't match a number."""
-        if self.is_num:
-            return Sign(self._pr[TokenField.SignNumber][TokenField.Sign])
-        else:
-            return None
-
-    @property
-    def space_after(self):
-        """Return flag for whether post-match space should be provided for."""
-        if self.is_any:
-            return False
-        else:
-            return TokenField.NoSpace not in self._pr
-
-    @property
-    def capture(self):
-        """Return flag for whether a regex capture group should be created."""
-        return TokenField.Capture in self._pr
-
-    def __attrs_post_init__(self):
-        """Handle automatic creation stuff."""
-        try:
-            self._pr = self._pp_token.parseString(self.token)
-        except pp.ParseException as e:
-            raise BadTokenError(self.token) from e
-
-        if self.is_any:
-            self._pattern, self.needs_group_id = self._selective_group_enclose(
-                ".*?"
-            )
-            return
-
-        # Only single, non-optional captures implemented for now, regardless of
-        # the Quantity flag in the token
-        if self.is_str:
-            # Always store the string pattern
-            self._pattern = self._string_pattern(self._pr[TokenField.Str])
-
-            # Modify, depending on the Quantity
-            if self.match_quantity is Quantity.OneOrMore:
-                self._pattern = "(" + self._pattern + ")+"
-
-        elif self.is_num:
-            self._pattern = self._get_number_pattern(self._pr)
-
-            if self.match_quantity is Quantity.OneOrMore:
-                self._pattern += r"([ \t]+{})*".format(self._pattern)
-
-        else:  # pragma: no cover
-            raise NotImplementedError(
-                "Unknown content type somehow specified!"
-            )
-
-        self._pattern, self.needs_group_id = self._selective_group_enclose(
-            self._pattern
-        )
+        return pattern, group_id
 
     @staticmethod
-    def _string_pattern(s):
-        """Create a literal string pattern from `s`."""
-        pattern = ""
-
-        for c in s:
-            if c in "[\^$.|?*+(){}":
-                # Must escape regex special characters
-                pattern += "\\" + c
-            else:
-                pattern += c
-
-        return pattern
-
-    @classmethod
-    def _get_number_pattern(cls, parse_result):
-        """Return the correct number pattern given the parse result."""
-        num = Number(parse_result[TokenField.SignNumber][TokenField.Number])
-        sign = Sign(parse_result[TokenField.SignNumber][TokenField.Sign])
-
-        return cls._numpats[num, sign]
-
-    @classmethod
-    def _group_open(cls):
-        """Create the opening pattern for a named group.
-
-        This leaves a formatting placeholder for the invoking Parser
-        to inject the appropriate group ID.
-
-        """
-        return r"(?P<{0}{{0}}>".format(cls.group_prefix)
-
-    @staticmethod
-    def _group_close():
-        """Create the closing pattern for a named group."""
-        return ")"
-
-    def _selective_group_enclose(self, pat):
-        """Return token pattern enclosed in group IF it should be grouped.
-
-        FIX THIS DOCSTRING, IT'S OUT OF DATE!!!
-
-        """
-        if self.do_capture and self.capture:
-            return (self._group_open() + pat + self._group_close(), True)
-        else:
-            return pat, False
+    def generate_captures(m):
+        """Generate captures from a regex match."""
+        for i in itt.count(0):
+            try:
+                yield m.group(Token.group_prefix + str(i))
+            except IndexError:
+                break
 
 
 if __name__ == "__main__":  # pragma: no cover

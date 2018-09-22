@@ -28,8 +28,13 @@ r"""*Test objects for* ``pent`` *test suite*.
 
 
 import itertools as itt
+from pathlib import Path
 import re
 import unittest as ut
+
+
+# HELPERS
+testdir_path = Path() / "pent" / "test"
 
 
 class SuperPent:
@@ -94,6 +99,15 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     prs = pent.Parser()
 
+    def test_empty_pattern_matches_blank_line(self):
+        """Confirm an empty pattern matches only a blank line."""
+        import pent
+
+        prs = pent.Parser(body="")
+
+        self.assertIsNotNone(re.search(prs.pattern(), ""))
+        self.assertIsNone(re.search(prs.pattern(), "3"))
+
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
         import pent
@@ -108,7 +122,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             test_name = "{0}_{1}".format(content, capture)
             with self.subTest(test_name):
                 test_pat = patterns[content].format("!" if capture else "")
-                test_rx = self.prs.convert_line(test_pat)
+                test_rx = self.prs.convert_line(test_pat)[0]
                 self.assertEqual(capture, "(?P<" in test_rx, msg=test_pat)
 
     def test_parser_single_line_space_delim(self):
@@ -131,7 +145,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 test_pat = test_pat_template.format(s.value, n.value)
 
                 with self.subTest(self.make_testname(v, n, s)):
-                    npat = self.prs.convert_line(test_pat)
+                    npat = self.prs.convert_line(test_pat)[0]
 
                     res = self.does_parse_match(npat, test_str)
 
@@ -148,13 +162,13 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_pat_with_space = "~ '@!.string with' ~"
 
         with self.subTest("capture"):
-            pat = self.prs.convert_line(test_pat_capture)
+            pat = self.prs.convert_line(test_pat_capture)[0]
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
             self.assertEqual(m.group(pent.Token.group_prefix + "0"), "word")
 
         with self.subTest("ignore"):
-            pat = self.prs.convert_line(test_pat_ignore)
+            pat = self.prs.convert_line(test_pat_ignore)[0]
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
             self.assertRaises(
@@ -162,7 +176,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             )
 
         with self.subTest("symbol"):
-            pat = self.prs.convert_line(test_pat_symbol)
+            pat = self.prs.convert_line(test_pat_symbol)[0]
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
             self.assertEqual(
@@ -170,7 +184,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             )
 
         with self.subTest("with_space"):
-            pat = self.prs.convert_line(test_pat_with_space)
+            pat = self.prs.convert_line(test_pat_with_space)[0]
             m = re.search(pat, test_line)
             self.assertIsNotNone(m)
             self.assertEqual(
@@ -193,7 +207,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 test_pat = test_pat_template.format(s.value, n.value)
 
                 with self.subTest(self.make_testname(v, n, s)):
-                    npat = self.prs.convert_line(test_pat)
+                    npat = self.prs.convert_line(test_pat)[0]
 
                     m = re.search(npat, test_str)
 
@@ -218,7 +232,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_str = "This is a string with 123-456 in it."
         test_pat = "~ #x!.+i #!.-i ~"
 
-        npat = self.prs.convert_line(test_pat)
+        npat = self.prs.convert_line(test_pat)[0]
 
         m = re.search(npat, test_str)
 
@@ -242,7 +256,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 test_pat = test_pat_template.format(s.value, n.value)
 
                 with self.subTest(self.make_testname(v, n, s)):
-                    npat = self.prs.convert_line(test_pat)
+                    npat = self.prs.convert_line(test_pat)[0]
 
                     m = re.search(npat, test_str)
 
@@ -271,7 +285,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 test_pat = test_pat_template.format(s.value, n.value)
 
                 with self.subTest(self.make_testname(v, n, s)):
-                    npat = self.prs.convert_line(test_pat)
+                    npat = self.prs.convert_line(test_pat)[0]
 
                     m = re.search(npat, test_str)
 
@@ -303,7 +317,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 pent.Quantity.Single,
             )
             with self.subTest(token):
-                pat = self.prs.convert_line(test_pat.format(token))
+                pat = self.prs.convert_line(test_pat.format(token))[0]
                 m = re.search(pat, test_line.format(n))
 
                 self.assertIsNotNone(m, msg=test_line.format(n) + token)
@@ -316,14 +330,14 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_line = "This is a line with whatever weird (*#$(*&23646{}}{#$"
 
         with self.subTest("capture"):
-            pat = self.prs.convert_line("~!")
+            pat = self.prs.convert_line("~!")[0]
             self.assertTrue(self.does_parse_match(pat, test_line))
 
             m = re.search(pat, test_line)
             self.assertEqual(test_line, m.group(pent.Token.group_prefix + "0"))
 
         with self.subTest("no_capture"):
-            pat = self.prs.convert_line("~")
+            pat = self.prs.convert_line("~")[0]
             self.assertTrue(self.does_parse_match(pat, test_line))
 
             m = re.search(pat, test_line)
@@ -340,7 +354,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_num = "2e-4"
         test_line = test_line_start + "[" + test_num + "]" + test_line_end
 
-        pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")
+        pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")[0]
         m = re.search(pat, test_line)
 
         self.assertEqual(
@@ -360,7 +374,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for there, cap in itt.product(*itt.repeat((True, False), 2)):
             with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                prs_pat = pent.Parser().convert_line(pat)
+                prs_pat = pent.Parser().convert_line(pat)[0]
 
                 work_str = test_string.format("foo" if there else "")
 
@@ -393,7 +407,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)
+                pat = pent.Parser().convert_line(pat)[0]
 
                 work_str = test_string.format("foo" * qty)
 
@@ -419,7 +433,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)
+                pat = pent.Parser().convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 
@@ -446,7 +460,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((0, 1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)
+                pat = pent.Parser().convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 
@@ -470,7 +484,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_string = "This is  a test string."
         test_pat = "~ @.is @!?absolutely @.a ~"
 
-        m = re.search(self.prs.convert_line(test_pat), test_string)
+        m = re.search(self.prs.convert_line(test_pat)[0], test_string)
 
         self.assertEqual("", m.group(pent.Token.group_prefix + "0"))
 
@@ -483,8 +497,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_pat_1 = "~ @!.one: #!.+i"
         test_pat_2 = "~ @!.two: #!.-s"
 
-        cp_1 = self.prs.convert_line(test_pat_1)
-        cp_2 = self.prs.convert_line(test_pat_2, group_id=2)
+        cp_1 = self.prs.convert_line(test_pat_1)[0]
+        cp_2 = self.prs.convert_line(test_pat_2, group_id=2)[0]
 
         m = re.search(cp_1 + r"\n" + cp_2, test_str)
 
@@ -506,8 +520,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_pat = "~ #!+.g ~"
         test_pat_period = "~ #x!+.g @.."
 
-        re_pat = self.prs.convert_line(test_pat)
-        re_pat_period = self.prs.convert_line(test_pat_period)
+        re_pat = self.prs.convert_line(test_pat)[0]
+        re_pat_period = self.prs.convert_line(test_pat_period)[0]
 
         with self.subTest("end_space"):
             m_pat = re.search(re_pat, test_str)
@@ -523,6 +537,132 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                 m_pat_period.group(pent.Token.group_prefix + "0"), numbers
             )
 
+    def test_multiline_body_parser(self):
+        """Confirm parsing w/multi-line body works ok."""
+        import pent
+
+        result = [[["1", "2", "4"]]]
+
+        text = "\n1\n\n2\n\n\n4"
+
+        pat = ("", "#!.+i", "", "#!.+i", "", "", "#!.+i")
+        prs = pent.Parser(body=pat)
+
+        self.assertEqual(prs.capture_body(text), result)
+
+    def test_orca_hess_freq_parser(self):
+        """Confirm 1-D data parser for ORCA freqs works."""
+        import pent
+
+        from .testdata import orca_hess_freqs
+
+        head_pattern = ("@.$vibrational_frequencies", "#!.+i")
+        body_pattern = "#.+i #!..f"
+
+        # Trivial application of the tail, but serves to check that
+        # it works correctly.
+        tail_pattern = ("~", "@.$normal_modes", "#!++i")
+
+        file_path = str(testdir_path / "C2F4_01.hess")
+
+        freq_parser = pent.Parser(
+            head=head_pattern, body=body_pattern, tail=tail_pattern
+        )
+
+        with open(file_path) as f:
+            data = f.read()
+
+        m = re.search(freq_parser.pattern(), data)
+        self.assertIsNotNone(m)
+        self.assertEqual(m.group(0).count("\n"), 22)
+
+        self.assertEqual(freq_parser.capture_head(data), ["18"])
+        self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
+
+        self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
+
+    def test_orca_hess_dipders_parser(self):
+        """Confirm 2-D single-block data parser for ORCA dipders works."""
+        import pent
+
+        from .testdata import orca_hess_dipders
+
+        head_pattern = ("@.$dipole_derivatives", "#.+i")
+        body_pattern = "#!+.f"
+
+        file_path = str(testdir_path / "C2F4_01.hess")
+
+        freq_parser = pent.Parser(head=head_pattern, body=body_pattern)
+
+        with open(file_path) as f:
+            data = f.read()
+
+        self.assertEqual(freq_parser.capture_body(data), orca_hess_dipders)
+
+    def test_simple_multiblock(self):
+        """Confirm simple multiblock parser works correctly."""
+        from textwrap import dedent
+
+        import pent
+
+        from .testdata import mblock_result
+
+        data = dedent(
+            """
+               test
+
+               more test
+
+               $data
+                      1      2      3
+                  1   2.5   -3.5    0.8
+                  2  -1.2    8.1   -9.2
+
+                      4      5      6
+                  1  -0.1    3.5    8.1
+                  2   1.4    2.2   -4.7
+
+               $next_data"""
+        )
+
+        prs_inner = pent.Parser(head="#++i", body="#.+i #!+.f", tail="")
+        prs_outer = pent.Parser(head="@.$data", body=prs_inner)
+
+        self.assertEqual(prs_outer.capture_body(data), mblock_result)
+
+    def test_repeated_multiblock(self):
+        """Confirm repeated multiblock parser works correctly."""
+        from textwrap import dedent
+
+        import pent
+
+        from .testdata import mblock_repeated_result
+
+        data = dedent(
+            """
+            $top
+                1     2     3
+                0.2   0.3   0.4
+                0.3   0.4   0.6
+                4     5     6
+                0.1   0.1   0.1
+                0.5   0.5   0.5
+
+            $top
+                7     8     9
+                0.2   0.2   0.2
+                0.6   0.6   0.6
+                1     2     3
+                0.4   0.4   0.4
+                0.8   0.8   0.8
+        """
+        )
+
+        prs_inner = pent.Parser(head="#++i", body="#!+.f")
+        prs_outer = pent.Parser(head="@.$top", body=prs_inner)
+
+        self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
+
 
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
@@ -531,7 +671,7 @@ class TestPentTokens(ut.TestCase, SuperPent):
         """Confirm bad tokens raise errors."""
         import pent
 
-        self.assertRaises(pent.BadTokenError, pent.Token, "abcd")
+        self.assertRaises(pent.TokenError, pent.Token, "abcd")
 
     def test_group_enclosures(self):
         """Ensure 'ignore' flag is properly set."""
@@ -652,7 +792,7 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
                 with self.subTest(
                     testname_template.format(v1, s1, v2, s2, v3)
                 ):
-                    npat = self.prs.convert_line(test_pat)
+                    npat = self.prs.convert_line(test_pat)[0]
 
                     m = re.search(npat, test_str)
 
