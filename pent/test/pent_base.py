@@ -105,8 +105,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         prs = pent.Parser(body="")
 
-        self.assertIsNotNone(re.search(prs.pattern, ""))
-        self.assertIsNone(re.search(prs.pattern, "3"))
+        self.assertIsNotNone(re.search(prs.pattern(), ""))
+        self.assertIsNone(re.search(prs.pattern(), "3"))
 
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
@@ -572,7 +572,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         with open(file_path) as f:
             data = f.read()
 
-        m = re.search(freq_parser.pattern, data)
+        m = re.search(freq_parser.pattern(), data)
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
 
@@ -598,6 +598,37 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             data = f.read()
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_dipders)
+
+    def test_simple_multiblock(self):
+        """Confirm simple multiblock parser works correctly."""
+        from textwrap import dedent
+
+        import pent
+
+        from .testdata import mblock_result
+
+        data = dedent(
+            """
+               test
+
+               more test
+
+               $data
+                      1      2      3
+                  1   2.5   -3.5    0.8
+                  2  -1.2    8.1   -9.2
+
+                      4      5      6
+                  1  -0.1    3.5    8.1
+                  2   1.4    2.2   -4.7
+
+               $next_data"""
+        )
+
+        prs_inner = pent.Parser(head="#++i", body="#.+i #!+.f", tail="")
+        prs_outer = pent.Parser(head="@.$data", body=prs_inner)
+
+        self.assertEqual(prs_outer.capture_body(data), mblock_result)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):

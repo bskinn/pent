@@ -29,6 +29,11 @@ r"""*Supporting test data for* ``pent`` *test suite*.
 
 from pent import Number, Sign
 
+mblock_result = [
+    [["2.5", "-3.5", "0.8"], ["-1.2", "8.1", "-9.2"]],
+    [["-0.1", "3.5", "8.1"], ["1.4", "2.2", "-4.7"]],
+]
+
 
 # ## RESULTS FROM THE C2F4_01.hess FILE ##
 

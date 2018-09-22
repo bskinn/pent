@@ -43,8 +43,7 @@ class Parser:
     body = attr.ib(default=None)
     tail = attr.ib(default=None)
 
-    @property
-    def pattern(self):
+    def pattern(self, capture_sections=True):
         """Return the regex pattern for the entire parser.
 
         The individual capture groups are NEVER inserted when
@@ -52,39 +51,58 @@ class Parser:
 
         Instead, head/body/tail capture groups are inserted,
         in order to subdivide matched text by these subsets.
+        These 'section' capture groups are ONLY inserted for the
+        top-level Parser, though -- they are suppressed for inner
+        nested Parsers.
 
         """
         # Relies on the convert_section default for 'capture_groups'
         # as False.
-        rx_head, rx_body, rx_tail = map(
-            self.convert_section, (self.head, self.body, self.tail)
-        )
+        rx_head = self.convert_section(self.head, capture_sections=False)
+        rx_body = self.convert_section(self.body, capture_sections=False)
+        rx_tail = self.convert_section(self.tail, capture_sections=False)
+        #        rx_head, rx_body, rx_tail = map(
+        #            self.convert_section, (self.head, self.body, self.tail)
+        #        )
 
         rx = ""
 
         if rx_head:
-            rx += "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
+            rx += (
+                "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
+                if capture_sections
+                else rx_head + "\n"
+            )
 
         try:
             # At least one line of the body, followed by however many more
             rx += (
-                "(?P<{}>".format(ParserField.Body)
+                (
+                    "(?P<{}>".format(ParserField.Body)
+                    if capture_sections
+                    else ""
+                )
                 + rx_body
                 + "(\n"
                 + rx_body
-                + ")*)"
+                + ")*"
+                + (")" if capture_sections else "")
             )
         except TypeError as e:
             raise SectionError("'body' required to generate 'pattern'") from e
 
         if rx_tail:
-            rx += "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
+            rx += (
+                "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
+                if capture_sections
+                else "\n" + rx_tail
+            )
 
         return rx
 
     def capture_head(self, text):
         """Capture all marked values from the pattern head."""
-        m_entire = re.search(self.pattern, text)
+        m_entire = re.search(self.pattern(), text)
         head = m_entire.group(ParserField.Head)
 
         pat_capture = self.convert_section(self.head, capture_groups=True)
@@ -94,7 +112,7 @@ class Parser:
 
     def capture_tail(self, text):
         """Capture all marked values from the pattern tail."""
-        m_entire = re.search(self.pattern, text)
+        m_entire = re.search(self.pattern(), text)
         tail = m_entire.group(ParserField.Tail)
 
         pat_capture = self.convert_section(self.tail, capture_groups=True)
@@ -104,14 +122,18 @@ class Parser:
 
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
-        m_entire = re.search(self.pattern, text)
+        m_entire = re.search(self.pattern(), text)
         body_text = m_entire.group(ParserField.Body)
 
         # If the 'body' pattern is a Parser
-        try:
-            return self.body.capture_body(body_text)
-        except AttributeError:
-            pass
+        if isinstance(self.body, self.__class__):
+            data = []
+            body_subpat = self.body.pattern(capture_sections=True)
+
+            for m in re.finditer(body_subpat, body_text):
+                data.append(self.body.capture_body(m.group(0)))
+
+            return data
 
         # If the 'body' pattern is a string or iterable of strings
         try:
@@ -123,13 +145,13 @@ class Parser:
             for m in re.finditer(pat, body_text):
                 line_caps = []
                 for c in self.generate_captures(m):
-                    line_caps.extend(str.split(c))
+                    line_caps.extend(c.split())
                 caps.append(line_caps)
 
             return caps
 
     @classmethod
-    def convert_section(cls, sec, capture_groups=False):
+    def convert_section(cls, sec, capture_groups=False, capture_sections=True):
         """Convert the head, body or tail to regex."""
         # Could be None
         if sec is None:
@@ -137,7 +159,7 @@ class Parser:
 
         # If it's a Parser
         try:
-            return sec.pattern
+            return sec.pattern(capture_sections=capture_sections)
         except AttributeError:
             pass
 

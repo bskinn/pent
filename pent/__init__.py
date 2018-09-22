@@ -44,7 +44,7 @@ __all__ = [
     "SectionError",
 ]
 
-from .enums import Number, Sign, TokenField
+from .enums import Number, Sign, TokenField, ParserField
 from .enums import Content, Quantity
 from .errors import PentError, TokenError, SectionError
 from .parser import Parser
