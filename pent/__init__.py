@@ -52,4 +52,4 @@ from .patterns import number_patterns, wordify_pattern, std_wordify
 from .token import Token
 
 
-__version__ = "0.1.dev2"
+__version__ = "0.1"

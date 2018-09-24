@@ -11,7 +11,7 @@ def readme():
 setup(
     name="pent",
     version=__version__,
-    description="Pent Extracts Numerical Text",
+    description="pent Extracts Numerical Text",
     long_description=readme(),
     url="https://www.github.com/bskinn/pent",
     license="MIT License",
@@ -35,6 +35,6 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Utilities",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
     ],
 )
