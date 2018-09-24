@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### [Unreleased]
 
+...
+
+
+### v0.1.0 [2018-09-23]
+
 #### Features
 
- * ...
+ * Three token types implemented to date: numeric, string-literal, "any"
+ * Parsing of multiple levels of recursive nested data; tested only
+   to two leves of nesting to date.
+ * Each nested level of structure can have head/body/tail
+ * Captured tokens can be easily retrieved from head/tail at the top level
+   parser; no good head or tail capture yet from within nested structures
