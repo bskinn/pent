@@ -28,7 +28,7 @@ import attr
 import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
-from .enums import Content, Quantity
+from .enums import Content, Quantity, SpaceAfter
 from .errors import TokenError
 
 
@@ -57,11 +57,12 @@ class Token:
     group_prefix = "g"
     _s_any_flag = "~"
     _s_capture = "!"
-    _s_no_space = "x"
+#    _s_no_space = "x"
 
-    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
-        TokenField.NoSpace
-    )
+#    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
+#        TokenField.NoSpace
+#    )
+    _pp_space_after = pp.Optional(pp.Word("".join(SpaceAfter), exact=1)).setResultsName(TokenField.SpaceAfter)
     _pp_capture = pp.Optional(pp.Literal(_s_capture)).setResultsName(
         TokenField.Capture
     )
@@ -87,7 +88,7 @@ class Token:
     # Composite pattern for a literal string
     _pp_string = (
         _pp_str_flag
-        + _pp_no_space
+        + _pp_space_after
         + _pp_capture
         + _pp_quantity
         + _pp_str_value
@@ -112,7 +113,7 @@ class Token:
     # Composite pattern for a number
     _pp_number = (
         _pp_num_flag
-        + _pp_no_space
+        + _pp_space_after
         + _pp_capture
         + _pp_quantity
         + pp.Group(_pp_num_sign + _pp_num_type).setResultsName(
@@ -174,11 +175,13 @@ class Token:
 
     @property
     def space_after(self):
-        """Return flag for whether post-match space should be provided for."""
+        """Return Enum value for handling of post-match whitespace."""
         if self.is_any:
             return False
+        elif TokenField.SpaceAfter in self._pr:
+            return SpaceAfter(self._pr[TokenField.SpaceAfter])
         else:
-            return TokenField.NoSpace not in self._pr
+            return SpaceAfter.Required
 
     @property
     def capture(self):
