@@ -94,8 +94,8 @@ class TokenField(str, Enum):
     #: Content type (any, string, number)
     Type = "type"
 
-    #: Flag to suppress preceding space in the generated pattern
-    NoSpace = "no_space"
+    #: Flag to change the space-after behavior of a token
+    SpaceAfter = "space_after"
 
     #: Flag to ignore matched content when collecting into regex groups
     Capture = "capture"
@@ -128,6 +128,19 @@ class ParserField(str, Enum):
 
     #: Tail/footer
     Tail = "tail"
+
+
+class SpaceAfter(str, Enum):
+    """Enumeration for the various constraints on space after tokens."""
+
+    #: Default is required following space; no explicit enum value
+    Required = ""
+
+    #: Optional following space
+    Optional = "o"
+
+    #: Following space prohibited
+    Prohibited = "x"
 
 
 if __name__ == "__main__":  # pragma: no cover

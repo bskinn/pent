@@ -29,7 +29,7 @@ import re
 
 import attr
 
-from .enums import ParserField
+from .enums import SpaceAfter, ParserField
 from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
 from .token import Token
@@ -232,7 +232,7 @@ class Parser:
                 if not prior_no_space_token:
                     tok_pattern = std_wordify_open(tok_pattern)
 
-                if t.space_after:
+                if t.space_after is SpaceAfter.Required:
                     tok_pattern = std_wordify_close(tok_pattern)
                     prior_no_space_token = False
                 else:
@@ -240,11 +240,14 @@ class Parser:
 
                 pattern += tok_pattern
 
-            # Add required space or no space, depending on
-            # what the token calls for, as long as it's not
+            # Add required space, optional space, or no space, depending
+            # on what the token calls for, as long as it's not
             # the last token
-            if i < len(tokens) - 1 and t.space_after:
-                pattern += r"[ \t]+"
+            if i < len(tokens) - 1:
+                if t.space_after is SpaceAfter.Required:
+                    pattern += r"[ \t]+"
+                elif t.space_after is SpaceAfter.Optional:
+                    pattern += r"[ \t]*"
 
         # Always put possible whitespace to the end of the line
         pattern += r"[ \t]*($|(?=\n))"
