@@ -569,6 +569,28 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         
         self.assertNotEqual(result, fail_prs.capture_body(text))
         self.assertEqual(result, good_prs.capture_body(text))
+    
+    def test_optional_space_after_number(self):
+        """Confirm optional-space works for after numbers."""
+        from textwrap import dedent
+        
+        import pent
+        
+        text = dedent("""
+            1 2 3 4 5
+            23 .
+            23.
+            -3e4 .
+            -3e4.
+            """)
+        
+        result = [[['23'], ['23'], ['-3e4'], ['-3e4']]]
+        
+        good_prs = pent.Parser(head="#++i", body="#o!..g @..")
+        fail_prs = pent.Parser(head="#++i", body="#!..g @..")
+        
+        self.assertNotEqual(result, fail_prs.capture_body(text))
+        self.assertEqual(result, good_prs.capture_body(text))
 
     def test_orca_hess_freq_parser(self):
         """Confirm 1-D data parser for ORCA freqs works."""
