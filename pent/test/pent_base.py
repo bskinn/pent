@@ -52,6 +52,12 @@ class SuperPent:
         """Compose test name from a numerical value and pattern Number/Sign."""
         return "{0}_{1}_{2}".format(v, n, s)
 
+    @staticmethod
+    def get_orca_cas_file():
+        """Return the sample ORCA CAS output."""
+        with (Path() / "pent" / "test" / "Cu_CAS.out").open() as f:
+            return f.read()
+
 
 class TestPentCorePatterns(ut.TestCase, SuperPent):
     """Confirming basic pattern matching of the core regex patterns."""
@@ -708,6 +714,65 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         prs_outer = pent.Parser(head="@.$top", body=prs_inner)
 
         self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
+
+    def test_ORCA_CAS_orbital_ranges(self):
+        """Confirm inactive/active/virtual data captures correctly."""
+        import pent
+
+        data = self.get_orca_cas_file()
+
+        prs = pent.Parser(
+            head="~ '@.orbital ranges:'",
+            body="~ #!.+i @.- #!.+i @.( #!.+i @.orbitals)",
+            tail="'@.Number of rotation parameters' @+. #!.+i",
+        )
+
+        tail_val = ["1799"]
+        body_result = [
+            [["0", "14", "15"], ["15", "21", "7"], ["22", "98", "77"]]
+        ]
+
+        self.assertEqual(body_result, prs.capture_body(data))
+        self.assertEqual(tail_val, prs.capture_tail(data))
+
+    def test_ORCA_CAS_CI_setup(self):
+        """Confirm capture of CI block config data."""
+        import pent
+
+        data = self.get_orca_cas_file()
+
+        prs_inner = pent.Parser(
+            head=(
+                "@.BLOCK #!.+i @.WEIGHT= #!..f",
+                "@.Multiplicity @+. #!.+i",
+                "@x.#(Config ~ @+. #!.+i",
+                "@.#(CSFs) @+. #!.+i",
+                "@.#(Roots) @+. #!.+i",
+            ),
+            body="@x.ROOT= #o.+i @.WEIGHT= #!..f",
+            tail="",
+        )
+
+        prs_outer = pent.Parser(
+            head=("@.CI-STEP:", "~ '@.multiplicity blocks' @+. #!.+i"),
+            body=prs_inner,
+        )
+
+        with self.subTest("head"):
+            head_result = prs_outer.capture_head(data)
+            self.assertEqual(["3"], head_result)
+
+        with self.subTest("body"):
+            body_result = prs_outer.capture_body(data)
+            body_expect = [
+                [
+                    [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                    [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                    [["1.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                ]
+            ]
+
+            self.assertEqual(body_expect, body_result)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
