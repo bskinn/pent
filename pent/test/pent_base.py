@@ -549,46 +549,50 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         prs = pent.Parser(body=pat)
 
         self.assertEqual(prs.capture_body(text), result)
-        
+
     def test_optional_space_after_literal(self):
         """Confirm the optional-space matching works."""
         from textwrap import dedent
-        
+
         import pent
-        
-        text = dedent("""\
+
+        text = dedent(
+            """\
             1 2 3 4 5
             VALUE= 1
-            VALUE= 2 
-            VALUE=10""")
-        
-        result = [[['1'], ['2'], ['10']]]
-        
+            VALUE= 2
+            VALUE=10"""
+        )
+
+        result = [[["1"], ["2"], ["10"]]]
+
         fail_prs = pent.Parser(head="#++i", body="@.VALUE= #!..i")
         good_prs = pent.Parser(head="#++i", body="@o.VALUE= #!..i")
-        
+
         self.assertNotEqual(result, fail_prs.capture_body(text))
         self.assertEqual(result, good_prs.capture_body(text))
-    
+
     def test_optional_space_after_number(self):
         """Confirm optional-space works for after numbers."""
         from textwrap import dedent
-        
+
         import pent
-        
-        text = dedent("""
+
+        text = dedent(
+            """
             1 2 3 4 5
             23 .
             23.
             -3e4 .
             -3e4.
-            """)
-        
-        result = [[['23'], ['23'], ['-3e4'], ['-3e4']]]
-        
+            """
+        )
+
+        result = [[["23"], ["23"], ["-3e4"], ["-3e4"]]]
+
         good_prs = pent.Parser(head="#++i", body="#o!..g @..")
         fail_prs = pent.Parser(head="#++i", body="#!..g @..")
-        
+
         self.assertNotEqual(result, fail_prs.capture_body(text))
         self.assertEqual(result, good_prs.capture_body(text))
 
@@ -811,14 +815,14 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
                 p1 = (str_pat if c1 == pent.Content.String else nps)[
                     v1
                 ].format(
-                    pent.Token._s_no_space if not s1 else "",
+                    pent.SpaceAfter.Prohibited if not s1 else "",
                     pent.Token._s_capture,
                     pent.Quantity.Single,
                 )
                 p2 = (str_pat if c2 == pent.Content.String else nps)[
                     v2
                 ].format(
-                    pent.Token._s_no_space if not s2 else "",
+                    pent.SpaceAfter.Prohibited if not s2 else "",
                     pent.Token._s_capture,
                     pent.Quantity.Single,
                 )

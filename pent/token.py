@@ -57,12 +57,14 @@ class Token:
     group_prefix = "g"
     _s_any_flag = "~"
     _s_capture = "!"
-#    _s_no_space = "x"
+    #    _s_no_space = "x"
 
-#    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
-#        TokenField.NoSpace
-#    )
-    _pp_space_after = pp.Optional(pp.Word("".join(SpaceAfter), exact=1)).setResultsName(TokenField.SpaceAfter)
+    #    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
+    #        TokenField.NoSpace
+    #    )
+    _pp_space_after = pp.Optional(
+        pp.Word("".join(SpaceAfter), exact=1)
+    ).setResultsName(TokenField.SpaceAfter)
     _pp_capture = pp.Optional(pp.Literal(_s_capture)).setResultsName(
         TokenField.Capture
     )

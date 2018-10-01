@@ -132,13 +132,13 @@ class ParserField(str, Enum):
 
 class SpaceAfter(str, Enum):
     """Enumeration for the various constraints on space after tokens."""
-    
+
     #: Default is required following space; no explicit enum value
     Required = ""
-    
+
     #: Optional following space
     Optional = "o"
-    
+
     #: Following space prohibited
     Prohibited = "x"
 
