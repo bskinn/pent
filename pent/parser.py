@@ -96,26 +96,6 @@ class Parser:
 
         return rx
 
-#    def capture_head(self, text):
-#        """Capture all marked values from the pattern head."""
-#        m_entire = re.search(self.pattern(), text)
-#        head = m_entire.group(ParserField.Head)
-#
-#        pat_capture = self.convert_section(self.head, capture_groups=True)
-#        m_head = re.search(pat_capture, head)
-#
-#        return list(*map(str.split, self.generate_captures(m_head)))
-
-#    def capture_tail(self, text):
-#        """Capture all marked values from the pattern tail."""
-#        m_entire = re.search(self.pattern(), text)
-#        tail = m_entire.group(ParserField.Tail)
-#
-#        pat_capture = self.convert_section(self.tail, capture_groups=True)
-#        m_tail = re.search(pat_capture, tail)
-#
-#        return list(*map(str.split, self.generate_captures(m_tail)))
-
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
         cap_blocks = []
@@ -157,7 +137,7 @@ class Parser:
             pat_re = cls.convert_section(pat_str, capture_groups=True)
         except AttributeError:
             raise SectionError("Invalid pattern string for capture")
-  
+
         data = []
         for m in re.finditer(pat_re, text):
             chunk_caps = []
@@ -171,15 +151,21 @@ class Parser:
     def capture_parser(cls, prs, text):
         """Perform capture of a Parser pattern."""
         data = ThruList()
-        
+
         prs_pat_re = prs.pattern(capture_sections=True)
-    
+
         for m in re.finditer(prs_pat_re, text):
             sec_dict = {}
-            
+
             for sec in ParserField:
                 try:
-                    sec_dict.update({sec: cls.capture_section(getattr(prs, sec), m.group(sec))})
+                    sec_dict.update(
+                        {
+                            sec: cls.capture_section(
+                                getattr(prs, sec), m.group(sec)
+                            )
+                        }
+                    )
                 except IndexError:
                     sec_dict.update({sec: None})
 
