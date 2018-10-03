@@ -138,22 +138,69 @@ class Parser:
                 continue
 
             # If the 'body' pattern is a string or iterable of strings
-            try:
-                pat = self.convert_section(self.body, capture_groups=True)
-            except AttributeError:
-                raise SectionError("Invalid 'body' pattern for capture")
-            else:
-                data = []
-                for m in re.finditer(pat, block_text):
-                    line_caps = []
-                    for c in self.generate_captures(m):
-                        line_caps.extend(c.split())
-                    data.append(line_caps)
-
-                cap_blocks.append(data)
-                continue
+#            try:
+#                pat = self.convert_section(self.body, capture_groups=True)
+#            except AttributeError:
+#                raise SectionError("Invalid 'body' pattern for capture")
+#            else:
+#                data = []
+#                for m in re.finditer(pat, block_text):
+#                    line_caps = []
+#                    for c in self.generate_captures(m):
+#                        line_caps.extend(c.split())
+#                    data.append(line_caps)
+#
+            cap_blocks.append(self.capture_str_pattern(self.body, block_text))
+#                continue
 
         return cap_blocks
+
+    @classmethod
+    def capture_section(cls, sec, text):
+        """Perform capture of a str, iterable, or Parser section."""
+#        if sec is None:
+#            return []
+        if isinstance(sec, cls):
+            return cls.capture_parser(sec, text)
+        else:
+            return cls.capture_str_pattern(sec, text)
+
+    @classmethod
+    def capture_str_pattern(cls, pat_str, text):
+        """Perform capture of string/iterable-of-str pattern."""
+        try:
+            pat_re = cls.convert_section(pat_str, capture_groups=True)
+        except AttributeError:
+            raise SectionError("Invalid pattern string for capture")
+  
+        data = []
+        for m in re.finditer(pat_re, text):
+            chunk_caps = []
+            for c in cls.generate_captures(m):
+                chunk_caps.extend(c.split())
+            data.append(chunk_caps)
+
+        return data
+
+    @classmethod
+    def capture_parser(cls, prs, text):
+        """Perform capture of a Parser pattern."""
+        data = []
+        
+        prs_pat_re = prs.pattern(capture_sections=True)
+    
+        for m in re.finditer(prs_pat_re, text):
+            sec_dict = {}
+            
+            for sec in ParserField:
+                try:
+                    sec_dict.update({sec: cls.capture_section(getattr(prs, sec), m.group(sec))})
+                except IndexError:
+                    sec_dict.update({sec: None})
+
+            data.append(sec_dict)
+
+        return data
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False, capture_sections=True):
