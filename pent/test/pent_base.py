@@ -774,6 +774,32 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
             self.assertEqual(body_expect, body_result)
 
+    def test_ORCA_CAS_state_results(self):
+        """Confirm parse of CAS state results is correct."""
+        import pent
+
+        from .testdata import orca_cas_states
+
+        data = self.get_orca_cas_file()
+
+        prs_in = pent.Parser(
+            head="@.ROOT #x!.+i @.: @.E= #o!..f ~!",
+            body="#!.+f @o.[ #x!.+i @.]: #!.+i",
+        )
+
+        prs_out = pent.Parser(
+            head=(
+                "@+-",
+                "~ '@.FOR BLOCK' #!.+i @o.MULT= #!.+i @o.NROOTS= #!.+i",
+                "@+-",
+                "",
+            ),
+            body=prs_in,
+            tail=("", ""),
+        )
+
+        self.assertEqual(prs_out.capture_body(data), orca_cas_states)
+
 
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
