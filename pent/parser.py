@@ -56,14 +56,9 @@ class Parser:
         nested Parsers.
 
         """
-        # Relies on the convert_section default for 'capture_groups'
-        # as False.
         rx_head = self.convert_section(self.head, capture_sections=False)
         rx_body = self.convert_section(self.body, capture_sections=False)
         rx_tail = self.convert_section(self.tail, capture_sections=False)
-        #        rx_head, rx_body, rx_tail = map(
-        #            self.convert_section, (self.head, self.body, self.tail)
-        #        )
 
         rx = ""
 
@@ -138,28 +133,17 @@ class Parser:
                 continue
 
             # If the 'body' pattern is a string or iterable of strings
-#            try:
-#                pat = self.convert_section(self.body, capture_groups=True)
-#            except AttributeError:
-#                raise SectionError("Invalid 'body' pattern for capture")
-#            else:
-#                data = []
-#                for m in re.finditer(pat, block_text):
-#                    line_caps = []
-#                    for c in self.generate_captures(m):
-#                        line_caps.extend(c.split())
-#                    data.append(line_caps)
-#
             cap_blocks.append(self.capture_str_pattern(self.body, block_text))
-#                continue
 
         return cap_blocks
+
+    def capture_struct(self, text):
+        """Perform capture of marked groups to nested dict(s)."""
+        return self.capture_parser(self, text)
 
     @classmethod
     def capture_section(cls, sec, text):
         """Perform capture of a str, iterable, or Parser section."""
-#        if sec is None:
-#            return []
         if isinstance(sec, cls):
             return cls.capture_parser(sec, text)
         else:
