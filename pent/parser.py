@@ -95,25 +95,25 @@ class Parser:
 
         return rx
 
-    def capture_head(self, text):
-        """Capture all marked values from the pattern head."""
-        m_entire = re.search(self.pattern(), text)
-        head = m_entire.group(ParserField.Head)
+#    def capture_head(self, text):
+#        """Capture all marked values from the pattern head."""
+#        m_entire = re.search(self.pattern(), text)
+#        head = m_entire.group(ParserField.Head)
+#
+#        pat_capture = self.convert_section(self.head, capture_groups=True)
+#        m_head = re.search(pat_capture, head)
+#
+#        return list(*map(str.split, self.generate_captures(m_head)))
 
-        pat_capture = self.convert_section(self.head, capture_groups=True)
-        m_head = re.search(pat_capture, head)
-
-        return list(*map(str.split, self.generate_captures(m_head)))
-
-    def capture_tail(self, text):
-        """Capture all marked values from the pattern tail."""
-        m_entire = re.search(self.pattern(), text)
-        tail = m_entire.group(ParserField.Tail)
-
-        pat_capture = self.convert_section(self.tail, capture_groups=True)
-        m_tail = re.search(pat_capture, tail)
-
-        return list(*map(str.split, self.generate_captures(m_tail)))
+#    def capture_tail(self, text):
+#        """Capture all marked values from the pattern tail."""
+#        m_entire = re.search(self.pattern(), text)
+#        tail = m_entire.group(ParserField.Tail)
+#
+#        pat_capture = self.convert_section(self.tail, capture_groups=True)
+#        m_tail = re.search(pat_capture, tail)
+#
+#        return list(*map(str.split, self.generate_captures(m_tail)))
 
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""

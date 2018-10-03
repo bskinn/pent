@@ -32,6 +32,8 @@ from pathlib import Path
 import re
 import unittest as ut
 
+from pent import ParserField
+
 
 # HELPERS
 testdir_path = Path() / "pent" / "test"
@@ -628,8 +630,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
 
-        self.assertEqual(freq_parser.capture_head(data), ["18"])
-        self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
+        self.assertEqual(freq_parser.capture_struct(data)[0][ParserField.Head], [["18"]])
+        self.assertEqual(freq_parser.capture_struct(data)[0][ParserField.Tail], [["18", "18"]])
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
 
@@ -727,13 +729,13 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             tail="'@.Number of rotation parameters' @+. #!.+i",
         )
 
-        tail_val = ["1799"]
+        tail_val = [["1799"]]
         body_result = [
             [["0", "14", "15"], ["15", "21", "7"], ["22", "98", "77"]]
         ]
 
         self.assertEqual(body_result, prs.capture_body(data))
-        self.assertEqual(tail_val, prs.capture_tail(data))
+        self.assertEqual(tail_val, prs.capture_struct(data)[0][ParserField.Tail])
 
     def test_ORCA_CAS_CI_setup(self):
         """Confirm capture of CI block config data."""
@@ -758,11 +760,27 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             body=prs_inner,
         )
 
-        with self.subTest("head"):
-            head_result = prs_outer.capture_head(data)
-            self.assertEqual(["3"], head_result)
+        with self.subTest("head_outer"):
+            head_result = prs_outer.capture_struct(data)[0][ParserField.Head]
+            self.assertEqual([["3"]], head_result)
 
-        with self.subTest("body"):
+        with self.subTest("head_inner"):
+            head_inner_result = []
+            for bdict in prs_outer.capture_struct(data)[0][ParserField.Body]:
+                head_inner_result.append(bdict[ParserField.Head])
+            
+            head_inner_expect = [
+                    [['1', '0.0000', '6', '43', '48', '4']],
+                    [['2', '0.0000', '4', '253', '392', '4']],
+                    [['3', '1.0000', '2', '393', '784', '4']],
+            ]
+            
+            self.assertEqual(head_inner_result, head_inner_expect)
+
+        with self.subTest("body_inner"):
+            self.fail("Not implemented.")
+
+        with self.subTest("body_block"):
             body_result = prs_outer.capture_body(data)
             body_expect = [
                 [
@@ -781,6 +799,11 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import orca_cas_states
 
         data = self.get_orca_cas_file()
+        head_result = [
+                [[['1', '6', '4']]],
+                [[['2', '4', '4']]],
+                [[['3', '2', '4']]],
+        ]
 
         prs_in = pent.Parser(
             head="@.ROOT #x!.+i @.: @.E= #o!..f ~!",
@@ -799,6 +822,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         )
 
         self.assertEqual(prs_out.capture_body(data), orca_cas_states)
+        # self.assertEqual(prs_out.capture_head(data), head_result)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
