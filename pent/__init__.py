@@ -30,6 +30,7 @@ from __future__ import absolute_import
 __all__ = [
     "Parser",
     "Token",
+    "ThruList",
     "Number",
     "Sign",
     "TokenField",
@@ -42,14 +43,16 @@ __all__ = [
     "PentError",
     "TokenError",
     "SectionError",
+    "SpaceAfter",
 ]
 
 from .enums import Number, Sign, TokenField, ParserField
-from .enums import Content, Quantity
+from .enums import Content, Quantity, SpaceAfter
 from .errors import PentError, TokenError, SectionError
 from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
+from .thrulist import ThruList
 from .token import Token
 
 
-__version__ = "0.1"
+__version__ = "0.2.dev1"

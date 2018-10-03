@@ -29,9 +29,10 @@ import re
 
 import attr
 
-from .enums import ParserField
+from .enums import SpaceAfter, ParserField
 from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
+from .thrulist import ThruList
 from .token import Token
 
 
@@ -56,14 +57,9 @@ class Parser:
         nested Parsers.
 
         """
-        # Relies on the convert_section default for 'capture_groups'
-        # as False.
         rx_head = self.convert_section(self.head, capture_sections=False)
         rx_body = self.convert_section(self.body, capture_sections=False)
         rx_tail = self.convert_section(self.tail, capture_sections=False)
-        #        rx_head, rx_body, rx_tail = map(
-        #            self.convert_section, (self.head, self.body, self.tail)
-        #        )
 
         rx = ""
 
@@ -100,26 +96,6 @@ class Parser:
 
         return rx
 
-    def capture_head(self, text):
-        """Capture all marked values from the pattern head."""
-        m_entire = re.search(self.pattern(), text)
-        head = m_entire.group(ParserField.Head)
-
-        pat_capture = self.convert_section(self.head, capture_groups=True)
-        m_head = re.search(pat_capture, head)
-
-        return list(*map(str.split, self.generate_captures(m_head)))
-
-    def capture_tail(self, text):
-        """Capture all marked values from the pattern tail."""
-        m_entire = re.search(self.pattern(), text)
-        tail = m_entire.group(ParserField.Tail)
-
-        pat_capture = self.convert_section(self.tail, capture_groups=True)
-        m_tail = re.search(pat_capture, tail)
-
-        return list(*map(str.split, self.generate_captures(m_tail)))
-
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
         cap_blocks = []
@@ -138,22 +114,64 @@ class Parser:
                 continue
 
             # If the 'body' pattern is a string or iterable of strings
-            try:
-                pat = self.convert_section(self.body, capture_groups=True)
-            except AttributeError:
-                raise SectionError("Invalid 'body' pattern for capture")
-            else:
-                data = []
-                for m in re.finditer(pat, block_text):
-                    line_caps = []
-                    for c in self.generate_captures(m):
-                        line_caps.extend(c.split())
-                    data.append(line_caps)
-
-                cap_blocks.append(data)
-                continue
+            cap_blocks.append(self.capture_str_pattern(self.body, block_text))
 
         return cap_blocks
+
+    def capture_struct(self, text):
+        """Perform capture of marked groups to nested dict(s)."""
+        return self.capture_parser(self, text)
+
+    @classmethod
+    def capture_section(cls, sec, text):
+        """Perform capture of a str, iterable, or Parser section."""
+        if isinstance(sec, cls):
+            return cls.capture_parser(sec, text)
+        else:
+            return cls.capture_str_pattern(sec, text)
+
+    @classmethod
+    def capture_str_pattern(cls, pat_str, text):
+        """Perform capture of string/iterable-of-str pattern."""
+        try:
+            pat_re = cls.convert_section(pat_str, capture_groups=True)
+        except AttributeError:
+            raise SectionError("Invalid pattern string for capture")
+
+        data = []
+        for m in re.finditer(pat_re, text):
+            chunk_caps = []
+            for c in cls.generate_captures(m):
+                chunk_caps.extend(c.split())
+            data.append(chunk_caps)
+
+        return data
+
+    @classmethod
+    def capture_parser(cls, prs, text):
+        """Perform capture of a Parser pattern."""
+        data = ThruList()
+
+        prs_pat_re = prs.pattern(capture_sections=True)
+
+        for m in re.finditer(prs_pat_re, text):
+            sec_dict = {}
+
+            for sec in ParserField:
+                try:
+                    sec_dict.update(
+                        {
+                            sec: cls.capture_section(
+                                getattr(prs, sec), m.group(sec)
+                            )
+                        }
+                    )
+                except IndexError:
+                    sec_dict.update({sec: None})
+
+            data.append(sec_dict)
+
+        return data
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False, capture_sections=True):
@@ -232,7 +250,7 @@ class Parser:
                 if not prior_no_space_token:
                     tok_pattern = std_wordify_open(tok_pattern)
 
-                if t.space_after:
+                if t.space_after is SpaceAfter.Required:
                     tok_pattern = std_wordify_close(tok_pattern)
                     prior_no_space_token = False
                 else:
@@ -240,11 +258,14 @@ class Parser:
 
                 pattern += tok_pattern
 
-            # Add required space or no space, depending on
-            # what the token calls for, as long as it's not
+            # Add required space, optional space, or no space, depending
+            # on what the token calls for, as long as it's not
             # the last token
-            if i < len(tokens) - 1 and t.space_after:
-                pattern += r"[ \t]+"
+            if i < len(tokens) - 1:
+                if t.space_after is SpaceAfter.Required:
+                    pattern += r"[ \t]+"
+                elif t.space_after is SpaceAfter.Optional:
+                    pattern += r"[ \t]*"
 
         # Always put possible whitespace to the end of the line
         pattern += r"[ \t]*($|(?=\n))"

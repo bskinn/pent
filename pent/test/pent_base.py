@@ -32,6 +32,9 @@ from pathlib import Path
 import re
 import unittest as ut
 
+from pent import ParserField
+from pent.thrulist import ThruList
+
 
 # HELPERS
 testdir_path = Path() / "pent" / "test"
@@ -51,6 +54,12 @@ class SuperPent:
     def make_testname(v, n, s):
         """Compose test name from a numerical value and pattern Number/Sign."""
         return "{0}_{1}_{2}".format(v, n, s)
+
+    @staticmethod
+    def get_orca_cas_file():
+        """Return the sample ORCA CAS output."""
+        with (Path() / "pent" / "test" / "Cu_CAS.out").open() as f:
+            return f.read()
 
 
 class TestPentCorePatterns(ut.TestCase, SuperPent):
@@ -312,7 +321,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         for n in npats:
             token = npats[n].format(
-                pent.Token._s_no_space,
+                pent.SpaceAfter.Prohibited,
                 pent.Token._s_capture,
                 pent.Quantity.Single,
             )
@@ -550,6 +559,52 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(prs.capture_body(text), result)
 
+    def test_optional_space_after_literal(self):
+        """Confirm the optional-space matching works."""
+        from textwrap import dedent
+
+        import pent
+
+        text = dedent(
+            """\
+            1 2 3 4 5
+            VALUE= 1
+            VALUE= 2
+            VALUE=10"""
+        )
+
+        result = [[["1"], ["2"], ["10"]]]
+
+        fail_prs = pent.Parser(head="#++i", body="@.VALUE= #!..i")
+        good_prs = pent.Parser(head="#++i", body="@o.VALUE= #!..i")
+
+        self.assertNotEqual(result, fail_prs.capture_body(text))
+        self.assertEqual(result, good_prs.capture_body(text))
+
+    def test_optional_space_after_number(self):
+        """Confirm optional-space works for after numbers."""
+        from textwrap import dedent
+
+        import pent
+
+        text = dedent(
+            """
+            1 2 3 4 5
+            23 .
+            23.
+            -3e4 .
+            -3e4.
+            """
+        )
+
+        result = [[["23"], ["23"], ["-3e4"], ["-3e4"]]]
+
+        good_prs = pent.Parser(head="#++i", body="#o!..g @..")
+        fail_prs = pent.Parser(head="#++i", body="#!..g @..")
+
+        self.assertNotEqual(result, fail_prs.capture_body(text))
+        self.assertEqual(result, good_prs.capture_body(text))
+
     def test_orca_hess_freq_parser(self):
         """Confirm 1-D data parser for ORCA freqs works."""
         import pent
@@ -576,8 +631,12 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
 
-        self.assertEqual(freq_parser.capture_head(data), ["18"])
-        self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
+        self.assertEqual(
+            freq_parser.capture_struct(data)[ParserField.Head], [["18"]]
+        )
+        self.assertEqual(
+            freq_parser.capture_struct(data)[ParserField.Tail], [["18", "18"]]
+        )
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
 
@@ -663,6 +722,124 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
 
+    def test_ORCA_CAS_orbital_ranges(self):
+        """Confirm inactive/active/virtual data captures correctly."""
+        import pent
+
+        data = self.get_orca_cas_file()
+
+        prs = pent.Parser(
+            head="~ '@.orbital ranges:'",
+            body="~ #!.+i @.- #!.+i @.( #!.+i @.orbitals)",
+            tail="'@.Number of rotation parameters' @+. #!.+i",
+        )
+
+        tail_val = [["1799"]]
+        body_result = [
+            [["0", "14", "15"], ["15", "21", "7"], ["22", "98", "77"]]
+        ]
+
+        self.assertEqual(body_result, prs.capture_body(data))
+        self.assertEqual(tail_val, prs.capture_struct(data)[ParserField.Tail])
+
+    def test_ORCA_CAS_CI_setup(self):
+        """Confirm capture of CI block config data."""
+        import pent
+
+        data = self.get_orca_cas_file()
+
+        prs_inner = pent.Parser(
+            head=(
+                "@.BLOCK #!.+i @.WEIGHT= #!..f",
+                "@.Multiplicity @+. #!.+i",
+                "@x.#(Config ~ @+. #!.+i",
+                "@.#(CSFs) @+. #!.+i",
+                "@.#(Roots) @+. #!.+i",
+            ),
+            body="@x.ROOT= #o.+i @.WEIGHT= #!..f",
+            tail="",
+        )
+
+        prs_outer = pent.Parser(
+            head=("@.CI-STEP:", "~ '@.multiplicity blocks' @+. #!.+i"),
+            body=prs_inner,
+        )
+
+        with self.subTest("head_outer"):
+            head_result = prs_outer.capture_struct(data)[ParserField.Head]
+            self.assertEqual([["3"]], head_result)
+
+        with self.subTest("head_inner"):
+            head_inner_result = []
+            for bdict in prs_outer.capture_struct(data)[ParserField.Body]:
+                head_inner_result.append(bdict[ParserField.Head])
+
+            head_inner_expect = [
+                [["1", "0.0000", "6", "43", "48", "4"]],
+                [["2", "0.0000", "4", "253", "392", "4"]],
+                [["3", "1.0000", "2", "393", "784", "4"]],
+            ]
+
+            self.assertEqual(head_inner_result, head_inner_expect)
+
+        with self.subTest("body_inner"):
+            body_inner_result = []
+            for bdict in prs_outer.capture_struct(data)[ParserField.Body]:
+                body_inner_result.append(bdict[ParserField.Body])
+
+            body_inner_expect = [
+                [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                [["1.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+            ]
+
+            self.assertEqual(body_inner_result, body_inner_expect)
+
+        with self.subTest("body_block"):
+            body_result = prs_outer.capture_body(data)
+            body_expect = [
+                [
+                    [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                    [["0.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                    [["1.000000"], ["0.000000"], ["0.000000"], ["0.000000"]],
+                ]
+            ]
+
+            self.assertEqual(body_result, body_expect)
+
+    def test_ORCA_CAS_state_results(self):
+        """Confirm parse of CAS state results is correct."""
+        import pent
+
+        from .testdata import orca_cas_states
+
+        data = self.get_orca_cas_file()
+        head_expect = [[["1", "6", "4"]], [["2", "4", "4"]], [["3", "2", "4"]]]
+
+        prs_in = pent.Parser(
+            head="@.ROOT #x!.+i @.: @.E= #o!..f ~!",
+            body="#!.+f @o.[ #x!.+i @.]: #!.+i",
+        )
+
+        prs_out = pent.Parser(
+            head=(
+                "@+-",
+                "~ '@.FOR BLOCK' #!.+i @o.MULT= #!.+i @o.NROOTS= #!.+i",
+                "@+-",
+                "",
+            ),
+            body=prs_in,
+            tail=("", ""),
+        )
+
+        self.assertEqual(prs_out.capture_body(data), orca_cas_states)
+
+        head_result = []
+        for bdict in prs_out.capture_struct(data):
+            head_result.append(bdict[ParserField.Head])
+
+        self.assertEqual(head_result, head_expect)
+
 
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
@@ -730,6 +907,44 @@ class TestPentTokens(ut.TestCase, SuperPent):
         self.assertEqual(pent.Token("~").match_quantity, None)
 
 
+class TestPentThruList(ut.TestCase, SuperPent):
+    """Direct tests of the custom pass-thru list."""
+
+    def test_list_value(self):
+        """Confirm simple list behavior."""
+        work_l = ThruList(range(5))
+
+        self.assertEqual(work_l[2], 2)
+
+        with self.assertRaises(IndexError):
+            work_l[8]
+
+        with self.assertRaises(IndexError):
+            work_l["foo"]
+
+    def test_list_pass_thru(self):
+        """Confirm key pass-through behavior works."""
+        work_l = ThruList([{"foo": "bar", "baz": "quux"}])
+
+        self.assertEqual(work_l["foo"], "bar")
+        self.assertEqual(work_l["baz"], "quux")
+
+    def test_int_index_addresses_top_layer(self):
+        """Confirm a numeric index doesn't dig into item 0."""
+        work_l = ThruList([[1, 2, 3], 4, 5, 6])
+
+        self.assertEqual(work_l[2], 5)
+
+    def test_fail_when_multiple_items(self):
+        """Confirm the pass-through is not attempted when len > 1."""
+        work_l = ThruList([{"foo": "bar"}, {"baz": "quux"}])
+
+        with self.assertRaises(IndexError):
+            work_l["foo"]
+
+        self.assertEqual(work_l[1], {"baz": "quux"})
+
+
 class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     """SLOW tests confirming pattern matching of Parser regexes."""
 
@@ -769,14 +984,14 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
                 p1 = (str_pat if c1 == pent.Content.String else nps)[
                     v1
                 ].format(
-                    pent.Token._s_no_space if not s1 else "",
+                    pent.SpaceAfter.Prohibited if not s1 else "",
                     pent.Token._s_capture,
                     pent.Quantity.Single,
                 )
                 p2 = (str_pat if c2 == pent.Content.String else nps)[
                     v2
                 ].format(
-                    pent.Token._s_no_space if not s2 else "",
+                    pent.SpaceAfter.Prohibited if not s2 else "",
                     pent.Token._s_capture,
                     pent.Quantity.Single,
                 )
@@ -823,6 +1038,7 @@ def suite_base():
             tl.loadTestsFromTestCase(TestPentCorePatterns),
             tl.loadTestsFromTestCase(TestPentParserPatterns),
             tl.loadTestsFromTestCase(TestPentTokens),
+            tl.loadTestsFromTestCase(TestPentThruList),
         ]
     )
     return s
