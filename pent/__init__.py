@@ -30,6 +30,7 @@ from __future__ import absolute_import
 __all__ = [
     "Parser",
     "Token",
+    "ThruList",
     "Number",
     "Sign",
     "TokenField",
@@ -50,6 +51,7 @@ from .enums import Content, Quantity, SpaceAfter
 from .errors import PentError, TokenError, SectionError
 from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
+from .thrulist import ThruList
 from .token import Token
 
 

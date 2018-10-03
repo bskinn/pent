@@ -33,6 +33,7 @@ import re
 import unittest as ut
 
 from pent import ParserField
+from pent.thrulist import ThruList
 
 
 # HELPERS
@@ -630,8 +631,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
 
-        self.assertEqual(freq_parser.capture_struct(data)[0][ParserField.Head], [["18"]])
-        self.assertEqual(freq_parser.capture_struct(data)[0][ParserField.Tail], [["18", "18"]])
+        self.assertEqual(freq_parser.capture_struct(data)[ParserField.Head], [["18"]])
+        self.assertEqual(freq_parser.capture_struct(data)[ParserField.Tail], [["18", "18"]])
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
 
@@ -735,7 +736,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         ]
 
         self.assertEqual(body_result, prs.capture_body(data))
-        self.assertEqual(tail_val, prs.capture_struct(data)[0][ParserField.Tail])
+        self.assertEqual(tail_val, prs.capture_struct(data)[ParserField.Tail])
 
     def test_ORCA_CAS_CI_setup(self):
         """Confirm capture of CI block config data."""
@@ -761,12 +762,12 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         )
 
         with self.subTest("head_outer"):
-            head_result = prs_outer.capture_struct(data)[0][ParserField.Head]
+            head_result = prs_outer.capture_struct(data)[ParserField.Head]
             self.assertEqual([["3"]], head_result)
 
         with self.subTest("head_inner"):
             head_inner_result = []
-            for bdict in prs_outer.capture_struct(data)[0][ParserField.Body]:
+            for bdict in prs_outer.capture_struct(data)[ParserField.Body]:
                 head_inner_result.append(bdict[ParserField.Head])
             
             head_inner_expect = [
@@ -891,6 +892,44 @@ class TestPentTokens(ut.TestCase, SuperPent):
         self.assertEqual(pent.Token("~").match_quantity, None)
 
 
+class TestPentThruList(ut.TestCase, SuperPent):
+    """Direct tests of the custom pass-thru list."""
+    
+    def test_list_value(self):
+        """Confirm simple list behavior."""
+        l = ThruList(range(5))
+        
+        self.assertEqual(l[2], 2)
+        
+        with self.assertRaises(IndexError):
+            l[8]
+         
+        with self.assertRaises(IndexError):
+            l['foo']
+    
+    def test_list_pass_thru(self):
+        """Confirm key pass-through behavior works."""
+        l = ThruList([{'foo': 'bar', 'baz': 'quux'}])
+        
+        self.assertEqual(l['foo'], 'bar')
+        self.assertEqual(l['baz'], 'quux')
+    
+    def test_int_index_addresses_top_layer(self):
+        """Confirm a numeric index doesn't dig into item 0."""
+        l = ThruList([[1, 2, 3], 4, 5, 6])
+        
+        self.assertEqual(l[2], 5)
+        
+    def test_fail_when_multiple_items(self):
+        """Confirm the pass-through is not attempted when len > 1."""
+        l = ThruList([{'foo': 'bar'}, {'baz': 'quux'}])
+        
+        with self.assertRaises(IndexError):
+            l['foo']
+        
+        self.assertEqual(l[1], {'baz': 'quux'})
+
+
 class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     """SLOW tests confirming pattern matching of Parser regexes."""
 
@@ -984,6 +1023,7 @@ def suite_base():
             tl.loadTestsFromTestCase(TestPentCorePatterns),
             tl.loadTestsFromTestCase(TestPentParserPatterns),
             tl.loadTestsFromTestCase(TestPentTokens),
+            tl.loadTestsFromTestCase(TestPentThruList),
         ]
     )
     return s

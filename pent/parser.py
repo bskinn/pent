@@ -32,6 +32,7 @@ import attr
 from .enums import SpaceAfter, ParserField
 from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
+from .thrulist import ThruList
 from .token import Token
 
 
@@ -169,7 +170,7 @@ class Parser:
     @classmethod
     def capture_parser(cls, prs, text):
         """Perform capture of a Parser pattern."""
-        data = []
+        data = ThruList()
         
         prs_pat_re = prs.pattern(capture_sections=True)
     
