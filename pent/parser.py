@@ -66,9 +66,9 @@ class Parser:
         if res_head:
             head_pat, head_opt = res_head
             rx += (
-                "(?P<{}>".format(ParserField.Head) + head_pat + ")\n" + ("?" if head_opt else "")
+                "(?P<{}>".format(ParserField.Head) + head_pat + ")\n?"
                 if capture_sections
-                else head_pat + "\n" + ("?" if head_opt else "")
+                else head_pat + "\n?"
             )
 
         if res_body:
@@ -84,7 +84,7 @@ class Parser:
                     else ""
                 )
                 + body_pat
-                + "(\n" + ("?" if body_opt else "")
+                + "(\n?"
                 + body_pat
                 + ")*"
                 + (")" if capture_sections else "")
@@ -98,7 +98,7 @@ class Parser:
             return_opt = tail_opt
             
             rx += (
-                "\n?"   # + ("?" if body_opt else "")
+                "\n?"
                 + ( "(?P<{}>".format(ParserField.Tail) + tail_pat + ")"
                     if capture_sections
                     else tail_pat
@@ -213,25 +213,24 @@ class Parser:
                 pat, id, opt = cls.convert_line(
                     line, capture_groups=capture_groups, group_id=id
                 )
-                yield pat, opt
+                yield pat  # , opt
 
         try:
-            #return "\n".join(gen_converted_lines())
-            pattern = ""
-            for line, opt in gen_converted_lines():
-                pattern += line + r"\n"
-                if opt:
-                    pattern += "?"
+            return "\n?".join(gen_converted_lines()), True
+            #pattern = ""
+            #for line, opt in gen_converted_lines():
+            #    pattern += line + r"\n"
+            #    if opt:
+            #        pattern += "?"
             
             # Have to strip the last newline
-            pattern = pattern[:(-3 if opt else -2)]
+            #pattern = pattern[:(-3 if opt else -2)]
             
-            return pattern, opt
+            return pattern, True  # opt
                 
         except AttributeError:
-            # Most likely is that the iterable members don't have
-            # the .pattern attribute
-            # ??? Not sure how/why this work
+            # Happens to be the exception that the internals
+            # throw when the wrong type is passed.
             raise SectionError("Unrecognized format")
 
     @classmethod
