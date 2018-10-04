@@ -552,6 +552,16 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         with self.subTest("struct"):
             self.assertEqual(res_struct, [[["FOOT"]], [[None]]])
 
+    def test_body_cleared_after_init(self):
+        """Confirm correct error raised if 'body' is reset to None."""
+        import pent
+        
+        prs = pent.Parser(body="#..i")
+        
+        prs.body = None
+        
+        self.assertRaises(pent.SectionError, prs.pattern)
+
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
         import pent

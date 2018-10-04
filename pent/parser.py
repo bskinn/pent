@@ -113,10 +113,10 @@ class Parser:
                     data.extend(self.body.capture_body(m.group(0)))
 
                 cap_blocks.append(data)
-                continue
 
-            # If the 'body' pattern is a string or iterable of strings
-            cap_blocks.append(self.capture_str_pattern(self.body, block_text))
+            else:
+                # If the 'body' pattern is a string or iterable of strings
+                cap_blocks.append(self.capture_str_pattern(self.body, block_text))
 
         return cap_blocks
 
@@ -137,7 +137,8 @@ class Parser:
         """Perform capture of string/iterable-of-str pattern."""
         try:
             pat_re = cls.convert_section(pat_str, capture_groups=True)
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
+            # This is unreachable at the moment
             raise SectionError("Invalid pattern string for capture")
 
         data = []
@@ -209,7 +210,7 @@ class Parser:
         try:
             return r"\n?".join(gen_converted_lines())
 
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             # Happens to be the exception that the internals
             # throw when the wrong type is passed.
             raise SectionError("Unrecognized format")
