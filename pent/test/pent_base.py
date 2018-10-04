@@ -33,6 +33,7 @@ import re
 import unittest as ut
 
 from pent import ParserField
+from pent.errors import LineError
 from pent.thrulist import ThruList
 
 
@@ -128,6 +129,9 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         }
 
         for content, capture in itt.product(pent.Content, (True, False)):
+            if content is pent.Content.OptionalLine:
+                continue
+                
             test_name = "{0}_{1}".format(content, capture)
             with self.subTest(test_name):
                 test_pat = patterns[content].format("!" if capture else "")
@@ -497,6 +501,57 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual("", m.group(pent.Token.group_prefix + "0"))
 
+    def test_optional_pattern_syntax(self):
+        """Confirm optional-line flag is only accepted as first token."""
+        import pent
+        
+        with self.subTest("expect_good"):
+            try:
+                self.prs.convert_line("? #!..g")
+            except LineError:
+                self.fail("Optional-line token parsing failed unexpectedly.")
+        
+        with self.subTest("expect_fail"):
+            with self.assertRaises(LineError):
+                self.prs.convert_line("#!..g ?")
+    
+    def test_optional_pattern_parsing(self):
+        """Confirm optional-line parsing works."""
+        from textwrap import dedent
+        
+        import pent
+        
+        data1 = dedent("""
+            HEAD
+            1 2 3
+            1. 2. 3.
+            FOOT
+            4 5 6
+            4. 5. 6.
+            NOTFOOT""")
+        
+        prs1 = pent.Parser(head="@.HEAD", body=pent.Parser(head="#++i",
+                body="#!+.f", tail="? @!.FOOT"))
+        
+        result1 = prs1.capture_body(data1)
+        
+        expect1 = [
+                [
+                    [['1.', '2.', '3.']],
+                    [['4.', '5.', '6.']],
+                ],
+            ]
+        
+        with self.subTest("block"):
+            self.assertEqual(result1, expect1)
+        
+        res_struct = []
+        for bdict in prs1.capture_struct(data1)[ParserField.Body]:
+            res_struct.append(bdict[ParserField.Tail])
+            
+        with self.subTest("struct"):
+            self.assertEqual(res_struct, [[["FOOT"]], [[None]]])
+
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
         import pent
@@ -862,6 +917,9 @@ class TestPentTokens(ut.TestCase, SuperPent):
         }
 
         for ct, cap in itt.product(pent.Content, (True, False)):
+            if ct is pent.Content.OptionalLine:
+                continue
+            
             t = pent.Token(token_fmt[ct].format("!" if cap else ""))
             with self.subTest(testname_fmt.format(ct, cap)):
                 self.assertEqual(t.capture, cap)

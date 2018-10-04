@@ -41,6 +41,18 @@ class TokenError(PentError):  # pragma: no cover
     def __str__(self):
         """Generate a more-informative error message."""
         return "'{}' is an invalid pent token".format(self.token)
+        
+        
+class LineError(PentError):  # pragma: no cover
+    """Raised during attempts to parse invalid token sequences."""
+    
+    def __init__(self, line):
+        """Instantiate a ``LineError``."""
+        self.line = line
+    
+    def __str__(self):
+        """Generate a more-informative error message."""
+        return "'{}' is an invalid pent token sequence".format(self.line)
 
 
 class SectionError(PentError):  # pragma: no cover

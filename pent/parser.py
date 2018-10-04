@@ -142,7 +142,10 @@ class Parser:
         for m in re.finditer(pat_re, text):
             chunk_caps = []
             for c in cls.generate_captures(m):
-                chunk_caps.extend(c.split())
+                if c is None:
+                    chunk_caps.append(None)
+                else:
+                    chunk_caps.extend(c.split())
             data.append(chunk_caps)
 
         return data
@@ -196,10 +199,10 @@ class Parser:
         def gen_converted_lines():
             id = 0
             for line in sec:
-                pat, id = cls.convert_line(
+                pat, id, opt = cls.convert_line(
                     line, capture_groups=capture_groups, group_id=id
                 )
-                yield pat
+                yield pat, opt
 
         try:
             return "\n".join(gen_converted_lines())
@@ -221,6 +224,8 @@ class Parser:
 
         """
         import shlex
+        
+        from .errors import LineError
 
         # Parse line into tokens, and then into Tokens
         tokens = shlex.split(line)
@@ -228,15 +233,28 @@ class Parser:
 
         # Zero-length start of line (or of entire string) match
         pattern = r"(^|(?<=\n))"
+        
+        # Replace target for the opening paren if the line is optional
+        pattern += "{opline_open}"
 
         # Always have optional starting whitespace
         pattern += r"[ \t]*"
 
         # Initialize flag for a preceding no-space-after num token
         prior_no_space_token = False
+        
+        # Initialize flag for whether the line is optional
+        optional_line = False
 
         for i, t in enumerate(tokens):
             tok_pattern = t.pattern
+
+            if t.is_optional_line:
+                if i == 0:
+                    optional_line = True
+                    continue
+                else:
+                    raise LineError(line)
 
             if t.needs_group_id:
                 tok_pattern = tok_pattern.format(str(group_id))
@@ -267,10 +285,18 @@ class Parser:
                 elif t.space_after is SpaceAfter.Optional:
                     pattern += r"[ \t]*"
 
-        # Always put possible whitespace to the end of the line
-        pattern += r"[ \t]*($|(?=\n))"
+        # Always put possible whitespace to the end of the line.
+        # Also include a format tag for closing optional-line grouping
+        pattern += r"[ \t]*{opline_close}($|(?=\n))"
 
-        return pattern, group_id
+        # Wrap pattern with parens and '?' if it's optional
+        # Otherwise just drop the formatting tags
+        pattern = pattern.format(
+            opline_open=("(" if optional_line else ""),
+            opline_close=(")?" if optional_line else "")
+            )
+
+        return pattern, group_id, optional_line
 
     @staticmethod
     def generate_captures(m):

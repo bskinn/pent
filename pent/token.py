@@ -57,11 +57,7 @@ class Token:
     group_prefix = "g"
     _s_any_flag = "~"
     _s_capture = "!"
-    #    _s_no_space = "x"
-
-    #    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
-    #        TokenField.NoSpace
-    #    )
+    
     _pp_space_after = pp.Optional(
         pp.Word("".join(SpaceAfter), exact=1)
     ).setResultsName(TokenField.SpaceAfter)
@@ -71,6 +67,9 @@ class Token:
     _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
         TokenField.Quantity
     )
+    
+    # ## OPTIONAL LINE TOKEN ##
+    _pp_optional_line = pp.Literal(Content.OptionalLine).setResultsName(TokenField.Type)  
 
     # ## ARBITRARY CONTENT TOKEN ##
     # Anything may be matched here, including multiple words.
@@ -126,7 +125,7 @@ class Token:
     # ## COMBINED TOKEN PARSER ##
     _pp_token = (
         pp.StringStart()
-        + (_pp_any_flag ^ _pp_string ^ _pp_number)
+        + (_pp_optional_line ^ _pp_any_flag ^ _pp_string ^ _pp_number)
         + pp.StringEnd()
     )
 
@@ -140,6 +139,11 @@ class Token:
     def is_any(self):
         """Return flag for whether the token is an "any content" token."""
         return self._pr[TokenField.Type] == Content.Any
+
+    @property
+    def is_optional_line(self):
+        """Return flag for whether the token flags an optional line."""
+        return self._pr[TokenField.Type] == Content.OptionalLine
 
     @property
     def is_str(self):
@@ -219,6 +223,9 @@ class Token:
             if self.match_quantity is Quantity.OneOrMore:
                 self._pattern += r"([ \t]+{})*".format(self._pattern)
 
+        elif self.is_optional_line:
+            pass
+            
         else:  # pragma: no cover
             raise NotImplementedError(
                 "Unknown content type somehow specified!"
