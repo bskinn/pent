@@ -65,9 +65,9 @@ class Parser:
 
         if res_head:
             rx += (
-                "(?P<{}>".format(ParserField.Head) + res_head + ")\n?"
+                "(?P<{}>".format(ParserField.Head) + res_head + r")\n?"
                 if capture_sections
-                else res_head + "\n?"
+                else res_head + r"\n?"
             )
 
         if res_body:
@@ -79,7 +79,7 @@ class Parser:
                     else ""
                 )
                 + res_body
-                + "(\n?"
+                + r"(\n?"
                 + res_body
                 + ")*"
                 + (")" if capture_sections else "")
@@ -89,7 +89,7 @@ class Parser:
 
         if res_tail:
             rx += (
-                "\n?"
+                r"\n?"
                 + ( "(?P<{}>".format(ParserField.Tail) + res_tail + ")"
                     if capture_sections
                     else res_tail
@@ -207,7 +207,7 @@ class Parser:
                 yield pat
 
         try:
-            return "\n?".join(gen_converted_lines())
+            return r"\n?".join(gen_converted_lines())
 
         except AttributeError:
             # Happens to be the exception that the internals

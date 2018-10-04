@@ -376,7 +376,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(m.group(pent.Token.group_prefix + "1"), test_num)
         self.assertEqual(m.group(pent.Token.group_prefix + "2"), test_line_end)
 
-    @ut.skip("Developing without optional/zero-or-more for now")
+    @ut.skip("Not implementing optional/zero-or-more tokens")
     def test_optional_str(self):
         """Confirm single optional str token works as expected."""
         import pent
@@ -462,7 +462,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         IndexError, m.group, pent.Token.group_prefix + "0"
                     )
 
-    @ut.skip("Skipping until resolve Optional.")
+    @ut.skip("Not implementing optional/zero-or-more tokens")
     def test_zero_or_more_str(self):
         """Confirm zero-or-more str token works as expected."""
         import pent
@@ -489,7 +489,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         IndexError, m.group, pent.Token.group_prefix + "0"
                     )
 
-    @ut.skip("Developing w/o optional/zero-or-more for now")
+    @ut.skip("Not implementing optional/zero-or-more tokens")
     def test_one_or_more_doesnt_match_zero_reps(self):
         """Confirm one-or-more str doesn't match if string isn't there."""
         import pent
