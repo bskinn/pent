@@ -57,20 +57,25 @@ class Parser:
         nested Parsers.
 
         """
-        rx_head = self.convert_section(self.head, capture_sections=False)
-        rx_body = self.convert_section(self.body, capture_sections=False)
-        rx_tail = self.convert_section(self.tail, capture_sections=False)
+        res_head = self.convert_section(self.head, capture_sections=False)
+        res_body = self.convert_section(self.body, capture_sections=False)
+        res_tail = self.convert_section(self.tail, capture_sections=False)
 
         rx = ""
 
-        if rx_head:
+        if res_head:
+            head_pat, head_opt = res_head
             rx += (
-                "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
+                "(?P<{}>".format(ParserField.Head) + head_pat + ")\n" + ("?" if head_opt else "")
                 if capture_sections
-                else rx_head + "\n"
+                else head_pat + "\n" + ("?" if head_opt else "")
             )
 
-        try:
+        if res_body:
+            body_pat, body_opt = res_body
+            
+            return_opt = body_opt
+            
             # At least one line of the body, followed by however many more
             rx += (
                 (
@@ -78,34 +83,40 @@ class Parser:
                     if capture_sections
                     else ""
                 )
-                + rx_body
-                + "(\n"
-                + rx_body
+                + body_pat
+                + "(\n" + ("?" if body_opt else "")
+                + body_pat
                 + ")*"
                 + (")" if capture_sections else "")
             )
-        except TypeError as e:
-            raise SectionError("'body' required to generate 'pattern'") from e
+        else:
+            raise SectionError("'body' required to generate 'pattern'")
 
-        if rx_tail:
+        if res_tail:
+            tail_pat, tail_opt = res_tail
+            
+            return_opt = tail_opt
+            
             rx += (
-                "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
-                if capture_sections
-                else "\n" + rx_tail
+                "\n?"   # + ("?" if body_opt else "")
+                + ( "(?P<{}>".format(ParserField.Tail) + tail_pat + ")"
+                    if capture_sections
+                    else tail_pat
+                  )
             )
 
-        return rx
+        return rx, return_opt
 
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
         cap_blocks = []
-        for m_entire in re.finditer(self.pattern(), text):
+        for m_entire in re.finditer(self.pattern()[0], text):
             block_text = m_entire.group(ParserField.Body)
 
             # If the 'body' pattern is a Parser
             if isinstance(self.body, self.__class__):
                 data = []
-                body_subpat = self.body.pattern(capture_sections=True)
+                body_subpat = self.body.pattern(capture_sections=True)[0]
 
                 for m in re.finditer(body_subpat, block_text):
                     data.extend(self.body.capture_body(m.group(0)))
@@ -134,7 +145,7 @@ class Parser:
     def capture_str_pattern(cls, pat_str, text):
         """Perform capture of string/iterable-of-str pattern."""
         try:
-            pat_re = cls.convert_section(pat_str, capture_groups=True)
+            pat_re = cls.convert_section(pat_str, capture_groups=True)[0]
         except AttributeError:
             raise SectionError("Invalid pattern string for capture")
 
@@ -155,7 +166,7 @@ class Parser:
         """Perform capture of a Parser pattern."""
         data = ThruList()
 
-        prs_pat_re = prs.pattern(capture_sections=True)
+        prs_pat_re = prs.pattern(capture_sections=True)[0]
 
         for m in re.finditer(prs_pat_re, text):
             sec_dict = {}
@@ -191,7 +202,7 @@ class Parser:
 
         # If it's a single line
         try:
-            return cls.convert_line(sec, capture_groups=capture_groups)[0]
+            return cls.convert_line(sec, capture_groups=capture_groups)[0::2]
         except AttributeError:
             pass
 
@@ -205,10 +216,22 @@ class Parser:
                 yield pat, opt
 
         try:
-            return "\n".join(gen_converted_lines())
+            #return "\n".join(gen_converted_lines())
+            pattern = ""
+            for line, opt in gen_converted_lines():
+                pattern += line + r"\n"
+                if opt:
+                    pattern += "?"
+            
+            # Have to strip the last newline
+            pattern = pattern[:(-3 if opt else -2)]
+            
+            return pattern, opt
+                
         except AttributeError:
             # Most likely is that the iterable members don't have
             # the .pattern attribute
+            # ??? Not sure how/why this work
             raise SectionError("Unrecognized format")
 
     @classmethod

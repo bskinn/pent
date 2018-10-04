@@ -115,8 +115,8 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         prs = pent.Parser(body="")
 
-        self.assertIsNotNone(re.search(prs.pattern(), ""))
-        self.assertIsNone(re.search(prs.pattern(), "3"))
+        self.assertIsNotNone(re.search(prs.pattern()[0], ""))
+        self.assertIsNone(re.search(prs.pattern()[0], "3"))
 
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
@@ -528,7 +528,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             FOOT
             4 5 6
             4. 5. 6.
-            NOTFOOT""")
+            """)
         
         prs1 = pent.Parser(head="@.HEAD", body=pent.Parser(head="#++i",
                 body="#!+.f", tail="? @!.FOOT"))
@@ -682,7 +682,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         with open(file_path) as f:
             data = f.read()
 
-        m = re.search(freq_parser.pattern(), data)
+        m = re.search(freq_parser.pattern()[0], data)
         self.assertIsNotNone(m)
         self.assertEqual(m.group(0).count("\n"), 22)
 
