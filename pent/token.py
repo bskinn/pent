@@ -57,7 +57,7 @@ class Token:
     group_prefix = "g"
     _s_any_flag = "~"
     _s_capture = "!"
-    
+
     _pp_space_after = pp.Optional(
         pp.Word("".join(SpaceAfter), exact=1)
     ).setResultsName(TokenField.SpaceAfter)
@@ -67,9 +67,11 @@ class Token:
     _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
         TokenField.Quantity
     )
-    
+
     # ## OPTIONAL LINE TOKEN ##
-    _pp_optional_line = pp.Literal(Content.OptionalLine).setResultsName(TokenField.Type)  
+    _pp_optional_line = pp.Literal(Content.OptionalLine).setResultsName(
+        TokenField.Type
+    )
 
     # ## ARBITRARY CONTENT TOKEN ##
     # Anything may be matched here, including multiple words.
@@ -225,7 +227,7 @@ class Token:
 
         elif self.is_optional_line:
             pass
-            
+
         else:  # pragma: no cover
             raise NotImplementedError(
                 "Unknown content type somehow specified!"

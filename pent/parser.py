@@ -116,7 +116,9 @@ class Parser:
 
             else:
                 # If the 'body' pattern is a string or iterable of strings
-                cap_blocks.append(self.capture_str_pattern(self.body, block_text))
+                cap_blocks.append(
+                    self.capture_str_pattern(self.body, block_text)
+                )
 
         return cap_blocks
 
@@ -228,7 +230,7 @@ class Parser:
 
         """
         import shlex
-        
+
         from .errors import LineError
 
         # Parse line into tokens, and then into Tokens
@@ -237,7 +239,7 @@ class Parser:
 
         # Zero-length start of line (or of entire string) match
         pattern = r"(^|(?<=\n))"
-        
+
         # Replacement target for the opening paren if the line is optional
         pattern += "{opline_open}"
 
@@ -246,7 +248,7 @@ class Parser:
 
         # Initialize flag for a preceding no-space-after num token
         prior_no_space_token = False
-        
+
         # Initialize flag for whether the line is optional
         optional_line = False
 
@@ -297,8 +299,8 @@ class Parser:
         # Otherwise just drop the formatting tags
         pattern = pattern.format(
             opline_open=("(" if optional_line else ""),
-            opline_close=(")?" if optional_line else "")
-            )
+            opline_close=(")?" if optional_line else ""),
+        )
 
         return pattern, group_id
 
