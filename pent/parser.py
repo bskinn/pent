@@ -63,11 +63,27 @@ class Parser:
 
         rx = ""
 
+        def all_optional(sec):
+            """Indicate whether a section contains all optional things."""
+            if isinstance(sec, self.__class__) or sec is None:
+                return False
+
+            if isinstance(sec, str):
+                return len(sec) > 0 and sec[0] == "?"  # MAGIC STRING
+
+            return all(
+                map(lambda s: len(s) > 0 and s[0] == "?", sec)
+            )  # MAGIC STRING
+
         if res_head:
             rx += (
-                "(?P<{}>".format(ParserField.Head) + res_head + r")\n?"
-                if capture_sections
-                else res_head + r"\n?"
+                (
+                    "(?P<{}>".format(ParserField.Head) + res_head + r")\n?"
+                    if capture_sections
+                    else "(" + res_head + ")"
+                )
+                + ("?" if all_optional(self.head) else "")
+                + r"\n?"
             )
 
         if res_body:
@@ -88,12 +104,13 @@ class Parser:
             raise SectionError("'body' required to generate 'pattern'")
 
         if res_tail:
-            rx += (
-                r"\n?"
-                + ( "(?P<{}>".format(ParserField.Tail) + res_tail + ")"
+            rx += r"\n?" + (
+                (
+                    "(?P<{}>".format(ParserField.Tail) + res_tail + ")"
                     if capture_sections
-                    else res_tail
-                  )
+                    else "(" + res_tail + ")"
+                )
+                + ("?" if all_optional(self.tail) else "")
             )
 
         return rx
