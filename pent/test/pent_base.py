@@ -503,8 +503,6 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     def test_optional_pattern_syntax(self):
         """Confirm optional-line flag is only accepted as first token."""
-        import pent
-
         with self.subTest("expect_good"):
             try:
                 self.prs.convert_line("? #!..g")

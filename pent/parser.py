@@ -29,7 +29,7 @@ import re
 
 import attr
 
-from .enums import SpaceAfter, ParserField
+from .enums import SpaceAfter, ParserField, Content
 from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
 from .thrulist import ThruList
@@ -69,11 +69,9 @@ class Parser:
                 return False
 
             if isinstance(sec, str):
-                return len(sec) > 0 and sec[0] == "?"  # MAGIC STRING
+                return sec[:1] == Content.OptionalLine
 
-            return all(
-                map(lambda s: len(s) > 0 and s[0] == "?", sec)
-            )  # MAGIC STRING
+            return all(map(lambda s: s[:1] == Content.OptionalLine, sec))
 
         if res_head:
             rx += (
@@ -159,6 +157,10 @@ class Parser:
         except AttributeError:  # pragma: no cover
             # This is unreachable at the moment
             raise SectionError("Invalid pattern string for capture")
+
+        if text is None:
+            # An all-optional section was entirely absent
+            return [[None]]
 
         data = []
         for m in re.finditer(pat_re, text):
