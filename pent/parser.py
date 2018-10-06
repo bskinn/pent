@@ -285,6 +285,10 @@ class Parser:
                 tok_pattern = tok_pattern.format(str(group_id))
                 group_id += 1
 
+                # COMMENT HERE IF THIS WORKS
+                if t.capture and capture_groups and optional_line:
+                    tok_pattern += Content.OptionalLine
+
             if t.is_any:
                 pattern += tok_pattern
                 prior_no_space_token = False
