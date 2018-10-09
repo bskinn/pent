@@ -1023,20 +1023,23 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         from .testdata import orca_opt_status
 
         prs = pent.Parser(
-            body=(
+            head=(  # body=(
                 "@x+- '@x.|Geometry convergence|' @+-",
                 "@.Item @.value @.Tolerance @.Converged",
                 "@+-",
-                "? '@.Energy change' #!..f #..f ~!",
-                "'@.RMS gradient' #!..f #.+f ~!",
-                "'@.MAX gradient' #!..f #.+f ~!",
-                "'@.RMS step' #!..f #.+f ~!",
-                "'@.MAX step' #!..f #.+f ~!",
+            ),
+            body="~ #!..f #..f ~!",
+            # "? '@.Energy change' #!..f #..f ~!",
+            # "'@.RMS gradient' #!..f #.+f ~!",
+            # "'@.MAX gradient' #!..f #.+f ~!",
+            # "'@.RMS step' #!..f #.+f ~!",
+            # "'@.MAX step' #!..f #.+f ~!",
+            tail=(
                 "@+.",
                 "@.Max(Bonds) #!.+f @.Max(Angles) #!.+f",
                 "@.Max(Dihed) #!.+f @.Max(Improp) #!.+f",
                 "@+-",
-            )
+            ),
         )
 
         self.assertEqual(prs.capture_body(data), orca_opt_status)
