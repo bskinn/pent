@@ -71,6 +71,9 @@ class Content(str, Enum):
     #: Number
     Number = "#"
 
+    #: Flag to mark pattern line as optional
+    OptionalLine = "?"
+
 
 class Quantity(str, Enum):
     """Enumeration for the various match quantities."""
