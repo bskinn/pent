@@ -62,6 +62,12 @@ class SuperPent:
         with (Path() / "pent" / "test" / "Cu_CAS.out").open() as f:
             return f.read()
 
+    @staticmethod
+    def get_orca_opt_file():
+        """Return the sample ORCA optimization output."""
+        with (Path() / "pent" / "test" / "MeCl2F_116.out").open() as f:
+            return f.read()
+
 
 class TestPentCorePatterns(ut.TestCase, SuperPent):
     """Confirming basic pattern matching of the core regex patterns."""
@@ -1007,6 +1013,33 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             head_result.append(bdict[ParserField.Head])
 
         self.assertEqual(head_result, head_expect)
+
+    def test_ORCA_opt_progress_results(self):
+        """Confirm parse of optimization results block."""
+        import pent
+
+        data = self.get_orca_opt_file()
+
+        from .testdata import orca_opt_status
+
+        prs = pent.Parser(
+            body=(
+                "@x+- '@x.|Geometry convergence|' @+-",
+                "@.Item @.value @.Tolerance @.Converged",
+                "@+-",
+                "? '@.Energy change' #!..f #..f ~!",
+                "'@.RMS gradient' #!..f #.+f ~!",
+                "'@.MAX gradient' #!..f #.+f ~!",
+                "'@.RMS step' #!..f #.+f ~!",
+                "'@.MAX step' #!..f #.+f ~!",
+                "@+.",
+                "@.Max(Bonds) #!.+f @.Max(Angles) #!.+f",
+                "@.Max(Dihed) #!.+f @.Max(Improp) #!.+f",
+                "@+-",
+            )
+        )
+
+        self.assertEqual(prs.capture_body(data), orca_opt_status)
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
