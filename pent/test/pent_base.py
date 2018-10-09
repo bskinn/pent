@@ -1044,6 +1044,34 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(prs.capture_body(data), orca_opt_status)
 
+    @ut.expectedFailure
+    def test_ORCA_opt_progress_results_optline(self):
+        """Confirm parse of optimization results block using optline."""
+        import pent
+
+        data = self.get_orca_opt_file()
+
+        from .testdata import orca_opt_status
+
+        prs = pent.Parser(
+            body=(
+                "@x+- '@x.|Geometry convergence|' @+-",
+                "@.Item @.value @.Tolerance @.Converged",
+                "@+-",
+                "? '@.Energy change' #!..f #..f ~!",
+                "'@.RMS gradient' #!..f #.+f ~!",
+                "'@.MAX gradient' #!..f #.+f ~!",
+                "'@.RMS step' #!..f #.+f ~!",
+                "'@.MAX step' #!..f #.+f ~!",
+                "@+.",
+                "@.Max(Bonds) #!.+f @.Max(Angles) #!.+f",
+                "@.Max(Dihed) #!.+f @.Max(Improp) #!.+f",
+                "@+-",
+            )
+        )
+
+        self.assertEqual(prs.capture_body(data), orca_opt_status)
+
 
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
