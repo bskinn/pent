@@ -220,16 +220,18 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
     import pent
 
-    prs = pent.Parser()
+    prs = pent.Parser(body="")
 
     def test_empty_pattern_matches_blank_line(self):
         """Confirm an empty pattern matches only a blank line."""
+        self.assertIsNotNone(re.search(self.prs.pattern(), ""))
+        self.assertIsNone(re.search(self.prs.pattern(), "3"))
+
+    def test_token_error_raised_at_init(self):
+        """Ensure TokenError raised at instantiation w/bad token."""
         import pent
 
-        prs = pent.Parser(body="")
-
-        self.assertIsNotNone(re.search(prs.pattern(), ""))
-        self.assertIsNone(re.search(prs.pattern(), "3"))
+        self.assertRaises(pent.TokenError, pent.Parser, body="abcd")
 
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
@@ -480,7 +482,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_num = "2e-4"
         test_line = test_line_start + "[" + test_num + "]" + test_line_end
 
-        pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")[0]
+        pat = self.prs.convert_line("~! @x.[ #x!..g @x.] ~!")[0]
         m = re.search(pat, test_line)
 
         self.assertEqual(
@@ -499,7 +501,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo" * qty)
 
@@ -525,7 +527,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 
@@ -552,7 +554,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for there, cap in itt.product(*itt.repeat((True, False), 2)):
             with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                prs_pat = pent.Parser().convert_line(pat)[0]
+                prs_pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo" if there else "")
 
@@ -586,7 +588,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((0, 1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 

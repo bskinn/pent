@@ -39,7 +39,7 @@ class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
 
     import pent
 
-    prs = pent.Parser()
+    prs = pent.Parser(body="")
 
     def test_three_token_sequence(self):
         """Ensure combinatorial token sequence parses correctly."""
