@@ -62,7 +62,7 @@ class Sign(str, Enum):
 class Content(str, Enum):
     """Enumeration for the possible types of content."""
 
-    #: Arbitrary match
+    #: Arbitrary match, including whitespace
     Any = "~"
 
     #: Literal string
@@ -70,6 +70,9 @@ class Content(str, Enum):
 
     #: Number
     Number = "#"
+
+    #: Arbitrary single-"word" match, no whitespace
+    Misc = "&"
 
     #: Flag to mark pattern line as optional
     OptionalLine = "?"

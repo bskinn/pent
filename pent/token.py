@@ -69,7 +69,7 @@ class Token:
     )
 
     # ## OPTIONAL LINE TOKEN ##
-    _pp_optional_line = pp.Literal(Content.OptionalLine).setResultsName(
+    _pp_optional_line = pp.Literal(Content.OptionalLine.value).setResultsName(
         TokenField.Type
     )
 
@@ -96,6 +96,15 @@ class Token:
         + _pp_quantity
         + _pp_str_value
     )
+
+    # ## MISC SINGLE VALUE TOKEN ##
+    # Initial marker for the 'misc' token
+    _pp_misc_flag = pp.Literal(Content.Misc.value).setResultsName(
+        TokenField.Type
+    )
+
+    # Composite token pattern for the misc match
+    _pp_misc = _pp_misc_flag + _pp_space_after + _pp_capture + _pp_quantity
 
     # ## NUMERICAL VALUE TOKEN ##
     # Initial marker for a numerical value
@@ -127,7 +136,13 @@ class Token:
     # ## COMBINED TOKEN PARSER ##
     _pp_token = (
         pp.StringStart()
-        + (_pp_optional_line ^ _pp_any_flag ^ _pp_string ^ _pp_number)
+        + (
+            _pp_optional_line
+            ^ _pp_any_flag
+            ^ _pp_string
+            ^ _pp_number
+            ^ _pp_misc
+        )
         + pp.StringEnd()
     )
 
@@ -153,14 +168,24 @@ class Token:
         return self._pr[TokenField.Type] == Content.String
 
     @property
+    def is_misc(self):
+        """Return flag for whether the token is a misc token."""
+        return self._pr[TokenField.Type] == Content.Misc
+
+    @property
     def is_num(self):
         """Return flag for whether the token matches a number."""
         return self._pr[TokenField.Type] == Content.Number
 
     @property
     def match_quantity(self):
-        """Return match quantity; |None| for :attr:`pent.enums.Content.Any`."""
-        if self.is_any:
+        """Return match quantity.
+
+        |None| for :attr:`pent.enums.Content.Any` or
+        :attr:`pent.enums.Content.OptionalLine
+
+        """
+        if self.is_any or self.is_optional_line:
             return None
         else:
             return Quantity(self._pr[TokenField.Quantity])
@@ -209,8 +234,8 @@ class Token:
             )
             return
 
-        # Only single, non-optional captures implemented for now, regardless of
-        # the Quantity flag in the token
+        # Only single and one-or-more captures implemented for now.
+        # Optional and zero-or-more captures may actually not be feasible
         if self.is_str:
             # Always store the string pattern
             self._pattern = self._string_pattern()
@@ -221,6 +246,12 @@ class Token:
 
         elif self.is_num:
             self._pattern = self._get_number_pattern()
+
+            if self.match_quantity is Quantity.OneOrMore:
+                self._pattern += r"([ \t]+{})*".format(self._pattern)
+
+        elif self.is_misc:
+            self._pattern = self._get_misc_pattern()
 
             if self.match_quantity is Quantity.OneOrMore:
                 self._pattern += r"([ \t]+{})*".format(self._pattern)
@@ -249,6 +280,10 @@ class Token:
                 pattern += c
 
         return pattern
+
+    def _get_misc_pattern(self):
+        """Return the no-whitespace item pattern."""
+        return r"[^ \t\n]+"
 
     def _get_number_pattern(self):
         """Return the correct number pattern given the parse result."""
