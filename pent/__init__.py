@@ -40,6 +40,7 @@ __all__ = [
     "number_patterns",
     "wordify_pattern",
     "std_wordify",
+    "column_stack_2d",
     "PentError",
     "TokenError",
     "SectionError",
@@ -54,6 +55,7 @@ from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
 from .thrulist import ThruList
 from .token import Token
+from .utils import column_stack_2d
 
 
 __version__ = "0.2.dev1"

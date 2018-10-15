@@ -31,7 +31,7 @@ import unittest as ut
 
 from pent import ParserField
 
-from .pent_base import SuperPent, testdir_path
+from .pent_base import SuperPent
 
 
 class TestPentORCALiveData(ut.TestCase, SuperPent):
@@ -42,21 +42,25 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
         """Return the sample ORCA CAS output."""
         return cls.get_file("Cu_CAS.out")
 
-        # with (Path() / "pent" / "test" / "Cu_CAS.out").open() as f:
-        #    return f.read()
-
     @classmethod
     def get_orca_opt_file(cls):
         """Return the sample ORCA optimization output."""
         return cls.get_file("MeCl2F_116.out")
 
-        # with (Path() / "pent" / "test" / "MeCl2F_116.out").open() as f:
-        #    return f.read()
-
     @classmethod
     def get_orca_trj(cls):
         """Return the sample .trj file."""
         return cls.get_file("MeCl2F_21.trj")
+
+    @classmethod
+    def get_orca_C2F4_hess(cls):
+        """Return the C2F4 .hess file."""
+        return cls.get_file("C2F4_01.hess")
+
+    @classmethod
+    def get_orca_H2O_hess(cls):
+        """Return the H2O .hess file."""
+        return cls.get_file("H2O_08.hess")
 
     def test_orca_hess_freq_parser(self):
         """Confirm 1-D data parser for ORCA freqs works."""
@@ -71,14 +75,11 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
         # it works correctly.
         tail_pattern = ("~", "@.$normal_modes", "#!++i")
 
-        file_path = str(testdir_path / "C2F4_01.hess")
-
         freq_parser = pent.Parser(
             head=head_pattern, body=body_pattern, tail=tail_pattern
         )
 
-        with open(file_path) as f:
-            data = f.read()
+        data = self.get_orca_C2F4_hess()
 
         m = re.search(freq_parser.pattern(), data)
         self.assertIsNotNone(m)
@@ -102,14 +103,28 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
         head_pattern = ("@.$dipole_derivatives", "#.+i")
         body_pattern = "#!+.f"
 
-        file_path = str(testdir_path / "C2F4_01.hess")
-
         freq_parser = pent.Parser(head=head_pattern, body=body_pattern)
 
-        with open(file_path) as f:
-            data = f.read()
+        data = self.get_orca_C2F4_hess()
 
         self.assertEqual(freq_parser.capture_body(data), orca_hess_dipders)
+
+    def test_orca_hess_column_stacked(self):
+        """Confirm column stacking works as expected."""
+        import pent
+
+        from .testdata import orca_hess_hessian
+
+        prs = pent.Parser(
+            head=("@.$hessian", "#.+i"),
+            body=pent.Parser(head="#++i", body="#.+i #!+.f"),
+        )
+
+        data = self.get_orca_H2O_hess()
+
+        self.assertEqual(
+            orca_hess_hessian, pent.column_stack_2d(prs.capture_body(data)[0])
+        )
 
     def test_ORCA_CAS_orbital_ranges(self):
         """Confirm inactive/active/virtual data captures correctly."""
