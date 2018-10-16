@@ -67,5 +67,17 @@ class SectionError(PentError):  # pragma: no cover
         return "Bad Parser section: {}".format(self.msg)
 
 
+class ThruListError(PentError):  # pragma: no cover
+    """Raised from failed ThruList indexing attempts."""
+
+    def __init__(self, msg=""):
+        """Instantiate a ``ThruListError``."""
+        self.msg = msg
+
+    def __str__(self):
+        """Generate a more-informative error message."""
+        return "Invalid ThruList index: {}".format(self.msg)
+
+
 if __name__ == "__main__":  # pragma: no cover
     print("Module not executable.")

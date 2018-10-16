@@ -141,6 +141,8 @@ class TestPentTokens(ut.TestCase, SuperPent):
 class TestPentThruList(ut.TestCase, SuperPent):
     """Direct tests of the custom pass-thru list."""
 
+    from pent import ThruListError
+
     def test_list_value(self):
         """Confirm simple list behavior."""
         work_l = ThruList(range(5))
@@ -150,7 +152,7 @@ class TestPentThruList(ut.TestCase, SuperPent):
         with self.assertRaises(IndexError):
             work_l[8]
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(self.ThruListError):
             work_l["foo"]
 
     def test_list_pass_thru(self):
@@ -170,7 +172,7 @@ class TestPentThruList(ut.TestCase, SuperPent):
         """Confirm the pass-through is not attempted when len > 1."""
         work_l = ThruList([{"foo": "bar"}, {"baz": "quux"}])
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(self.ThruListError):
             work_l["foo"]
 
         self.assertEqual(work_l[1], {"baz": "quux"})

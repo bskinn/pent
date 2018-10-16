@@ -45,12 +45,14 @@ __all__ = [
     "TokenError",
     "SectionError",
     "LineError",
+    "ThruListError",
     "SpaceAfter",
 ]
 
 from .enums import Number, Sign, TokenField, ParserField
 from .enums import Content, Quantity, SpaceAfter
-from .errors import PentError, TokenError, SectionError, LineError
+from .errors import PentError, TokenError, SectionError
+from .errors import LineError, ThruListError
 from .parser import Parser
 from .patterns import number_patterns, wordify_pattern, std_wordify
 from .thrulist import ThruList

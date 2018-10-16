@@ -24,19 +24,22 @@ r"""*Custom list object for* ``pent``.
 
 """
 
+from .errors import ThruListError
+
 
 class ThruList(list):
     """List that passes through `key` if len == 1."""
 
     def __getitem__(self, key):
-        """Return list item, or element of BLAH."""
-        if not isinstance(key, int) and len(self) == 1:
-            return self[0][key]
+        """Return list item, or element of first item if len == 1."""
+        if isinstance(key, int):
+            return super().__getitem__(key)
+
         else:
-            try:
-                return super().__getitem__(key)
-            except TypeError:
-                raise IndexError("Key '{}' not found on item 0".format(key))
+            if len(self) == 1:
+                return self[0][key]
+            else:
+                raise ThruListError(msg="Numeric index required for len > 1")
 
 
 if __name__ == "__main__":  # pragma: no cover
