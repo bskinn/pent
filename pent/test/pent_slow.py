@@ -37,10 +37,6 @@ from .pent_base import SuperPent
 class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
     """SLOW tests confirming pattern matching of Parser regexes."""
 
-    import pent
-
-    prs = pent.Parser()
-
     def test_three_token_sequence(self):
         """Ensure combinatorial token sequence parses correctly."""
         import pent

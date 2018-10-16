@@ -28,8 +28,13 @@ r"""*Base package module for* ``pent`` *test suite*.
 
 from __future__ import absolute_import
 
-__all__ = ["suite_base", "suite_base_slow", "suite_live_orca"]
+__all__ = [
+    "suite_base",
+    "suite_base_slow",
+    "suite_live_orca",
+    "suite_live_mwfn",
+]
 
 from .pent_base import suite_base
-from .pent_livedata import suite_live_orca
+from .pent_livedata import suite_live_orca, suite_live_mwfn
 from .pent_slow import suite_base_slow
