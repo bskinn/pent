@@ -41,12 +41,12 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
     @classmethod
     def get_orca_cas_file(cls):
         """Return the sample ORCA CAS output."""
-        return cls.get_file("Cu_CAS.out")
+        return cls.get_file("Cu_CAS.out.gz")
 
     @classmethod
     def get_orca_opt_file(cls):
         """Return the sample ORCA optimization output."""
-        return cls.get_file("MeCl2F_116.out")
+        return cls.get_file("MeCl2F_116.out.gz")
 
     @classmethod
     def get_orca_trj(cls):
