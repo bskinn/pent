@@ -492,34 +492,10 @@ class TestPentGAMESSLiveData(ut.TestCase, SuperPent):
 
         data = self.get_gamess_file()
 
-        #  prs = pent.Parser(
-        #            head=(
-        #                "'@.ANALYZING SYMMETRY OF NORMAL MODES...'",
-        #                "",
-        #                "'@.FREQUENCIES IN CM**-1,' ~",
-        #                "'@.REDUCED MASSES IN AMU.'",
-        #            ),
-        #            body=pent.Parser(
-        #                head=(
-        #                    "",
-        #                    "#++i",
-        #                    "@.FREQUENCY: #+.f",
-        #                    "@.SYMMETRY: &+",
-        #                    "'@.REDUCED MASS:' #+.f",
-        #                    "'@.IR INTENSITY:' #+.f",
-        #                    "",
-        #                ),
-        #                body="~ &. #!+.f",
-        #                tail=pent.Parser(head="", body="~ #+.f"),
-        #            ),
-        #            tail=("", "'@.REFERENCE ON SAYVETZ CONDTIIONS' ~"),
-        #        )
         prs = pent.Parser(
             head=("'@.REDUCED MASS:' #+.f", "'@.IR INTENSITY:' #+.f", ""),
             body="~ #!+.f",
         )
-
-        result = list(_[0] for _ in prs.capture_body(data))
 
         self.assertEqual(gamess_modes_split, prs.capture_body(data))
 
