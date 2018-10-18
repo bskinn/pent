@@ -317,11 +317,6 @@ class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
     """Confirming Multiwfn output parses as expected."""
 
     @classmethod
-    def get_mwfn_dens_dens(cls):
-        """Return mwfn output with integrated density in density basins."""
-        return cls.get_file("mwfn_dens_densbasin.txt")
-
-    @classmethod
     def get_mwfn_dens_elf(cls):
         """Return mwfn output with integrated density in ELF basins."""
         return cls.get_file("mwfn_dens_elfbasin.txt")
@@ -420,6 +415,115 @@ class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
             self.assertEqual(mwfn_num_grids, tail)
 
 
+class TestPentGAMESSLiveData(ut.TestCase, SuperPent):
+    """Confirming GAMESS output parses as expected."""
+
+    @classmethod
+    def get_gamess_file(cls):
+        """Return GAMESS output file text."""
+        return cls.get_file("isosorbide_NO3_02.out.gz")
+
+    def test_gamess_geometry(self):
+        """Confirm GAMESS geometry parses as expected."""
+        import pent
+
+        from .testdata import gamess_geometry
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "@.ATOM @.ATOMIC '@.COORDINATES (BOHR)'",
+                "@.CHARGE @.X @.Y @.Z",
+            ),
+            body="&!. #!.+f #!+.f",
+        )
+
+        self.assertEqual(gamess_geometry, prs.capture_body(data))
+
+    def test_gamess_gradient(self):
+        """Confirm GAMESS gradient parses as expected."""
+        import pent
+
+        from .testdata import gamess_gradient
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "@+-",
+                "'@.ENERGY GRADIENT'",
+                "@+-",
+                "",
+                "'@.UNITS ARE HARTREE/BOHR' ~",
+            ),
+            body="#.+i &. #!+.f",
+        )
+
+        self.assertEqual(gamess_gradient, prs.capture_body(data))
+
+    def test_gamess_freqs(self):
+        """Confirm GAMESS frequencies list parses as expected."""
+        import pent
+
+        from .testdata import gamess_freqs
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "'@.REFERENCE ON SAYVETZ' ~",
+                "",
+                "'@.NOTE - THE MODES' ~",
+                "'@.SUM ON I' ~",
+                "",
+                "'@.MODE FREQ(CM**-1)' ~",
+            ),
+            body="#.+i #!..f &. #+.f",
+        )
+
+        self.assertEqual(gamess_freqs, prs.capture_body(data))
+
+    def test_gamess_modes(self):
+        """Confirm GAMESS normal modes list parses as expected."""
+        import pent
+
+        from .testdata import gamess_modes_split
+
+        data = self.get_gamess_file()
+
+        #  prs = pent.Parser(
+        #            head=(
+        #                "'@.ANALYZING SYMMETRY OF NORMAL MODES...'",
+        #                "",
+        #                "'@.FREQUENCIES IN CM**-1,' ~",
+        #                "'@.REDUCED MASSES IN AMU.'",
+        #            ),
+        #            body=pent.Parser(
+        #                head=(
+        #                    "",
+        #                    "#++i",
+        #                    "@.FREQUENCY: #+.f",
+        #                    "@.SYMMETRY: &+",
+        #                    "'@.REDUCED MASS:' #+.f",
+        #                    "'@.IR INTENSITY:' #+.f",
+        #                    "",
+        #                ),
+        #                body="~ &. #!+.f",
+        #                tail=pent.Parser(head="", body="~ #+.f"),
+        #            ),
+        #            tail=("", "'@.REFERENCE ON SAYVETZ CONDTIIONS' ~"),
+        #        )
+        prs = pent.Parser(
+            head=("'@.REDUCED MASS:' #+.f", "'@.IR INTENSITY:' #+.f", ""),
+            body="~ #!+.f",
+        )
+
+        result = list(_[0] for _ in prs.capture_body(data))
+
+        self.assertEqual(gamess_modes_split, prs.capture_body(data))
+
+
 def suite_live_orca():
     """Create and return the test suite for ORCA tests."""
     s = ut.TestSuite()
@@ -433,6 +537,14 @@ def suite_live_mwfn():
     s = ut.TestSuite()
     tl = ut.TestLoader()
     s.addTests([tl.loadTestsFromTestCase(TestPentMultiwfnLiveData)])
+    return s
+
+
+def suite_live_gamess():
+    """Create and return the test suite for GAMESS tests."""
+    s = ut.TestSuite()
+    tl = ut.TestLoader()
+    s.addTests([tl.loadTestsFromTestCase(TestPentGAMESSLiveData)])
     return s
 
 
