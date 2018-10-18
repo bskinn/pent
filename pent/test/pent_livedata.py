@@ -366,6 +366,59 @@ class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
 
         self.assertEqual(res, mwfn_di_data)
 
+    def test_mwfn_basin_dens_data(self):
+        """Confirm integrated basin density data parses as expected."""
+        import pent
+
+        from .testdata import mwfn_basin_dens_data
+
+        mwfn_sum_density = [["34.62335750"]]
+
+        data = self.get_mwfn_dens_elf()
+
+        prs = pent.Parser(
+            head="@.#Basin @.Integral(a.u.) @.Volume(a.u.^3)",
+            body="#.+i #!++f",
+            tail="'@.Sum of above values:' #!.+f",
+        )
+
+        body = prs.capture_body(data)
+        tail = prs.capture_struct(data)[pent.ParserField.Tail]
+
+        with self.subTest("body"):
+            self.assertEqual(body, mwfn_basin_dens_data)
+
+        with self.subTest("tail"):
+            self.assertEqual(mwfn_sum_density, tail)
+
+    def test_mwfn_attractor_data(self):
+        """Confirm attractor/basin data parses as expected."""
+        import pent
+
+        from .testdata import mwfn_attractor_data
+
+        mwfn_num_grids = [["85130"]]
+
+        data = self.get_mwfn_dens_elf()
+
+        prs = pent.Parser(
+            head=(
+                "~ '@.attractors after clustering:'",
+                "@.Index '@.Average X,Y,Z' ~ @.Value",
+            ),
+            body="#.+i #!+.f #!.+f",
+            tail="~ '@.interbasin grids:' #!.+i",
+        )
+
+        body = prs.capture_body(data)
+        tail = prs.capture_struct(data)[pent.ParserField.Tail]
+
+        with self.subTest("body"):
+            self.assertEqual(body, mwfn_attractor_data)
+
+        with self.subTest("tail"):
+            self.assertEqual(mwfn_num_grids, tail)
+
 
 def suite_live_orca():
     """Create and return the test suite for ORCA tests."""

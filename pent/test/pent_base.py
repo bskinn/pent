@@ -65,14 +65,14 @@ class SuperPent:
     def get_file(fname):
         """Return the contents of the given file."""
         path = str(Path() / "pent" / "test" / fname)
-        
+
         if fname.endswith(".gz"):
-            with gzip.open(path, 'rt') as f:
+            with gzip.open(path, "rt") as f:
                 return f.read()
         else:
             with open(path) as f:
                 return f.read()
-                
+
 
 class TestPentTokens(ut.TestCase, SuperPent):
     """Direct tests on the Token class."""
