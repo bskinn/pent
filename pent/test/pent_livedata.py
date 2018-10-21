@@ -499,6 +499,24 @@ class TestPentGAMESSLiveData(ut.TestCase, SuperPent):
 
         self.assertEqual(gamess_modes_split, prs.capture_body(data))
 
+    def test_gamess_hess(self):
+        """Confirm GAMESS hessian parses as expected."""
+        import pent
+
+        from .testdata import gamess_hess_split
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=("@+-", "'@.CARTESIAN FORCE CONSTANT MATRIX'", "@+-"),
+            body=pent.Parser(
+                head=("", "#.+i #.+i", "&. &.", "@.X @.Y @.Z @.X @.Y @.Z"),
+                body="~ &o. #o!..f #o!..f #o!..f #o!..f #o!..f #o!..f",
+            ),
+        )
+
+        self.assertEqual(gamess_hess_split, prs.capture_body(data))
+
 
 def suite_live_orca():
     """Create and return the test suite for ORCA tests."""
