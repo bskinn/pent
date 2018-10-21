@@ -282,8 +282,17 @@ class Token:
         return pattern
 
     def _get_misc_pattern(self):
-        """Return the no-whitespace item pattern."""
-        return r"[^ \t\n]+"
+        """Return the no-whitespace item pattern.
+
+        Lazy capture is probably the best approach here, for
+        optional-space after situations?
+        That way, it will be as generous as possible in not
+        aggressively consuming negative signs on following
+        numeric fields, but should still expand to whatever
+        extent necessary to cover the whole misc field.
+
+        """
+        return r"[^ \t\n]+?"
 
     def _get_number_pattern(self):
         """Return the correct number pattern given the parse result."""

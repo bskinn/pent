@@ -27,6 +27,7 @@ r"""*Core test objects for* ``pent`` *test suite*.
 """
 
 
+import gzip
 import itertools as itt
 from pathlib import Path
 import re
@@ -63,8 +64,14 @@ class SuperPent:
     @staticmethod
     def get_file(fname):
         """Return the contents of the given file."""
-        with (Path() / "pent" / "test" / fname).open() as f:
-            return f.read()
+        path = str(Path() / "pent" / "test" / fname)
+
+        if fname.endswith(".gz"):
+            with gzip.open(path, "rt") as f:
+                return f.read()
+        else:
+            with open(path) as f:
+                return f.read()
 
 
 class TestPentTokens(ut.TestCase, SuperPent):
@@ -141,6 +148,8 @@ class TestPentTokens(ut.TestCase, SuperPent):
 class TestPentThruList(ut.TestCase, SuperPent):
     """Direct tests of the custom pass-thru list."""
 
+    from pent import ThruListError
+
     def test_list_value(self):
         """Confirm simple list behavior."""
         work_l = ThruList(range(5))
@@ -150,7 +159,7 @@ class TestPentThruList(ut.TestCase, SuperPent):
         with self.assertRaises(IndexError):
             work_l[8]
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(self.ThruListError):
             work_l["foo"]
 
     def test_list_pass_thru(self):
@@ -170,7 +179,7 @@ class TestPentThruList(ut.TestCase, SuperPent):
         """Confirm the pass-through is not attempted when len > 1."""
         work_l = ThruList([{"foo": "bar"}, {"baz": "quux"}])
 
-        with self.assertRaises(IndexError):
+        with self.assertRaises(self.ThruListError):
             work_l["foo"]
 
         self.assertEqual(work_l[1], {"baz": "quux"})

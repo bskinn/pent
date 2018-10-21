@@ -33,8 +33,9 @@ __all__ = [
     "suite_base_slow",
     "suite_live_orca",
     "suite_live_mwfn",
+    "suite_live_gamess",
 ]
 
 from .pent_base import suite_base
-from .pent_livedata import suite_live_orca, suite_live_mwfn
+from .pent_livedata import suite_live_orca, suite_live_mwfn, suite_live_gamess
 from .pent_slow import suite_base_slow

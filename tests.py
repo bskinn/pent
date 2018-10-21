@@ -41,6 +41,7 @@ class AP(object):
     LIVE = "live"
     ORCA = "orca"
     MWFN = "mwfn"
+    GAMESS = "gamess"
 
     PFX = "--{0}"
 
@@ -88,6 +89,11 @@ def get_parser():
         action="store_true",
         help="Run all Multiwfn 'live data' tests",
     )
+    grp_livedata.add_argument(
+        AP.PFX.format(AP.GAMESS),
+        action="store_true",
+        help="Run all GAMESS 'live data' tests",
+    )
 
     # Return the parser
     return prs
@@ -132,6 +138,10 @@ def main():
     addsuiteif(
         pent.test.pent_livedata.suite_live_mwfn(),
         [AP.ALL, AP.FAST, AP.LIVE, AP.MWFN],
+    )
+    addsuiteif(
+        pent.test.pent_livedata.suite_live_gamess(),
+        [AP.ALL, AP.FAST, AP.LIVE, AP.GAMESS],
     )
 
     # Create the test runner and execute

@@ -41,12 +41,12 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
     @classmethod
     def get_orca_cas_file(cls):
         """Return the sample ORCA CAS output."""
-        return cls.get_file("Cu_CAS.out")
+        return cls.get_file("Cu_CAS.out.gz")
 
     @classmethod
     def get_orca_opt_file(cls):
         """Return the sample ORCA optimization output."""
-        return cls.get_file("MeCl2F_116.out")
+        return cls.get_file("MeCl2F_116.out.gz")
 
     @classmethod
     def get_orca_trj(cls):
@@ -317,11 +317,6 @@ class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
     """Confirming Multiwfn output parses as expected."""
 
     @classmethod
-    def get_mwfn_dens_dens(cls):
-        """Return mwfn output with integrated density in density basins."""
-        return cls.get_file("mwfn_dens_densbasin.txt")
-
-    @classmethod
     def get_mwfn_dens_elf(cls):
         """Return mwfn output with integrated density in ELF basins."""
         return cls.get_file("mwfn_dens_elfbasin.txt")
@@ -366,6 +361,162 @@ class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
 
         self.assertEqual(res, mwfn_di_data)
 
+    def test_mwfn_basin_dens_data(self):
+        """Confirm integrated basin density data parses as expected."""
+        import pent
+
+        from .testdata import mwfn_basin_dens_data
+
+        mwfn_sum_density = [["34.62335750"]]
+
+        data = self.get_mwfn_dens_elf()
+
+        prs = pent.Parser(
+            head="@.#Basin @.Integral(a.u.) @.Volume(a.u.^3)",
+            body="#.+i #!++f",
+            tail="'@.Sum of above values:' #!.+f",
+        )
+
+        body = prs.capture_body(data)
+        tail = prs.capture_struct(data)[pent.ParserField.Tail]
+
+        with self.subTest("body"):
+            self.assertEqual(body, mwfn_basin_dens_data)
+
+        with self.subTest("tail"):
+            self.assertEqual(mwfn_sum_density, tail)
+
+    def test_mwfn_attractor_data(self):
+        """Confirm attractor/basin data parses as expected."""
+        import pent
+
+        from .testdata import mwfn_attractor_data
+
+        mwfn_num_grids = [["85130"]]
+
+        data = self.get_mwfn_dens_elf()
+
+        prs = pent.Parser(
+            head=(
+                "~ '@.attractors after clustering:'",
+                "@.Index '@.Average X,Y,Z' ~ @.Value",
+            ),
+            body="#.+i #!+.f #!.+f",
+            tail="~ '@.interbasin grids:' #!.+i",
+        )
+
+        body = prs.capture_body(data)
+        tail = prs.capture_struct(data)[pent.ParserField.Tail]
+
+        with self.subTest("body"):
+            self.assertEqual(body, mwfn_attractor_data)
+
+        with self.subTest("tail"):
+            self.assertEqual(mwfn_num_grids, tail)
+
+
+class TestPentGAMESSLiveData(ut.TestCase, SuperPent):
+    """Confirming GAMESS output parses as expected."""
+
+    @classmethod
+    def get_gamess_file(cls):
+        """Return GAMESS output file text."""
+        return cls.get_file("isosorbide_NO3_02.out.gz")
+
+    def test_gamess_geometry(self):
+        """Confirm GAMESS geometry parses as expected."""
+        import pent
+
+        from .testdata import gamess_geometry
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "@.ATOM @.ATOMIC '@.COORDINATES (BOHR)'",
+                "@.CHARGE @.X @.Y @.Z",
+            ),
+            body="&!. #!.+f #!+.f",
+        )
+
+        self.assertEqual(gamess_geometry, prs.capture_body(data))
+
+    def test_gamess_gradient(self):
+        """Confirm GAMESS gradient parses as expected."""
+        import pent
+
+        from .testdata import gamess_gradient
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "@+-",
+                "'@.ENERGY GRADIENT'",
+                "@+-",
+                "",
+                "'@.UNITS ARE HARTREE/BOHR' ~",
+            ),
+            body="#.+i &. #!+.f",
+        )
+
+        self.assertEqual(gamess_gradient, prs.capture_body(data))
+
+    def test_gamess_freqs(self):
+        """Confirm GAMESS frequencies list parses as expected."""
+        import pent
+
+        from .testdata import gamess_freqs
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=(
+                "'@.REFERENCE ON SAYVETZ' ~",
+                "",
+                "'@.NOTE - THE MODES' ~",
+                "'@.SUM ON I' ~",
+                "",
+                "'@.MODE FREQ(CM**-1)' ~",
+            ),
+            body="#.+i #!..f &. #+.f",
+        )
+
+        self.assertEqual(gamess_freqs, prs.capture_body(data))
+
+    def test_gamess_modes(self):
+        """Confirm GAMESS normal modes list parses as expected."""
+        import pent
+
+        from .testdata import gamess_modes_split
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=("'@.REDUCED MASS:' #+.f", "'@.IR INTENSITY:' #+.f", ""),
+            body="~ #!+.f",
+        )
+
+        self.assertEqual(gamess_modes_split, prs.capture_body(data))
+
+    def test_gamess_hess(self):
+        """Confirm GAMESS hessian parses as expected."""
+        import pent
+
+        from .testdata import gamess_hess_split
+
+        data = self.get_gamess_file()
+
+        prs = pent.Parser(
+            head=("@+-", "'@.CARTESIAN FORCE CONSTANT MATRIX'", "@+-"),
+            body=pent.Parser(
+                head=("", "#.+i #.+i", "&. &.", "@.X @.Y @.Z @.X @.Y @.Z"),
+                body="~ &o. #o!..f #o!..f #o!..f #o!..f #o!..f #o!..f",
+            ),
+        )
+
+        self.assertEqual(gamess_hess_split, prs.capture_body(data))
+
 
 def suite_live_orca():
     """Create and return the test suite for ORCA tests."""
@@ -380,6 +531,14 @@ def suite_live_mwfn():
     s = ut.TestSuite()
     tl = ut.TestLoader()
     s.addTests([tl.loadTestsFromTestCase(TestPentMultiwfnLiveData)])
+    return s
+
+
+def suite_live_gamess():
+    """Create and return the test suite for GAMESS tests."""
+    s = ut.TestSuite()
+    tl = ut.TestLoader()
+    s.addTests([tl.loadTestsFromTestCase(TestPentGAMESSLiveData)])
     return s
 
 
