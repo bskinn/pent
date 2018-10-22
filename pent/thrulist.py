@@ -38,8 +38,10 @@ class ThruList(list):
         else:
             if len(self) == 1:
                 return self[0][key]
+            elif len(self) == 0:
+                raise ThruListError(msg="Cannot pass through key when len == 0")
             else:
-                raise ThruListError(msg="Numeric index required for len > 1")
+                raise ThruListError(msg="Numeric index required for len != 1")
 
 
 if __name__ == "__main__":  # pragma: no cover

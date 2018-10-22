@@ -884,7 +884,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             HEAD 3 4
             1 2 3
             .1 .2 .3
-            .2 .3. 4
+            .2 .3 .4
             4 5 6
             .3 .4 .5
             .4 .5 .6
@@ -893,20 +893,25 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             TAIL c d
             """)
         
-        prs = pent.Parser(head=pent.Parser(body="@.HEAD #!++i"),
-                    body=pent.Parser(head="#++i", body="#!++f"),
-                    tail=pent.Parser(body="@.TAIL &!+")
-                    #tail=pent.Parser(body="~")
+        prs_head = pent.Parser(body="@.HEAD #!++i")
+        prs_body = pent.Parser(head="#++i", body="#!++f")
+        prs_tail = pent.Parser(body="@.TAIL &!+")
+        
+        prs = pent.Parser(
+                    head=prs_head,
+                    body=prs_body,
+                    tail=prs_tail
                     )
         
         result = prs.capture_struct(data)
         
-        expect = [{pent.ParserField.Head: {pent.ParserField.Body: [['1', '2'], ['3', '4']]},
-                pent.ParserField.Body: {pent.ParserField.Body: [[
+        expect = [{pent.ParserField.Head: [{
+                    pent.ParserField.Body: [['1', '2'], ['3', '4']]}],
+                pent.ParserField.Body: [{pent.ParserField.Body: [[
                 [['.1', '.2', '.3'], ['.2', '.3', '.4']],
                 [['.3', '.4', '.5'], ['.4', '.5', '.6'], ['.5', '.6', '.7']],
-                ]]},
-                pent.ParserField.Tail: {pent.ParserField.Body: [['a', 'b'], ['c', 'd']]}}]
+                ]]}],
+                pent.ParserField.Tail: [{pent.ParserField.Body: [['a', 'b'], ['c', 'd']]}]}]
         
         self.assertEqual(result, expect)
 
