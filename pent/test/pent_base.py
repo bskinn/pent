@@ -916,15 +916,20 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                     {
                         pent.ParserField.Head: [[]],
                         pent.ParserField.Body: [
-                            [[".1", ".2", ".3"], [".2", ".3", ".4"]],
-                            [
-                                [".3", ".4", ".5"],
-                                [".4", ".5", ".6"],
-                                [".5", ".6", ".7"],
-                            ],
+                            [".1", ".2", ".3"],
+                            [".2", ".3", ".4"],
                         ],
                         pent.ParserField.Tail: None,
-                    }
+                    },
+                    {
+                        pent.ParserField.Head: [[]],
+                        pent.ParserField.Body: [
+                            [".3", ".4", ".5"],
+                            [".4", ".5", ".6"],
+                            [".5", ".6", ".7"],
+                        ],
+                        pent.ParserField.Tail: None,
+                    },
                 ],
                 pent.ParserField.Tail: [
                     {
