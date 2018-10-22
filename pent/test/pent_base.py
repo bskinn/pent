@@ -874,12 +874,13 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         prs_outer = pent.Parser(head="@.$top", body=prs_inner)
 
         self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
-        
+
     def test_parsers_in_head_and_tail(self):
         """Confirm proper behavior of Parsers for head and tail."""
         import pent
-        
-        data = dedent("""\
+
+        data = dedent(
+            """\
             HEAD 1 2
             HEAD 3 4
             1 2 3
@@ -891,28 +892,50 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             .5 .6 .7
             TAIL a b
             TAIL c d
-            """)
-        
+            """
+        )
+
         prs_head = pent.Parser(body="@.HEAD #!++i")
         prs_body = pent.Parser(head="#++i", body="#!++f")
         prs_tail = pent.Parser(body="@.TAIL &!+")
-        
-        prs = pent.Parser(
-                    head=prs_head,
-                    body=prs_body,
-                    tail=prs_tail
-                    )
-        
+
+        prs = pent.Parser(head=prs_head, body=prs_body, tail=prs_tail)
+
         result = prs.capture_struct(data)
-        
-        expect = [{pent.ParserField.Head: [{
-                    pent.ParserField.Body: [['1', '2'], ['3', '4']]}],
-                pent.ParserField.Body: [{pent.ParserField.Body: [[
-                [['.1', '.2', '.3'], ['.2', '.3', '.4']],
-                [['.3', '.4', '.5'], ['.4', '.5', '.6'], ['.5', '.6', '.7']],
-                ]]}],
-                pent.ParserField.Tail: [{pent.ParserField.Body: [['a', 'b'], ['c', 'd']]}]}]
-        
+
+        expect = [
+            {
+                pent.ParserField.Head: [
+                    {
+                        pent.ParserField.Head: None,
+                        pent.ParserField.Body: [["1", "2"], ["3", "4"]],
+                        pent.ParserField.Tail: None,
+                    }
+                ],
+                pent.ParserField.Body: [
+                    {
+                        pent.ParserField.Head: [[]],
+                        pent.ParserField.Body: [
+                            [[".1", ".2", ".3"], [".2", ".3", ".4"]],
+                            [
+                                [".3", ".4", ".5"],
+                                [".4", ".5", ".6"],
+                                [".5", ".6", ".7"],
+                            ],
+                        ],
+                        pent.ParserField.Tail: None,
+                    }
+                ],
+                pent.ParserField.Tail: [
+                    {
+                        pent.ParserField.Head: None,
+                        pent.ParserField.Body: [["a", "b"], ["c", "d"]],
+                        pent.ParserField.Tail: None,
+                    }
+                ],
+            }
+        ]
+
         self.assertEqual(result, expect)
 
 
