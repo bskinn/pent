@@ -185,6 +185,13 @@ class TestPentThruList(ut.TestCase, SuperPent):
 
         self.assertEqual(work_l[1], {"baz": "quux"})
 
+    def test_fail_when_no_items(self):
+        """Confirm the pass-through is not attempted when len < 1."""
+        work_l = ThruList([])
+
+        with self.assertRaises(self.ThruListError):
+            work_l["foo"]
+
 
 class TestPentCorePatterns(ut.TestCase, SuperPent):
     """Confirming basic pattern matching of the core regex patterns."""

@@ -273,7 +273,7 @@ class Token:
         pattern = ""
 
         for c in self._pr[TokenField.Str]:
-            if c in "[\^$.|?*+(){}":
+            if c in r"[\^$.|?*+(){}":
                 # Must escape regex special characters
                 pattern += "\\" + c
             else:
