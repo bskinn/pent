@@ -38,6 +38,8 @@ class AP(object):
 
     FAST = "fast"
 
+    README = "readme"
+
     LIVE = "live"
     ORCA = "orca"
     MWFN = "mwfn"
@@ -70,6 +72,11 @@ def get_parser():
         "-f",
         action="store_true",
         help="Run only 'fast' tests",
+    )
+    prs.add_argument(
+        AP.PFX.format(AP.README),
+        action="store_true",
+        help="Run only the tests on README.rst",
     )
 
     # Subgroup for live data
@@ -129,6 +136,12 @@ def main():
 
     # Slow tests
     addsuiteif(pent.test.pent_slow.suite_base_slow(), [AP.ALL])
+
+    # README tests
+    addsuiteif(
+        pent.test.pent_readme.suite_doctest_readme(),
+        [AP.ALL, AP.FAST, AP.README],
+    )
 
     # Live data tests
     addsuiteif(
