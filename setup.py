@@ -1,11 +1,33 @@
+import re
 from setuptools import setup
 
 from pent import __version__
 
 
+NAME='pent'
+
 def readme():
-    with open("README.rst", "r") as f:
-        return f.read()
+    with open('README.rst', 'r') as f:
+        content = f.read()
+
+    # Helper function
+    def content_update(content, pattern, sub):
+        return re.sub(pattern, sub, content, flags=re.M | re.I)
+
+    # Docs reference updates to current release version, for PyPI
+    # This one gets the badge image
+    content = content_update(
+        content,
+        r'(?<=/readthedocs/{0}/)\S+?(?=\.svg$)'.format(NAME),
+        'v' + __version__)
+
+    # This one gets the RtD links
+    content = content_update(
+        content,
+        r'(?<={0}\.readthedocs\.io/en/)\S+?(?=[/>])'.format(NAME),
+        'v' + __version__)
+
+    return content
 
 
 setup(
@@ -27,6 +49,7 @@ setup(
         "Natural Language :: English",
         "Intended Audience :: Science/Research",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
