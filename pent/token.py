@@ -28,7 +28,7 @@ import attr
 import pyparsing as pp
 
 from .enums import Number, Sign, TokenField
-from .enums import Content, Quantity
+from .enums import Content, Quantity, SpaceAfter
 from .errors import TokenError
 
 
@@ -57,16 +57,20 @@ class Token:
     group_prefix = "g"
     _s_any_flag = "~"
     _s_capture = "!"
-    _s_no_space = "x"
 
-    _pp_no_space = pp.Optional(pp.Literal(_s_no_space)).setResultsName(
-        TokenField.NoSpace
-    )
+    _pp_space_after = pp.Optional(
+        pp.Word("".join(SpaceAfter), exact=1)
+    ).setResultsName(TokenField.SpaceAfter)
     _pp_capture = pp.Optional(pp.Literal(_s_capture)).setResultsName(
         TokenField.Capture
     )
     _pp_quantity = pp.Word("".join(Quantity), exact=1).setResultsName(
         TokenField.Quantity
+    )
+
+    # ## OPTIONAL LINE TOKEN ##
+    _pp_optional_line = pp.Literal(Content.OptionalLine.value).setResultsName(
+        TokenField.Type
     )
 
     # ## ARBITRARY CONTENT TOKEN ##
@@ -87,11 +91,20 @@ class Token:
     # Composite pattern for a literal string
     _pp_string = (
         _pp_str_flag
-        + _pp_no_space
+        + _pp_space_after
         + _pp_capture
         + _pp_quantity
         + _pp_str_value
     )
+
+    # ## MISC SINGLE VALUE TOKEN ##
+    # Initial marker for the 'misc' token
+    _pp_misc_flag = pp.Literal(Content.Misc.value).setResultsName(
+        TokenField.Type
+    )
+
+    # Composite token pattern for the misc match
+    _pp_misc = _pp_misc_flag + _pp_space_after + _pp_capture + _pp_quantity
 
     # ## NUMERICAL VALUE TOKEN ##
     # Initial marker for a numerical value
@@ -112,7 +125,7 @@ class Token:
     # Composite pattern for a number
     _pp_number = (
         _pp_num_flag
-        + _pp_no_space
+        + _pp_space_after
         + _pp_capture
         + _pp_quantity
         + pp.Group(_pp_num_sign + _pp_num_type).setResultsName(
@@ -123,7 +136,13 @@ class Token:
     # ## COMBINED TOKEN PARSER ##
     _pp_token = (
         pp.StringStart()
-        + (_pp_any_flag ^ _pp_string ^ _pp_number)
+        + (
+            _pp_optional_line
+            ^ _pp_any_flag
+            ^ _pp_string
+            ^ _pp_number
+            ^ _pp_misc
+        )
         + pp.StringEnd()
     )
 
@@ -139,9 +158,19 @@ class Token:
         return self._pr[TokenField.Type] == Content.Any
 
     @property
+    def is_optional_line(self):
+        """Return flag for whether the token flags an optional line."""
+        return self._pr[TokenField.Type] == Content.OptionalLine
+
+    @property
     def is_str(self):
         """Return flag for whether the token matches a literal string."""
         return self._pr[TokenField.Type] == Content.String
+
+    @property
+    def is_misc(self):
+        """Return flag for whether the token is a misc token."""
+        return self._pr[TokenField.Type] == Content.Misc
 
     @property
     def is_num(self):
@@ -150,8 +179,13 @@ class Token:
 
     @property
     def match_quantity(self):
-        """Return match quantity; |None| for :attr:`pent.enums.Content.Any`."""
-        if self.is_any:
+        """Return match quantity.
+
+        |None| for :attr:`pent.enums.Content.Any` or
+        :attr:`pent.enums.Content.OptionalLine
+
+        """
+        if self.is_any or self.is_optional_line:
             return None
         else:
             return Quantity(self._pr[TokenField.Quantity])
@@ -174,11 +208,13 @@ class Token:
 
     @property
     def space_after(self):
-        """Return flag for whether post-match space should be provided for."""
+        """Return Enum value for handling of post-match whitespace."""
         if self.is_any:
             return False
+        elif TokenField.SpaceAfter in self._pr:
+            return SpaceAfter(self._pr[TokenField.SpaceAfter])
         else:
-            return TokenField.NoSpace not in self._pr
+            return SpaceAfter.Required
 
     @property
     def capture(self):
@@ -198,8 +234,8 @@ class Token:
             )
             return
 
-        # Only single, non-optional captures implemented for now, regardless of
-        # the Quantity flag in the token
+        # Only single and one-or-more captures implemented for now.
+        # Optional and zero-or-more captures may actually not be feasible
         if self.is_str:
             # Always store the string pattern
             self._pattern = self._string_pattern()
@@ -213,6 +249,15 @@ class Token:
 
             if self.match_quantity is Quantity.OneOrMore:
                 self._pattern += r"([ \t]+{})*".format(self._pattern)
+
+        elif self.is_misc:
+            self._pattern = self._get_misc_pattern()
+
+            if self.match_quantity is Quantity.OneOrMore:
+                self._pattern += r"([ \t]+{})*".format(self._pattern)
+
+        elif self.is_optional_line:
+            pass
 
         else:  # pragma: no cover
             raise NotImplementedError(
@@ -228,13 +273,26 @@ class Token:
         pattern = ""
 
         for c in self._pr[TokenField.Str]:
-            if c in "[\^$.|?*+(){}":
+            if c in r"[\^$.|?*+(){}":
                 # Must escape regex special characters
                 pattern += "\\" + c
             else:
                 pattern += c
 
         return pattern
+
+    def _get_misc_pattern(self):
+        """Return the no-whitespace item pattern.
+
+        Lazy capture is probably the best approach here, for
+        optional-space after situations?
+        That way, it will be as generous as possible in not
+        aggressively consuming negative signs on following
+        numeric fields, but should still expand to whatever
+        extent necessary to cover the whole misc field.
+
+        """
+        return r"[^ \t\n]+?"
 
     def _get_number_pattern(self):
         """Return the correct number pattern given the parse result."""

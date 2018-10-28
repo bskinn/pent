@@ -1,4 +1,5 @@
 attrs>=17.1,<18
+pyparsing
 sphinx==1.7.6
 sphinx-issues
 sphinx-rtd-theme==0.4.1

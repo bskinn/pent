@@ -29,9 +29,10 @@ import re
 
 import attr
 
-from .enums import ParserField
+from .enums import SpaceAfter, ParserField, Content
 from .errors import SectionError
 from .patterns import std_wordify_open, std_wordify_close
+from .thrulist import ThruList
 from .token import Token
 
 
@@ -56,25 +57,34 @@ class Parser:
         nested Parsers.
 
         """
-        # Relies on the convert_section default for 'capture_groups'
-        # as False.
-        rx_head = self.convert_section(self.head, capture_sections=False)
-        rx_body = self.convert_section(self.body, capture_sections=False)
-        rx_tail = self.convert_section(self.tail, capture_sections=False)
-        #        rx_head, rx_body, rx_tail = map(
-        #            self.convert_section, (self.head, self.body, self.tail)
-        #        )
+        res_head = self.convert_section(self.head, capture_sections=False)
+        res_body = self.convert_section(self.body, capture_sections=False)
+        res_tail = self.convert_section(self.tail, capture_sections=False)
 
         rx = ""
 
-        if rx_head:
+        def all_optional(sec):
+            """Indicate whether a section contains all optional things."""
+            if isinstance(sec, self.__class__) or sec is None:
+                return False
+
+            if isinstance(sec, str):
+                return sec[:1] == Content.OptionalLine
+
+            return all(map(lambda s: s[:1] == Content.OptionalLine, sec))
+
+        if res_head:
             rx += (
-                "(?P<{}>".format(ParserField.Head) + rx_head + ")\n"
-                if capture_sections
-                else rx_head + "\n"
+                (
+                    "(?P<{}>".format(ParserField.Head) + res_head + r")\n?"
+                    if capture_sections
+                    else "(" + res_head + ")"
+                )
+                + ("?" if all_optional(self.head) else "")
+                + r"\n?"
             )
 
-        try:
+        if res_body:
             # At least one line of the body, followed by however many more
             rx += (
                 (
@@ -82,43 +92,26 @@ class Parser:
                     if capture_sections
                     else ""
                 )
-                + rx_body
-                + "(\n"
-                + rx_body
+                + res_body
+                + r"(\n?"
+                + res_body
                 + ")*"
                 + (")" if capture_sections else "")
             )
-        except TypeError as e:
-            raise SectionError("'body' required to generate 'pattern'") from e
+        else:
+            raise SectionError("'body' required to generate 'pattern'")
 
-        if rx_tail:
-            rx += (
-                "\n(?P<{}>".format(ParserField.Tail) + rx_tail + ")"
-                if capture_sections
-                else "\n" + rx_tail
+        if res_tail:
+            rx += r"\n?" + (
+                (
+                    "(?P<{}>".format(ParserField.Tail) + res_tail + ")"
+                    if capture_sections
+                    else "(" + res_tail + ")"
+                )
+                + ("?" if all_optional(self.tail) else "")
             )
 
         return rx
-
-    def capture_head(self, text):
-        """Capture all marked values from the pattern head."""
-        m_entire = re.search(self.pattern(), text)
-        head = m_entire.group(ParserField.Head)
-
-        pat_capture = self.convert_section(self.head, capture_groups=True)
-        m_head = re.search(pat_capture, head)
-
-        return list(*map(str.split, self.generate_captures(m_head)))
-
-    def capture_tail(self, text):
-        """Capture all marked values from the pattern tail."""
-        m_entire = re.search(self.pattern(), text)
-        tail = m_entire.group(ParserField.Tail)
-
-        pat_capture = self.convert_section(self.tail, capture_groups=True)
-        m_tail = re.search(pat_capture, tail)
-
-        return list(*map(str.split, self.generate_captures(m_tail)))
 
     def capture_body(self, text):
         """Capture all values from the pattern body, recursing if needed."""
@@ -135,25 +128,77 @@ class Parser:
                     data.extend(self.body.capture_body(m.group(0)))
 
                 cap_blocks.append(data)
-                continue
 
-            # If the 'body' pattern is a string or iterable of strings
-            try:
-                pat = self.convert_section(self.body, capture_groups=True)
-            except AttributeError:
-                raise SectionError("Invalid 'body' pattern for capture")
             else:
-                data = []
-                for m in re.finditer(pat, block_text):
-                    line_caps = []
-                    for c in self.generate_captures(m):
-                        line_caps.extend(c.split())
-                    data.append(line_caps)
-
-                cap_blocks.append(data)
-                continue
+                # If the 'body' pattern is a string or iterable of strings
+                cap_blocks.append(
+                    self.capture_str_pattern(self.body, block_text)
+                )
 
         return cap_blocks
+
+    def capture_struct(self, text):
+        """Perform capture of marked groups to nested dict(s)."""
+        return self.capture_parser(self, text)
+
+    @classmethod
+    def capture_section(cls, sec, text):
+        """Perform capture of a str, iterable, or Parser section."""
+        if isinstance(sec, cls):
+            return cls.capture_parser(sec, text)
+        else:
+            return cls.capture_str_pattern(sec, text)
+
+    @classmethod
+    def capture_str_pattern(cls, pat_str, text):
+        """Perform capture of string/iterable-of-str pattern."""
+        try:
+            pat_re = cls.convert_section(pat_str, capture_groups=True)
+        except AttributeError:  # pragma: no cover
+            # This is unreachable at the moment
+            raise SectionError("Invalid pattern string for capture")
+
+        if text is None:
+            # An all-optional section was entirely absent
+            return [[None]]
+
+        data = []
+        for m in re.finditer(pat_re, text):
+            chunk_caps = []
+            for c in cls.generate_captures(m):
+                if c is None:
+                    chunk_caps.append(None)
+                else:
+                    chunk_caps.extend(c.split())
+            data.append(chunk_caps)
+
+        return data
+
+    @classmethod
+    def capture_parser(cls, prs, text):
+        """Perform capture of a Parser pattern."""
+        data = ThruList()
+
+        prs_pat_re = prs.pattern(capture_sections=True)
+
+        for m in re.finditer(prs_pat_re, text):
+            sec_dict = {}
+
+            for sec in ParserField:
+                try:
+                    sec_dict.update(
+                        {
+                            sec: cls.capture_section(
+                                getattr(prs, sec), m.group(sec)
+                            )
+                        }
+                    )
+                except IndexError:
+                    sec_dict.update({sec: None})
+
+            data.append(sec_dict)
+
+        return data
 
     @classmethod
     def convert_section(cls, sec, capture_groups=False, capture_sections=True):
@@ -184,10 +229,11 @@ class Parser:
                 yield pat
 
         try:
-            return "\n".join(gen_converted_lines())
-        except AttributeError:
-            # Most likely is that the iterable members don't have
-            # the .pattern attribute
+            return r"\n?".join(gen_converted_lines())
+
+        except AttributeError:  # pragma: no cover
+            # Happens to be the exception that the internals
+            # throw when the wrong type is passed.
             raise SectionError("Unrecognized format")
 
     @classmethod
@@ -204,6 +250,8 @@ class Parser:
         """
         import shlex
 
+        from .errors import LineError
+
         # Parse line into tokens, and then into Tokens
         tokens = shlex.split(line)
         tokens = list(Token(_, do_capture=capture_groups) for _ in tokens)
@@ -211,14 +259,27 @@ class Parser:
         # Zero-length start of line (or of entire string) match
         pattern = r"(^|(?<=\n))"
 
+        # Replacement target for the opening paren if the line is optional
+        pattern += "{opline_open}"
+
         # Always have optional starting whitespace
         pattern += r"[ \t]*"
 
         # Initialize flag for a preceding no-space-after num token
         prior_no_space_token = False
 
+        # Initialize flag for whether the line is optional
+        optional_line = False
+
         for i, t in enumerate(tokens):
             tok_pattern = t.pattern
+
+            if t.is_optional_line:
+                if i == 0:
+                    optional_line = True
+                    continue
+                else:
+                    raise LineError(line)
 
             if t.needs_group_id:
                 tok_pattern = tok_pattern.format(str(group_id))
@@ -232,7 +293,7 @@ class Parser:
                 if not prior_no_space_token:
                     tok_pattern = std_wordify_open(tok_pattern)
 
-                if t.space_after:
+                if t.space_after is SpaceAfter.Required:
                     tok_pattern = std_wordify_close(tok_pattern)
                     prior_no_space_token = False
                 else:
@@ -240,14 +301,25 @@ class Parser:
 
                 pattern += tok_pattern
 
-            # Add required space or no space, depending on
-            # what the token calls for, as long as it's not
+            # Add required space, optional space, or no space, depending
+            # on what the token calls for, as long as it's not
             # the last token
-            if i < len(tokens) - 1 and t.space_after:
-                pattern += r"[ \t]+"
+            if i < len(tokens) - 1:
+                if t.space_after is SpaceAfter.Required:
+                    pattern += r"[ \t]+"
+                elif t.space_after is SpaceAfter.Optional:
+                    pattern += r"[ \t]*"
 
-        # Always put possible whitespace to the end of the line
-        pattern += r"[ \t]*($|(?=\n))"
+        # Always put possible whitespace to the end of the line.
+        # Also include a format tag for closing optional-line grouping
+        pattern += r"[ \t]*{opline_close}($|(?=\n))"
+
+        # Wrap pattern with parens and '?' if it's optional
+        # Otherwise just drop the formatting tags
+        pattern = pattern.format(
+            opline_open=("(" if optional_line else ""),
+            opline_close=(")?" if optional_line else ""),
+        )
 
         return pattern, group_id
 
@@ -259,6 +331,11 @@ class Parser:
                 yield m.group(Token.group_prefix + str(i))
             except IndexError:
                 break
+
+    def __attrs_post_init__(self):
+        """Perform instantiation-time stuff."""
+        # Check pattern viability *now*
+        self.pattern(capture_sections=False)
 
 
 if __name__ == "__main__":  # pragma: no cover

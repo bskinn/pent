@@ -1,4 +1,4 @@
-r"""*Test objects for* ``pent`` *test suite*.
+r"""*Core test objects for* ``pent`` *test suite*.
 
 ``pent`` Extracts Numerical Text.
 
@@ -27,10 +27,16 @@ r"""*Test objects for* ``pent`` *test suite*.
 """
 
 
+import gzip
 import itertools as itt
 from pathlib import Path
 import re
+from textwrap import dedent
 import unittest as ut
+
+from pent import ParserField
+from pent.errors import LineError
+from pent.thrulist import ThruList
 
 
 # HELPERS
@@ -39,6 +45,10 @@ testdir_path = Path() / "pent" / "test"
 
 class SuperPent:
     """Superclass of various test classes, with common methods."""
+
+    import pent
+
+    prs = pent.Parser(body="")
 
     @staticmethod
     def does_parse_match(re_pat, s):
@@ -51,6 +61,136 @@ class SuperPent:
     def make_testname(v, n, s):
         """Compose test name from a numerical value and pattern Number/Sign."""
         return "{0}_{1}_{2}".format(v, n, s)
+
+    @staticmethod
+    def get_file(fname):
+        """Return the contents of the given file."""
+        path = str(Path() / "pent" / "test" / fname)
+
+        if fname.endswith(".gz"):
+            with gzip.open(path, "rt") as f:
+                return f.read()
+        else:
+            with open(path) as f:
+                return f.read()
+
+
+class TestPentTokens(ut.TestCase, SuperPent):
+    """Direct tests on the Token class."""
+
+    def test_arbitrary_bad_token(self):
+        """Confirm bad tokens raise errors."""
+        import pent
+
+        self.assertRaises(pent.TokenError, pent.Token, "abcd")
+
+    def test_group_enclosures(self):
+        """Ensure 'ignore' flag is properly set."""
+        import pent
+
+        testname_fmt = "{0}_{1}"
+        token_fmt = {
+            pent.Content.Any: "~{0}",
+            pent.Content.String: "@{0}.thing",
+            pent.Content.Number: "#{0}..i",
+            pent.Content.Misc: "&{0}.",
+        }
+
+        for ct, cap in itt.product(pent.Content, (True, False)):
+            if ct is pent.Content.OptionalLine:
+                continue
+
+            t = pent.Token(token_fmt[ct].format("!" if cap else ""))
+            with self.subTest(testname_fmt.format(ct, cap)):
+                self.assertEqual(t.capture, cap)
+
+    def test_number_property(self):
+        """Ensure t.number properties return correct values."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        for p in npats.values():
+            pat = p.format("", "", pent.Quantity.Single)
+            with self.subTest(pat):
+                self.assertEqual(pent.Token(pat).number, pent.Number(p[-1]))
+
+        with self.subTest("string"):
+            self.assertEqual(pent.Token("@.abcd").number, None)
+
+        with self.subTest("any"):
+            self.assertEqual(pent.Token("~").number, None)
+
+    def test_sign_property(self):
+        """Ensure t.sign properties return correct values."""
+        import pent
+
+        from .testdata import number_patterns as npats
+
+        for p in npats.values():
+            pat = p.format("", "", pent.Quantity.Single)
+            with self.subTest(pat):
+                self.assertEqual(pent.Token(pat).sign, pent.Sign(p[-2]))
+
+        with self.subTest("string"):
+            self.assertEqual(pent.Token("@.abcd").sign, None)
+
+        with self.subTest("any"):
+            self.assertEqual(pent.Token("~").sign, None)
+
+    def test_qty_property_on_any_and_optline(self):
+        """Ensure t.match_quantity property returns correct value on 'any'."""
+        import pent
+
+        self.assertEqual(pent.Token("~").match_quantity, None)
+        self.assertEqual(pent.Token("?").match_quantity, None)
+
+
+class TestPentThruList(ut.TestCase, SuperPent):
+    """Direct tests of the custom pass-thru list."""
+
+    from pent import ThruListError
+
+    def test_list_value(self):
+        """Confirm simple list behavior."""
+        work_l = ThruList(range(5))
+
+        self.assertEqual(work_l[2], 2)
+
+        with self.assertRaises(IndexError):
+            work_l[8]
+
+        with self.assertRaises(self.ThruListError):
+            work_l["foo"]
+
+    def test_list_pass_thru(self):
+        """Confirm key pass-through behavior works."""
+        work_l = ThruList([{"foo": "bar", "baz": "quux"}])
+
+        self.assertEqual(work_l["foo"], "bar")
+        self.assertEqual(work_l["baz"], "quux")
+
+    def test_int_index_addresses_top_layer(self):
+        """Confirm a numeric index doesn't dig into item 0."""
+        work_l = ThruList([[1, 2, 3], 4, 5, 6])
+
+        self.assertEqual(work_l[2], 5)
+
+    def test_fail_when_multiple_items(self):
+        """Confirm the pass-through is not attempted when len > 1."""
+        work_l = ThruList([{"foo": "bar"}, {"baz": "quux"}])
+
+        with self.assertRaises(self.ThruListError):
+            work_l["foo"]
+
+        self.assertEqual(work_l[1], {"baz": "quux"})
+
+    def test_fail_when_no_items(self):
+        """Confirm the pass-through is not attempted when len < 1."""
+        work_l = ThruList([])
+
+        with self.assertRaises(self.ThruListError):
+            work_l["foo"]
 
 
 class TestPentCorePatterns(ut.TestCase, SuperPent):
@@ -95,18 +235,16 @@ class TestPentCorePatterns(ut.TestCase, SuperPent):
 class TestPentParserPatterns(ut.TestCase, SuperPent):
     """Confirming pattern matching of patterns generated by the Parser."""
 
-    import pent
-
-    prs = pent.Parser()
-
     def test_empty_pattern_matches_blank_line(self):
         """Confirm an empty pattern matches only a blank line."""
+        self.assertIsNotNone(re.search(self.prs.pattern(), ""))
+        self.assertIsNone(re.search(self.prs.pattern(), "3"))
+
+    def test_token_error_raised_at_init(self):
+        """Ensure TokenError raised at instantiation w/bad token."""
         import pent
 
-        prs = pent.Parser(body="")
-
-        self.assertIsNotNone(re.search(prs.pattern(), ""))
-        self.assertIsNone(re.search(prs.pattern(), "3"))
+        self.assertRaises(pent.TokenError, pent.Parser, body="abcd")
 
     def test_group_tags_or_not(self):
         """Confirm group tags are added when needed; omitted when not."""
@@ -116,9 +254,13 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             pent.Content.Any: "~{}",
             pent.Content.String: "@{}.this",
             pent.Content.Number: "#{}..g",
+            pent.Content.Misc: "&{}.",
         }
 
         for content, capture in itt.product(pent.Content, (True, False)):
+            if content is pent.Content.OptionalLine:
+                continue
+
             test_name = "{0}_{1}".format(content, capture)
             with self.subTest(test_name):
                 test_pat = patterns[content].format("!" if capture else "")
@@ -190,6 +332,35 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
             self.assertEqual(
                 m.group(pent.Token.group_prefix + "0"), "string with"
             )
+
+    def test_misc_token_matches_various(self):
+        """Confirm scope of misc token matching."""
+        import pent
+
+        vals = ["Cu", "43/yfd", "foo", "355.57"]
+        bads = ["foo bar", "baz 456", "quux\t2e5"]
+
+        test_pat = "~ @.has &!. ~"
+
+        test_str = "This line has {} in it."
+
+        for v in vals:
+            test_line = test_str.format(v)
+
+            with self.subTest("ok_" + v):
+                pat = self.prs.convert_line(test_pat)[0]
+                m = re.search(pat, test_line)
+                self.assertIsNotNone(m)
+                self.assertEqual(m.group(pent.Token.group_prefix + "0"), v)
+
+        for v in bads:
+            test_line = test_str.format(v)
+
+            with self.subTest("bad_" + v):
+                pat = self.prs.convert_line(test_pat)[0]
+                m = re.search(pat, test_line)
+                self.assertIsNotNone(m)
+                self.assertNotEqual(m.group(pent.Token.group_prefix + "0"), v)
 
     def test_single_num_capture(self):
         """Confirm single-number capture works."""
@@ -312,7 +483,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         for n in npats:
             token = npats[n].format(
-                pent.Token._s_no_space,
+                pent.SpaceAfter.Prohibited,
                 pent.Token._s_capture,
                 pent.Quantity.Single,
             )
@@ -354,7 +525,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         test_num = "2e-4"
         test_line = test_line_start + "[" + test_num + "]" + test_line_end
 
-        pat = pent.Parser().convert_line("~! @x.[ #x!..g @x.] ~!")[0]
+        pat = self.prs.convert_line("~! @x.[ #x!..g @x.] ~!")[0]
         m = re.search(pat, test_line)
 
         self.assertEqual(
@@ -362,40 +533,6 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         )
         self.assertEqual(m.group(pent.Token.group_prefix + "1"), test_num)
         self.assertEqual(m.group(pent.Token.group_prefix + "2"), test_line_end)
-
-    @ut.skip("Developing without optional/zero-or-more for now")
-    def test_optional_str(self):
-        """Confirm single optional str token works as expected."""
-        import pent
-
-        test_string = "This is a test {} string."
-        test_pat = "~ @.test @{}?foo @x.string ~"
-
-        for there, cap in itt.product(*itt.repeat((True, False), 2)):
-            with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
-                pat = test_pat.format(pent.Token._s_capture if cap else "")
-                prs_pat = pent.Parser().convert_line(pat)[0]
-
-                work_str = test_string.format("foo" if there else "")
-
-                m = re.search(prs_pat, work_str)
-
-                self.assertIsNotNone(m)
-                if cap:
-                    if there:
-                        self.assertEqual(
-                            "foo",
-                            m.group(pent.Token.group_prefix + "0"),
-                            msg=work_str + pat,
-                        )
-                    else:
-                        self.assertEqual(
-                            "", m.group(pent.Token.group_prefix + "0")
-                        )
-                else:
-                    self.assertRaises(
-                        IndexError, m.group, pent.Token.group_prefix + "0"
-                    )
 
     def test_one_or_more_str_nospace(self):
         """Confirm one-or-more str token works as expected w/no space."""
@@ -407,7 +544,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo" * qty)
 
@@ -433,7 +570,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 
@@ -449,7 +586,41 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         IndexError, m.group, pent.Token.group_prefix + "0"
                     )
 
-    @ut.skip("Skipping until resolve Optional.")
+    @ut.skip("Not implementing optional/zero-or-more tokens")
+    def test_optional_str(self):
+        """Confirm single optional str token works as expected."""
+        import pent
+
+        test_string = "This is a test {} string."
+        test_pat = "~ @.test @{}?foo @x.string ~"
+
+        for there, cap in itt.product(*itt.repeat((True, False), 2)):
+            with self.subTest("There: {0}, Cap: {1}".format(there, cap)):
+                pat = test_pat.format(pent.Token._s_capture if cap else "")
+                prs_pat = self.prs.convert_line(pat)[0]
+
+                work_str = test_string.format("foo" if there else "")
+
+                m = re.search(prs_pat, work_str)
+
+                self.assertIsNotNone(m)
+                if cap:
+                    if there:
+                        self.assertEqual(
+                            "foo",
+                            m.group(pent.Token.group_prefix + "0"),
+                            msg=work_str + pat,
+                        )
+                    else:
+                        self.assertEqual(
+                            "", m.group(pent.Token.group_prefix + "0")
+                        )
+                else:
+                    self.assertRaises(
+                        IndexError, m.group, pent.Token.group_prefix + "0"
+                    )
+
+    @ut.skip("Not implementing optional/zero-or-more tokens")
     def test_zero_or_more_str(self):
         """Confirm zero-or-more str token works as expected."""
         import pent
@@ -460,7 +631,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         for qty, cap in itt.product((0, 1, 2, 3), (True, False)):
             with self.subTest("Qty: {0}, Cap: {1}".format(qty, cap)):
                 pat = test_pat.format(pent.Token._s_capture if cap else "")
-                pat = pent.Parser().convert_line(pat)[0]
+                pat = self.prs.convert_line(pat)[0]
 
                 work_str = test_string.format("foo " * qty)
 
@@ -476,7 +647,7 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
                         IndexError, m.group, pent.Token.group_prefix + "0"
                     )
 
-    @ut.skip("Developing w/o optional/zero-or-more for now")
+    @ut.skip("Not implementing optional/zero-or-more tokens")
     def test_one_or_more_doesnt_match_zero_reps(self):
         """Confirm one-or-more str doesn't match if string isn't there."""
         import pent
@@ -487,6 +658,57 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         m = re.search(self.prs.convert_line(test_pat)[0], test_string)
 
         self.assertEqual("", m.group(pent.Token.group_prefix + "0"))
+
+    def test_optional_pattern_syntax(self):
+        """Confirm optional-line flag is only accepted as first token."""
+        with self.subTest("expect_good"):
+            try:
+                self.prs.convert_line("? #!..g")
+            except LineError:
+                self.fail("Optional-line token parsing failed unexpectedly.")
+
+        with self.subTest("expect_fail"):
+            with self.assertRaises(LineError):
+                self.prs.convert_line("#!..g ?")
+
+    def test_optional_single_line_tail(self):
+        """Confirm optional-line parsing works."""
+        import pent
+
+        from .testdata import opt_1line_tail_data as data
+        from .testdata import opt_1line_tail_expect_block as expect_block
+        from .testdata import opt_1line_tail_expect_struct as expect_struct
+
+        prs = pent.Parser(
+            head="@.HEAD",
+            body=pent.Parser(head="#++i", body="#!+.f", tail="? @!.FOOT"),
+        )
+
+        for i, tup in enumerate(zip(data, expect_block)):
+            d, e = tup
+            with self.subTest("block_{}".format(i)):
+                result = prs.capture_body(d)
+                self.assertEqual(result, e)
+
+        for i, tup in enumerate(zip(data, expect_struct)):
+            d, e = tup
+            res_struct = []
+
+            with self.subTest("struct_{}".format(i)):
+                for bdict in prs.capture_struct(d)[ParserField.Body]:
+                    res_struct.append(bdict[ParserField.Tail])
+
+                self.assertEqual(res_struct, e)
+
+    def test_body_cleared_after_init(self):
+        """Confirm correct error raised if 'body' is reset to None."""
+        import pent
+
+        prs = pent.Parser(body="#..i")
+
+        prs.body = None
+
+        self.assertRaises(pent.SectionError, prs.pattern)
 
     def test_manual_two_lines(self):
         """Run manual check on concatenating two single-line regexes."""
@@ -550,54 +772,51 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(prs.capture_body(text), result)
 
-    def test_orca_hess_freq_parser(self):
-        """Confirm 1-D data parser for ORCA freqs works."""
+    def test_optional_space_after_literal(self):
+        """Confirm the optional-space matching works."""
+        from textwrap import dedent
+
         import pent
 
-        from .testdata import orca_hess_freqs
-
-        head_pattern = ("@.$vibrational_frequencies", "#!.+i")
-        body_pattern = "#.+i #!..f"
-
-        # Trivial application of the tail, but serves to check that
-        # it works correctly.
-        tail_pattern = ("~", "@.$normal_modes", "#!++i")
-
-        file_path = str(testdir_path / "C2F4_01.hess")
-
-        freq_parser = pent.Parser(
-            head=head_pattern, body=body_pattern, tail=tail_pattern
+        text = dedent(
+            """\
+            1 2 3 4 5
+            VALUE= 1
+            VALUE= 2
+            VALUE=10"""
         )
 
-        with open(file_path) as f:
-            data = f.read()
+        result = [[["1"], ["2"], ["10"]]]
 
-        m = re.search(freq_parser.pattern(), data)
-        self.assertIsNotNone(m)
-        self.assertEqual(m.group(0).count("\n"), 22)
+        fail_prs = pent.Parser(head="#++i", body="@.VALUE= #!..i")
+        good_prs = pent.Parser(head="#++i", body="@o.VALUE= #!..i")
 
-        self.assertEqual(freq_parser.capture_head(data), ["18"])
-        self.assertEqual(freq_parser.capture_tail(data), ["18", "18"])
+        self.assertNotEqual(result, fail_prs.capture_body(text))
+        self.assertEqual(result, good_prs.capture_body(text))
 
-        self.assertEqual(freq_parser.capture_body(data), orca_hess_freqs)
+    def test_optional_space_after_number(self):
+        """Confirm optional-space works for after numbers."""
+        from textwrap import dedent
 
-    def test_orca_hess_dipders_parser(self):
-        """Confirm 2-D single-block data parser for ORCA dipders works."""
         import pent
 
-        from .testdata import orca_hess_dipders
+        text = dedent(
+            """
+            1 2 3 4 5
+            23 .
+            23.
+            -3e4 .
+            -3e4.
+            """
+        )
 
-        head_pattern = ("@.$dipole_derivatives", "#.+i")
-        body_pattern = "#!+.f"
+        result = [[["23"], ["23"], ["-3e4"], ["-3e4"]]]
 
-        file_path = str(testdir_path / "C2F4_01.hess")
+        good_prs = pent.Parser(head="#++i", body="#o!..g @..")
+        fail_prs = pent.Parser(head="#++i", body="#!..g @..")
 
-        freq_parser = pent.Parser(head=head_pattern, body=body_pattern)
-
-        with open(file_path) as f:
-            data = f.read()
-
-        self.assertEqual(freq_parser.capture_body(data), orca_hess_dipders)
+        self.assertNotEqual(result, fail_prs.capture_body(text))
+        self.assertEqual(result, good_prs.capture_body(text))
 
     def test_simple_multiblock(self):
         """Confirm simple multiblock parser works correctly."""
@@ -663,155 +882,73 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
 
         self.assertEqual(prs_outer.capture_body(data), mblock_repeated_result)
 
-
-class TestPentTokens(ut.TestCase, SuperPent):
-    """Direct tests on the Token class."""
-
-    def test_arbitrary_bad_token(self):
-        """Confirm bad tokens raise errors."""
+    def test_parsers_in_head_and_tail(self):
+        """Confirm proper behavior of Parsers for head and tail."""
         import pent
 
-        self.assertRaises(pent.TokenError, pent.Token, "abcd")
+        data = dedent(
+            """\
+            HEAD 1 2
+            HEAD 3 4
+            1 2 3
+            .1 .2 .3
+            .2 .3 .4
+            4 5 6
+            .3 .4 .5
+            .4 .5 .6
+            .5 .6 .7
+            TAIL a b
+            TAIL c d
+            """
+        )
 
-    def test_group_enclosures(self):
-        """Ensure 'ignore' flag is properly set."""
-        import pent
+        prs_head = pent.Parser(body="@.HEAD #!++i")
+        prs_body = pent.Parser(head="#++i", body="#!++f")
+        prs_tail = pent.Parser(body="@.TAIL &!+")
 
-        testname_fmt = "{0}_{1}"
-        token_fmt = {
-            pent.Content.Any: "~{0}",
-            pent.Content.String: "@{0}.thing",
-            pent.Content.Number: "#{0}..i",
-        }
+        prs = pent.Parser(head=prs_head, body=prs_body, tail=prs_tail)
 
-        for ct, cap in itt.product(pent.Content, (True, False)):
-            t = pent.Token(token_fmt[ct].format("!" if cap else ""))
-            with self.subTest(testname_fmt.format(ct, cap)):
-                self.assertEqual(t.capture, cap)
+        result = prs.capture_struct(data)
 
-    def test_number_property(self):
-        """Ensure t.number properties return correct values."""
-        import pent
+        expect = [
+            {
+                pent.ParserField.Head: [
+                    {
+                        pent.ParserField.Head: None,
+                        pent.ParserField.Body: [["1", "2"], ["3", "4"]],
+                        pent.ParserField.Tail: None,
+                    }
+                ],
+                pent.ParserField.Body: [
+                    {
+                        pent.ParserField.Head: [[]],
+                        pent.ParserField.Body: [
+                            [".1", ".2", ".3"],
+                            [".2", ".3", ".4"],
+                        ],
+                        pent.ParserField.Tail: None,
+                    },
+                    {
+                        pent.ParserField.Head: [[]],
+                        pent.ParserField.Body: [
+                            [".3", ".4", ".5"],
+                            [".4", ".5", ".6"],
+                            [".5", ".6", ".7"],
+                        ],
+                        pent.ParserField.Tail: None,
+                    },
+                ],
+                pent.ParserField.Tail: [
+                    {
+                        pent.ParserField.Head: None,
+                        pent.ParserField.Body: [["a", "b"], ["c", "d"]],
+                        pent.ParserField.Tail: None,
+                    }
+                ],
+            }
+        ]
 
-        from .testdata import number_patterns as npats
-
-        for p in npats.values():
-            pat = p.format("", "", pent.Quantity.Single)
-            with self.subTest(pat):
-                self.assertEqual(pent.Token(pat).number, pent.Number(p[-1]))
-
-        with self.subTest("string"):
-            self.assertEqual(pent.Token("@.abcd").number, None)
-
-        with self.subTest("any"):
-            self.assertEqual(pent.Token("~").number, None)
-
-    def test_sign_property(self):
-        """Ensure t.sign properties return correct values."""
-        import pent
-
-        from .testdata import number_patterns as npats
-
-        for p in npats.values():
-            pat = p.format("", "", pent.Quantity.Single)
-            with self.subTest(pat):
-                self.assertEqual(pent.Token(pat).sign, pent.Sign(p[-2]))
-
-        with self.subTest("string"):
-            self.assertEqual(pent.Token("@.abcd").sign, None)
-
-        with self.subTest("any"):
-            self.assertEqual(pent.Token("~").sign, None)
-
-    def test_qty_property_on_any(self):
-        """Ensure t.match_quantity property returns correct value on 'any'."""
-        import pent
-
-        self.assertEqual(pent.Token("~").match_quantity, None)
-
-
-class TestPentParserPatternsSlow(ut.TestCase, SuperPent):
-    """SLOW tests confirming pattern matching of Parser regexes."""
-
-    import pent
-
-    prs = pent.Parser()
-
-    def test_three_token_sequence(self):
-        """Ensure combinatorial token sequence parses correctly."""
-        import pent
-
-        from .testdata import number_patterns as nps
-
-        pat_template = "~ {0} {1} {2} ~"
-        str_template = "String! {0}{1}{2}{3}{4} More String!"
-        str_pat = {"foo": "@{0}{1}{2}foo"}
-
-        testname_template = "{0}_{1}_{2}_{3}_{4}"
-
-        str_or_num = (pent.Content.String, pent.Content.Number)
-        t_f = (True, False)
-
-        for c1, s1, c2, s2, c3 in itt.product(
-            str_or_num, t_f, str_or_num, t_f, str_or_num
-        ):
-            if (c1 is c2 and not s1) or (c2 is c3 and not s2):
-                # No reason to have no-space strings against one another;
-                # no-space numbers adjacent to one another make
-                # no syntactic sense.
-                continue
-
-            vals1 = str_pat if c1 == pent.Content.String else nps.keys()
-            vals2 = str_pat if c2 == pent.Content.String else nps.keys()
-            vals3 = str_pat if c3 == pent.Content.String else nps.keys()
-
-            for v1, v2, v3 in itt.product(vals1, vals2, vals3):
-                p1 = (str_pat if c1 == pent.Content.String else nps)[
-                    v1
-                ].format(
-                    pent.Token._s_no_space if not s1 else "",
-                    pent.Token._s_capture,
-                    pent.Quantity.Single,
-                )
-                p2 = (str_pat if c2 == pent.Content.String else nps)[
-                    v2
-                ].format(
-                    pent.Token._s_no_space if not s2 else "",
-                    pent.Token._s_capture,
-                    pent.Quantity.Single,
-                )
-                p3 = (str_pat if c3 == pent.Content.String else nps)[
-                    v3
-                ].format("", pent.Token._s_capture, pent.Quantity.Single)
-
-                test_pat = pat_template.format(p1, p2, p3)
-                test_str = str_template.format(
-                    v1, " " if s1 else "", v2, " " if s2 else "", v3
-                )
-
-                with self.subTest(
-                    testname_template.format(v1, s1, v2, s2, v3)
-                ):
-                    npat = self.prs.convert_line(test_pat)[0]
-
-                    m = re.search(npat, test_str)
-
-                    self.assertIsNotNone(m, msg=test_pat)
-                    self.assertEqual(
-                        m.group(pent.Token.group_prefix + "0"),
-                        v1,
-                        msg=test_pat + " :: " + test_str,
-                    )
-                    self.assertEqual(
-                        m.group(pent.Token.group_prefix + "1"),
-                        v2,
-                        msg=test_pat + " :: " + test_str,
-                    )
-                    self.assertEqual(
-                        m.group(pent.Token.group_prefix + "2"),
-                        v3,
-                        msg=test_pat + " :: " + test_str,
-                    )
+        self.assertEqual(result, expect)
 
 
 def suite_base():
@@ -823,16 +960,9 @@ def suite_base():
             tl.loadTestsFromTestCase(TestPentCorePatterns),
             tl.loadTestsFromTestCase(TestPentParserPatterns),
             tl.loadTestsFromTestCase(TestPentTokens),
+            tl.loadTestsFromTestCase(TestPentThruList),
         ]
     )
-    return s
-
-
-def suite_base_slow():
-    """Create and return the test suite for SLOW base tests."""
-    s = ut.TestSuite()
-    tl = ut.TestLoader()
-    s.addTests([tl.loadTestsFromTestCase(TestPentParserPatternsSlow)])
     return s
 
 

@@ -43,6 +43,18 @@ class TokenError(PentError):  # pragma: no cover
         return "'{}' is an invalid pent token".format(self.token)
 
 
+class LineError(PentError):  # pragma: no cover
+    """Raised during attempts to parse invalid token sequences."""
+
+    def __init__(self, line):
+        """Instantiate a ``LineError``."""
+        self.line = line
+
+    def __str__(self):
+        """Generate a more-informative error message."""
+        return "'{}' is an invalid pent token sequence".format(self.line)
+
+
 class SectionError(PentError):  # pragma: no cover
     """Raised from failed attempts to parse a Parser section."""
 
@@ -53,6 +65,18 @@ class SectionError(PentError):  # pragma: no cover
     def __str__(self):
         """Generate a more-informative error message."""
         return "Bad Parser section: {}".format(self.msg)
+
+
+class ThruListError(PentError):  # pragma: no cover
+    """Raised from failed ThruList indexing attempts."""
+
+    def __init__(self, msg=""):
+        """Instantiate a ``ThruListError``."""
+        self.msg = msg
+
+    def __str__(self):
+        """Generate a more-informative error message."""
+        return "Invalid ThruList index: {}".format(self.msg)
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -38,6 +38,13 @@ class AP(object):
 
     FAST = "fast"
 
+    README = "readme"
+
+    LIVE = "live"
+    ORCA = "orca"
+    MWFN = "mwfn"
+    GAMESS = "gamess"
+
     PFX = "--{0}"
 
 
@@ -51,6 +58,7 @@ def get_parser():
     prs.add_argument("-v", action="store_true", help="Show verbose output")
 
     # Test subgroups
+    grp_livedata = prs.add_argument_group(title="Run live-data tests")
 
     # Options without subgroups
     prs.add_argument(
@@ -64,6 +72,34 @@ def get_parser():
         "-f",
         action="store_true",
         help="Run only 'fast' tests",
+    )
+    prs.add_argument(
+        AP.PFX.format(AP.README),
+        action="store_true",
+        help="Run only the tests on README.rst",
+    )
+
+    # Subgroup for live data
+    grp_livedata.add_argument(
+        AP.PFX.format(AP.LIVE),
+        "-l",
+        action="store_true",
+        help="Run all 'live data' tests",
+    )
+    grp_livedata.add_argument(
+        AP.PFX.format(AP.ORCA),
+        action="store_true",
+        help="Run all ORCA 'live data' tests",
+    )
+    grp_livedata.add_argument(
+        AP.PFX.format(AP.MWFN),
+        action="store_true",
+        help="Run all Multiwfn 'live data' tests",
+    )
+    grp_livedata.add_argument(
+        AP.PFX.format(AP.GAMESS),
+        action="store_true",
+        help="Run all GAMESS 'live data' tests",
     )
 
     # Return the parser
@@ -99,7 +135,27 @@ def main():
     addsuiteif(pent.test.pent_base.suite_base(), [AP.ALL, AP.FAST])
 
     # Slow tests
-    addsuiteif(pent.test.pent_base.suite_base_slow(), [AP.ALL])
+    addsuiteif(pent.test.pent_slow.suite_base_slow(), [AP.ALL])
+
+    # README tests
+    addsuiteif(
+        pent.test.pent_readme.suite_doctest_readme(),
+        [AP.ALL, AP.FAST, AP.README],
+    )
+
+    # Live data tests
+    addsuiteif(
+        pent.test.pent_livedata.suite_live_orca(),
+        [AP.ALL, AP.FAST, AP.LIVE, AP.ORCA],
+    )
+    addsuiteif(
+        pent.test.pent_livedata.suite_live_mwfn(),
+        [AP.ALL, AP.FAST, AP.LIVE, AP.MWFN],
+    )
+    addsuiteif(
+        pent.test.pent_livedata.suite_live_gamess(),
+        [AP.ALL, AP.FAST, AP.LIVE, AP.GAMESS],
+    )
 
     # Create the test runner and execute
     ttr = ut.TextTestRunner(buffer=True, verbosity=(2 if params["v"] else 1))
