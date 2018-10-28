@@ -3,15 +3,41 @@ pent Extracts Numerical Text
 
 *Mini-language driven parser for structured numerical data*
 
+**Current Development Version:**
+
+.. image:: https://travis-ci.org/bskinn/pent.svg?branch=dev
+    :target: https://travis-ci.org/bskinn/pent
+
+.. image:: https://codecov.io/gh/bskinn/pent/branch/dev/graph/badge.svg
+    :target: https://codecov.io/gh/bskinn/pent
+
+**Most Recent Stable Release:**
+
+.. image:: https://img.shields.io/pypi/v/pent.svg
+    :target: https://pypi.org/project/pent
+
+.. image:: https://img.shields.io/pypi/pyversions/pent.svg
+
+**Info:**
+
+.. image:: https://img.shields.io/readthedocs/pent/latest.svg
+    :target: http://pent.readthedocs.io/en/latest/
+
+.. image:: https://img.shields.io/github/license/mashape/apistatus.svg
+    :target: https://github.com/bskinn/pent/blob/master/LICENSE.txt
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/ambv/black
+
+----
+
 **Do you have structured numerical data stored as text?**
 
 **Does the idea of writing regex to parse it fill you with loathing?**
 
-``pent`` can help!
+``pent`` *can help!*
 
-------
-
-Say you have data that looks like this:
+Say you have data in a text file that looks like this:
 
 .. code::
 
@@ -37,25 +63,26 @@ Say you have data that looks like this:
        17     1885.157022
 
 What's the most efficient way to get that list of floats
-extracted into a 1-D ``numpy`` array?
+extracted into a ``numpy`` array?
 There's clearly structure here, but how to exploit it?
 
 It would work to import the text into a spreadsheet, split columns appropriately,
-re-export just the one column (somehow...?) to CSV, and import to Python from there,
+`re-export just the one column to CSV <https://github.com/bskinn/excel-csvexporter>`__,
+and import to Python from there,
 but that's just exhausting drudgery if there are dozens of files involved.
 
-Automating the parsing via a line-by-line string search would work fine,
-which is how |cclib|_ implements its data imports, but a new line-by-line
-method must be implemented for each new dataset, and if the formatting on any
-given dataset should change between software versions.
+Automating the parsing via a line-by-line string search would work fine
+(this is how |cclib|_ implements its data imports), but a new line-by-line
+method must be implemented any time one encounters a new kind of dataset,
+and any time the formatting of a given dataset changes between software versions.
 
 It's not *too* hard to
 `write regex <https://github.com/bskinn/opan/blob/12c8e98de2a81bbd570c821644063d975e2ab03e/opan/hess.py#L688-L701>`__
 that will parse it, but because of the mechanics of regex group captures
-you have to write two patterns: one to capture the entire block, and then one to
+you have to write two patterns: one to capture the entire block, including the header
+(to ensure other, similarly-formatted data isn't also captured); and then one to
 `iterate line-by-line <https://github.com/bskinn/opan/blob/12c8e98de2a81bbd570c821644063d975e2ab03e/opan/hess.py#L1192-L1207>`__
-over just the data block (excluding the header)
-to extract the individual values. And, of course, one has to actually *write*
+over just the data block to extract the individual values. And, of course, one has to actually *write*
 (and proofread, and maintain) the regex.
 
 ``pent`` **provides a better way.**
@@ -113,15 +140,15 @@ Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
     ... )
     >>> result = prs_hess.capture_body(data)
     >>> arr = np.column_stack(np.array(_, dtype=float) for _ in result[0])
-    >>> print(arr[:4, :4])
-    [[ 0.468819 -0.006771  0.020586 -0.38269 ]
-     [-0.006719  0.022602 -0.016183  0.010997]
-     [ 0.020559 -0.016184  0.066859 -0.033601]
-     [-0.383124  0.011028 -0.033603  0.713881]]
+    >>> print(arr[:3, :7])
+    [[ 0.468819 -0.006771  0.020586 -0.38269   0.017874 -0.05449  -0.044552]
+     [-0.006719  0.022602 -0.016183  0.010997 -0.033397  0.014422 -0.01501 ]
+     [ 0.020559 -0.016184  0.066859 -0.033601  0.014417 -0.072836  0.045825]]
 
-The need for the iteration expression, ``result[0]``, and ``np.column_stack`` arise
+The need for the ``for``/``in`` iteration expression, the ``[0]`` index into ``result``,
+and the composition via ``np.column_stack`` arises
 due to the manner in which ``pent`` returns data from a nested match like this.
-See the `documentation <https://pent.readthedocs.io>`__ for more information.
+See the `documentation <https://pent.readthedocs.io/en/latest>`__ for more information.
 
 The grammar of the ``pent`` mini-language is designed to be flexible enough that
 it should handle essentially all well-formed structured data, and even some data
