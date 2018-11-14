@@ -14,6 +14,7 @@
 #
 import os
 import os.path as osp
+import re
 import sys
 sys.path.insert(0, osp.abspath(osp.join(os.pardir, os.pardir)))
 
@@ -24,10 +25,12 @@ project = 'pent'
 copyright = '2018, Brian Skinn'
 author = 'Brian Skinn'
 
+from pent import __version__
+
 # The short X.Y version
-version = '0.1'
+version = re.match(r"\d+\.\d+", __version__).group()
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
