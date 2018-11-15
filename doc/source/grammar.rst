@@ -27,3 +27,17 @@ pent Mini-Language Grammar
  * First token can be "?", marking the line as OPTIONAL in the pattern
    (DOESN'T ALWAYS WORK RIGHT!)
 
+
+Token line/string::
+
+    token_line           ::=  [optional_line_token] [content_token+]  {representing spaces here is a problem}
+
+
+Token::
+
+    optional_line_token  ::=  "?"
+    content_token        ::=  any_token | misc_token | literal_token | number_token
+    any_token            ::=  "~"[capture_flag]
+
+
+    capture_flag         ::=  "!"
