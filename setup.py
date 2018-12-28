@@ -4,10 +4,11 @@ from setuptools import setup
 from pent import __version__
 
 
-NAME='pent'
+NAME = "pent"
+
 
 def readme():
-    with open('README.rst', 'r') as f:
+    with open("README.rst", "r") as f:
         content = f.read()
 
     # Helper function
@@ -18,14 +19,16 @@ def readme():
     # This one gets the badge image
     content = content_update(
         content,
-        r'(?<=/readthedocs/{0}/)\S+?(?=\.svg$)'.format(NAME),
-        'v' + __version__)
+        r"(?<=/readthedocs/{0}/)\S+?(?=\.svg$)".format(NAME),
+        "v" + __version__,
+    )
 
     # This one gets the RtD links
     content = content_update(
         content,
-        r'(?<={0}\.readthedocs\.io/en/)\S+?(?=[/>])'.format(NAME),
-        'v' + __version__)
+        r"(?<={0}\.readthedocs\.io/en/)\S+?(?=[/>])".format(NAME),
+        "v" + __version__,
+    )
 
     return content
 
