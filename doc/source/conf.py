@@ -79,6 +79,21 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+rst_epilog = """
+
+.. |Parser| replace:: :class:`~pent.Parser`
+
+.. |cour| raw:: html
+
+    <span style="font-family:courier;font-size:90%">
+
+.. |/cour| raw:: html
+
+    </span>
+
+"""
+
+
 
 # -- Options for HTML output -------------------------------------------------
 
