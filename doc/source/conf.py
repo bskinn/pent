@@ -93,6 +93,15 @@ rst_epilog = """
 
 """
 
+doctest_global_setup = """\
+
+from textwrap import dedent
+
+import numpy as np
+
+import pent
+
+"""
 
 
 # -- Options for HTML output -------------------------------------------------

@@ -75,6 +75,7 @@ Token::
 
     optional_line_token     ::=  "?"
     content_token           ::=  any_token | literal_token | misc_token | number_token
+
     any_token               ::=  "~"[capture]
     literal_token           ::=  "@"[space_after][capture](quantity)(literal_content)
     misc_token              ::=  "&"[space_after][capture](quantity)
