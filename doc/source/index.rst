@@ -9,9 +9,12 @@ Welcome to pent's documentation!
 *Docs pending...*
 
 
+**Contents:**
+
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+
+    grammar
 
 
 
