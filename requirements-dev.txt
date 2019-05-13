@@ -1,5 +1,5 @@
 attrs<18
-numpy
+numpy==1.16.2
 sphinx==1.7.8
 sphinx_rtd_theme==0.4.1
 sphinx-issues

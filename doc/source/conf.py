@@ -79,6 +79,30 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+rst_epilog = """
+
+.. |Parser| replace:: :class:`~pent.Parser`
+
+.. |cour| raw:: html
+
+    <span style="font-family:courier;font-size:90%">
+
+.. |/cour| raw:: html
+
+    </span>
+
+"""
+
+doctest_global_setup = """\
+
+from textwrap import dedent
+
+import numpy as np
+
+import pent
+
+"""
+
 
 # -- Options for HTML output -------------------------------------------------
 

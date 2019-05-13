@@ -5,10 +5,10 @@ pent Extracts Numerical Text
 
 **Current Development Version:**
 
-.. image:: https://travis-ci.org/bskinn/pent.svg?branch=dev
+.. image:: https://travis-ci.org/bskinn/pent.svg?branch=master
     :target: https://travis-ci.org/bskinn/pent
 
-.. image:: https://codecov.io/gh/bskinn/pent/branch/dev/graph/badge.svg
+.. image:: https://codecov.io/gh/bskinn/pent/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/bskinn/pent
 
 **Most Recent Stable Release:**
@@ -24,7 +24,7 @@ pent Extracts Numerical Text
     :target: http://pent.readthedocs.io/en/latest/
 
 .. image:: https://img.shields.io/github/license/mashape/apistatus.svg
-    :target: https://github.com/bskinn/pent/blob/master/LICENSE.txt
+    :target: https://github.com/bskinn/pent/blob/stable/LICENSE.txt
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/ambv/black
