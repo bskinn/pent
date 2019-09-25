@@ -19,6 +19,7 @@ specifics of the grammar of the tokens used herein, see the
 
 
 .. toctree::
+    :maxdepth: 1
 
     tutorial/single_parser
     tutorial/nested_parsers
