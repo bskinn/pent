@@ -89,6 +89,8 @@ rst_epilog = """
 
 .. |dict| replace:: :obj:`dict`
 
+.. |ndarray| replace:: :class:`~numpy.ndarray`
+
 .. |Parser| replace:: :class:`~pent.parser.Parser`
 
 .. |Token| replace:: :class:`~pent.token.Token`
@@ -215,7 +217,7 @@ texinfo_documents = [
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/', (None, 'isphx/objects_python.inv')),
+intersphinx_mapping = {'python': ('https://docs.python.org/3/', (None, 'isphx/objects_python.inv')),
                        'numpy': ('https://docs.scipy.org/doc/numpy/', (None, 'isphx/objects_numpy.inv')),}
 
 # -- Options for todo extension ----------------------------------------------
