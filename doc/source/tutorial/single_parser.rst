@@ -158,10 +158,18 @@ This use of `head` introduces two concepts: (1) the 'literal string' token, |cou
 in combination with the "\ |cour|\ .\ |/cour|\ " quantity marker telling the
 |Parser| to match the literal string exactly once; and (2) the ``pent``
 feature wherein a length-\ *n* ordered iterable of pattern strings
-(here, length-two) will match *n* lines from the data string.
+(here, length-two) will match *n* lines from the data string. In this case,
+the first string in the tuple matches the
+"\ |cour|\ $vibrational_frequencies\ |/cour|\ " marker in the first line of the header,
+and the second captures the single positive integer in the second line of the header.
 
-One may note that I included the "\ |cour|\ !\ |/cour|\ " capture flag in the
-second pattern of `head`, but that captured value does not show up in the
+
+Capturing in *head* and *tail* with :meth:`~pent.Parser.capture_struct`
+-----------------------------------------------------------------------
+
+In the example immediately above, note that even though the "\ |cour|\ !\ |/cour|\ "
+capturing flag is specified in the second element of the `head`,
+that captured value does not show up in the
 :meth:`~pent.Parser.capture_body` output.  Captures in `head` and `tail` must
 be retrieved using :meth:`~pent.Parser.capture_struct`:
 
@@ -172,17 +180,24 @@ be retrieved using :meth:`~pent.Parser.capture_struct`:
     >>> prs2.capture_struct(data3)[0][pent.ParserField.Head]
     [['6']]
 
+The return value from :meth:`~pent.Parser.capture_struct`
+has length equal to the number of times the |Parser| matched
+within the text. Here, since the pattern only matched once, the return
+value is of length one.
+
 As a convenience, the lists returned by :meth:`~pent.Parser.capture_struct`
-will silently pass through indices/keys to their first argument if they
-are of length one. Thus, the following would also work:
+are actually of type |ThruList|, a custom subclass of |list|,
+which will silently pass through indices/keys to their first argument
+if and only if they are of length one.
+Thus, the following would also work for `prs2` operating on `data3`:
 
 .. doctest:: orca_freqs
 
     >>> prs2.capture_struct(data3)[pent.ParserField.Head]
     [['6']]
 
-But, it would break for the original |Parser|, where the overall pattern matched
-twice:
+But, it would break for the original `prs`,
+where the overall pattern matched twice:
 
 .. doctest:: orca_freqs
 
