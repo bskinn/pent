@@ -16,6 +16,7 @@ Welcome to pent's documentation!
 
     tutorial
     grammar
+    api
 
 
 
