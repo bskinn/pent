@@ -89,11 +89,15 @@ rst_epilog = """
 
 .. |dict| replace:: :obj:`dict`
 
-.. |Parser| replace:: :class:`~pent.Parser`
+.. |Parser| replace:: :class:`~pent.parser.Parser`
 
 .. |Token| replace:: :class:`~pent.token.Token`
 
 .. |ThruList| replace:: :class:`~pent.thrulist.ThruList`
+
+.. |capture_body| replace:: :meth:`~pent.Parser.capture_body`
+
+.. |capture_struct| replace:: :meth:`~pent.Parser.capture_struct`
 
 .. |license_txt| replace:: LICENSE.txt
 
@@ -211,7 +215,8 @@ texinfo_documents = [
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/', 'isphx/objects_python.inv')}
+intersphinx_mapping = {'python': ('https://docs.python.org/', (None, 'isphx/objects_python.inv')),
+                       'numpy': ('https://docs.scipy.org/doc/numpy/', (None, 'isphx/objects_numpy.inv')),}
 
 # -- Options for todo extension ----------------------------------------------
 
