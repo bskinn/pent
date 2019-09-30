@@ -81,7 +81,23 @@ pygments_style = 'sphinx'
 
 rst_epilog = """
 
+.. |str| replace:: :class:`str`
+
+.. |list| replace:: :class:`list`
+
+.. |None| replace:: :obj:`None`
+
+.. |dict| replace:: :obj:`dict`
+
 .. |Parser| replace:: :class:`~pent.Parser`
+
+.. |Token| replace:: :class:`~pent.token.Token`
+
+.. |ThruList| replace:: :class:`~pent.thrulist.ThruList`
+
+.. |license_txt| replace:: LICENSE.txt
+
+.. _license_txt: https://github.com/bskinn/pent/blob/master/LICENSE.txt
 
 .. |cour| raw:: html
 
