@@ -97,9 +97,9 @@ rst_epilog = """
 
 .. |ThruList| replace:: :class:`~pent.thrulist.ThruList`
 
-.. |capture_body| replace:: :meth:`~pent.Parser.capture_body`
+.. |capture_body| replace:: :meth:`~pent.parser.Parser.capture_body`
 
-.. |capture_struct| replace:: :meth:`~pent.Parser.capture_struct`
+.. |capture_struct| replace:: :meth:`~pent.parser.Parser.capture_struct`
 
 .. |license_txt| replace:: LICENSE.txt
 
@@ -224,3 +224,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3/', (None, 'isphx/ob
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# -- Options for sphinx_issues ----
+
+issues_github_path = "bskinn/pent"

@@ -94,7 +94,7 @@ the outermost list would have had length greater than one:
     [[['0.000000'], ['0.000000']], [['-194.490162'], ['-198.587114']]]
 
 There are two blocks of data here, each with two rows of one value each, so
-the return value from :meth:`~pent.Parser.capture_body` is a length-two list,
+the return value from |capture_body| is a length-two list,
 where each item of that list represents a 2x1 matrix.
 
 
@@ -164,14 +164,14 @@ the first string in the tuple matches the
 and the second captures the single positive integer in the second line of the header.
 
 
-Capturing in *head* and *tail* with :meth:`~pent.Parser.capture_struct`
+Capturing in *head* and *tail* with |capture_struct|
 -----------------------------------------------------------------------
 
 In the example immediately above, note that even though the "\ |cour|\ !\ |/cour|\ "
 capturing flag is specified in the second element of the `head`,
 that captured value does not show up in the
-:meth:`~pent.Parser.capture_body` output.  Captures in `head` and `tail` must
-be retrieved using :meth:`~pent.Parser.capture_struct`:
+|capture_body| output.  Captures in `head` and `tail` must
+be retrieved using |capture_struct|:
 
 .. doctest:: orca_freqs
 
@@ -180,12 +180,12 @@ be retrieved using :meth:`~pent.Parser.capture_struct`:
     >>> prs2.capture_struct(text3)[0][pent.ParserField.Head]
     [['6']]
 
-The return value from :meth:`~pent.Parser.capture_struct`
+The return value from |capture_struct|
 has length equal to the number of times the |Parser| matched
 within the text. Here, since the pattern only matched once, the return
 value is of length one.
 
-As a convenience, the lists returned by :meth:`~pent.Parser.capture_struct`
+As a convenience, the lists returned by |capture_struct|
 are actually of type |ThruList|, a custom subclass of |list|,
 which will silently pass through indices/keys to their first argument
 if and only if they are of length one.
