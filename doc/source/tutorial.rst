@@ -25,7 +25,8 @@ specifics of the grammar of the tokens used herein, see the
     tutorial/definitions
     tutorial/single_parser
     tutorial/nested_parsers
-    tutorial/misc_and_post_processing
+    tutorial/misc
+    tutorial/post_process
     tutorial/internal_spaces
     tutorial/space_after
     tutorial/data_cleanup
