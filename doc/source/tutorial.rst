@@ -28,5 +28,6 @@ specifics of the grammar of the tokens used herein, see the
     tutorial/misc
     tutorial/post_process
     tutorial/internal_spaces
+    tutorial/optional_line
     tutorial/space_after
     tutorial/data_cleanup
