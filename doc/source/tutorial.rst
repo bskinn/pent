@@ -18,6 +18,8 @@ building their own |Parser|\ s. For more information about the
 specifics of the grammar of the tokens used herein, see the
 :doc:`grammar`.
 
+**MAY SPLIT THE TUTORIAL INTO A 'DEFINITIONS' SECTION AND
+AN 'EXAMPLES' SECTION, IF IT GETS BEEFY ENOUGH**
 
 .. toctree::
     :maxdepth: 1

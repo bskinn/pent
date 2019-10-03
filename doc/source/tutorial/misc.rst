@@ -85,5 +85,5 @@ especially in large blocks of text.
 
 
 Another example of the use of the 'misc' token is given
-at :doc:`tutorial/post_process`.
+at :doc:`post_process`.
 
