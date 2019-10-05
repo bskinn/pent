@@ -113,6 +113,14 @@ rst_epilog = """
 
     </span>
 
+.. |br| raw:: html
+
+    <br/>
+
+.. |nbsp| raw:: html
+
+    &nbsp;
+
 """
 
 doctest_global_setup = """\

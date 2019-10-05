@@ -36,20 +36,20 @@ needs to be a single number (|cour|\ #.\ |/cour|) that's not captured
 (|cour|\ +\ |/cour|) and integer format (|cour|\ i\ |/cour|), leading to
 |cour|\ #.+i\ |/cour|.
 
-Then, to match the second, floating-point value on each line, the second token
+Then, to match the second, decimal value on each line, the second token
 needs to also be a single number
-(|cour|\ #.\ |/cour|) of float format (|cour|\ f\ |/cour|).
+(|cour|\ #.\ |/cour|) of decimal format (|cour|\ d\ |/cour|).
 But, since we want these values to be captured in output, it's necessary to
 insert |cour|\ !\ |/cour| after |cour|\ #\ |/cour|. And, since some of the values
 in this list are negative and some are positive, the token should allow any
 sign (|cour|\ .\ |/cour|).
-Thus, the second token should be |cour|\ #!..f\ |/cour|.
+Thus, the second token should be |cour|\ #!..d\ |/cour|.
 
 So, a first stab at the body of the |Parser| would be:
 
 .. doctest:: orca_freqs
 
-    >>> prs = pent.Parser(body="#.+i #!..f")
+    >>> prs = pent.Parser(body="#.+i #!..d")
     >>> prs.capture_body(text)
     [[['0.000000'], ['0.000000'], ['-194.490162'], ['-198.587114'], ['389.931897'], ['402.713910']]]
 
@@ -106,7 +106,7 @@ change needed would be to add the |cour|\ !\ |/cour| capturing flag to that firs
 
 .. doctest:: orca_freqs
 
-    >>> pent.Parser(body="#!.+i #!..f").capture_body(text2)
+    >>> pent.Parser(body="#!.+i #!..d").capture_body(text2)
     [[['0', '0.000000'], ['1', '0.000000']], [['2', '-194.490162'], ['3', '-198.587114']]]
 
 
@@ -149,7 +149,7 @@ pattern:
 
     >>> prs2 = pent.Parser(
     ...     head=["@.$vibrational_frequencies", "#!.+i"],
-    ...     body="#.+i #!..f"
+    ...     body="#.+i #!..d"
     ... )
     >>> prs2.capture_body(text3)
     [[['0.000000'], ['0.000000'], ['-194.490162'], ['-198.587114'], ['389.931897'], ['402.713910']]]
@@ -214,7 +214,7 @@ for the below |Parser|, where `head` is defined but has no capturing tokens pres
 
 .. doctest:: orca_freqs
 
-    >>> pent.Parser(head="#.+i", body="#.+i #!..f").capture_struct(text)
+    >>> pent.Parser(head="#.+i", body="#.+i #!..d").capture_struct(text)
     [{<ParserField.Head: 'head'>: [[]], <ParserField.Body: 'body'>: [['0.000000'], ['0.000000'], ['-194.490162'], ['-198.587114'], ['389.931897'], ['402.713910']], <ParserField.Tail: 'tail'>: None}]
 
 

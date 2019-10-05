@@ -36,7 +36,7 @@ Defining the Inner |Parser|
 Each section of data columns starts with a row containing only positive integers,
 which does not need to be captured. After that leading row are
 multiple rows with data, each of which leads with a single
-positive integer, followed by floating-point data of any sign:
+positive integer, followed by decimal-format data of any sign:
 
 .. doctest:: orca_hess
 
@@ -54,7 +54,7 @@ One way to construct a |Parser| for this internal block is as follows:
 
     >>> prs_inner = pent.Parser(
     ...     head="#++i",
-    ...     body="#.+i #!+.f",
+    ...     body="#.+i #!+.d",
     ... )
     >>> prs_inner.capture_body(text_inner)
     [[['0.473532', '0.004379'], ['0.004785', '0.028807'], ['0.004785', '-0.022335'], ['-0.418007', '0.008333']]]

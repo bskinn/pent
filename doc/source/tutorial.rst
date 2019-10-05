@@ -18,18 +18,10 @@ building their own |Parser|\ s. For more information about the
 specifics of the grammar of the tokens used herein, see the
 :doc:`grammar`.
 
-**MAY SPLIT THE TUTORIAL INTO A 'DEFINITIONS' SECTION AND
-AN 'EXAMPLES' SECTION, IF IT GETS BEEFY ENOUGH**
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     tutorial/definitions
-    tutorial/single_parser
-    tutorial/nested_parsers
-    tutorial/misc
-    tutorial/post_process
-    tutorial/internal_spaces
-    tutorial/optional_line
-    tutorial/space_after
-    tutorial/data_cleanup
+    tutorial/examples
+

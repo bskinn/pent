@@ -63,9 +63,9 @@ and falls at the end of a sentence:
     >>> text_prose = dedent("""\
     ... pi is approximately 3.14159.
     ... """)
-    >>> pent.Parser(body="~ #!..f &.").capture_body(text_prose)
+    >>> pent.Parser(body="~ #!..d &.").capture_body(text_prose)
     []
-    >>> pent.Parser(body="~ #x!..f &.").capture_body(text_prose)
+    >>> pent.Parser(body="~ #x!..d &.").capture_body(text_prose)
     [[['3.14159']]]
 
 Don't forget to include a token for that trailing period!
@@ -73,7 +73,7 @@ The |Parser| won't find a match, otherwise:
 
 .. doctest:: space_after
 
-    >>> pent.Parser(body="~ #x!..f").capture_body(text_prose)
+    >>> pent.Parser(body="~ #x!..d").capture_body(text_prose)
     []
 
 
@@ -91,7 +91,7 @@ whitespace for the |Parser| to work:
     >>> text_sandwich = dedent("""\
     ... This number3.14159is sandwiched in text.
     ... """)
-    >>> pent.Parser(body="~ #x!..f ~").capture_body(text_sandwich)
+    >>> pent.Parser(body="~ #x!..d ~").capture_body(text_sandwich)
     []
 
 In order to match this value, the preceding text must be matched
@@ -99,9 +99,9 @@ either by a literal or a misc token:
 
 .. doctest:: space_after
 
-    >>> pent.Parser(body="~ @x.number #x!..f ~").capture_body(text_sandwich)
+    >>> pent.Parser(body="~ @x.number #x!..d ~").capture_body(text_sandwich)
     [[['3.14159']]]
-    >>> pent.Parser(body="~ &x. #x!..f ~").capture_body(text_sandwich)
+    >>> pent.Parser(body="~ &x. #x!..d ~").capture_body(text_sandwich)
     [[['3.14159']]]
 
 This deficiency will be addressed in :issue:`78`.

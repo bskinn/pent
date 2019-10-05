@@ -12,13 +12,14 @@ interspersed with the numeric data of interest.
 (|cour|\ &\ |/cour|) to handle these kinds of situations.
 
 Take the following data, which is an example of the
-XYZ format **ADD LINK** for representing the atomic
+`XYZ format <https://en.wikipedia.org/wiki/XYZ_file_format>`__
+for representing the atomic
 coordinates of a chemical system:
 
 .. doctest:: misc
 
     >>> text_xyz = dedent("""
-    ,,, 5
+    ... 5
     ... Coordinates from MeCl2F_2
     ...   C      -3.081564      2.283942      0.044943
     ...   Cl     -1.303141      2.255173      0.064645
@@ -41,7 +42,7 @@ of the string:
 
     >>> prs_xyz = pent.Parser(
     ...     head=("#!..i", "~!"),
-    ...     body="&!. #!+.f",
+    ...     body="&!. #!+.d",
     ... )
 
 The atomic symbols and coordinates are most easily retrieved
@@ -51,7 +52,7 @@ with |capture_body|:
 
     >>> data_atoms = prs_xyz.capture_body(text_xyz)
     >>> data_atoms
-    [[['C', '1'], blahblah]
+    [[['C', '-3.081564', '2.283942', '0.044943'], ['Cl', '-1.303141', '2.255173', '0.064645'], ['Cl', '-3.706406', '3.411601', '-1.180577'], ['F', '-3.541771', '2.647036', '1.270358'], ['H', '-3.439068', '1.277858', '-0.199370']]]
 
 The atom count and description can be retrieved with
 |capture_struct|:
@@ -60,28 +61,36 @@ The atom count and description can be retrieved with
 
     >>> data_struct = prs_xyz.capture_struct(text_xyz)
     >>> data_struct[pent.ParserField.Head][0]
-    [['5']]
-    >>> data_struct[pent.ParserField.Head][1]
-    [['foostring']]
+    ['5', 'Coordinates', 'from', 'MeCl2F_2']
 
-In this particular case, the 'misc' token was not strictly
-necessary, as the capturing 'any' token
+Unlike in *body*, where two-dimensional structure is inferred in captured data,
+in *head* and *tail* all captures are returned as elements of a single, flat |list|.
+
+Currently, it is not possible to avoid the splitting of *all* captured content
+at whitespace, even it it was captured from a single 'any' or 'literal' token.
+:issue:`26` and/or :issue:`62` are planned and will provide mechanism(s)
+to change this behavior.
+
+-----
+
+As an aside, in this particular case the 'misc' token was not strictly
+necessary in the *body*, as the capturing 'any' token
 (|cour|\ ~!\ |/cour|) would also have worked:
 
 .. doctest:: misc
 
     >>> prs_any = pent.Parser(
     ...     head=("#.+i", "~"),
-    ...     body="~! #!+.f",
+    ...     body="~! #!+.d",
     ... )
     >>> prs_any.capture_body(text_xyz)
-    [[[stuff]]]
+    [[['C', '-3.081564', '2.283942', '0.044943'], ['Cl', '-1.303141', '2.255173', '0.064645'], ['Cl', '-3.706406', '3.411601', '-1.180577'], ['F', '-3.541771', '2.647036', '1.270358'], ['H', '-3.439068', '1.277858', '-0.199370']]]
 
-However, there are situations where the ability to match
+However, there are situations where the ability
+of the 'misc' token to match
 only a single, arbitrary piece of whitespace-delimited
 content is useful in order to narrow the specificity of
-the |Parser| match down to only the content of interest,
-especially in large blocks of text.
+the |Parser| match.
 
 
 Another example of the use of the 'misc' token is given
