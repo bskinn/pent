@@ -30,10 +30,12 @@ times; then `tail` once, if defined. This matching behavior holds **regardless**
 of the types of `head`/`body`/`tail`: e.g., if `body` is set to a |Parser|,
 that internal |Parser| will be matched one or more times.
 
-A formal grammar for the patterns and tokens is given below. Example data
-and |Parser|\ s to import them can be found **[at this as-yet-nonexistent page]**.
+A formal grammar for the patterns and tokens is given below.
+A more detailed description of the |Parser| semantics and structure
+can be found :doc:`here </tutorial/definitions>`, and example data
+and |Parser|\ s to import them can be found :doc:`here </tutorial/examples>`.
 
-Some brief comments first:
+**REFACTOR THESE INTO THE TUTORIAL** Some brief comments first:
 
  * A pattern string **can** be empty, which matches a line either containing
    nothing, or only whitespace.
@@ -68,12 +70,12 @@ Grammar
 
 Pattern::
 
-    pattern                 ::=  [(optional_line_token )][(content_token )+]
+    pattern                 ::=  [(optional_line_flag )][(content_token )+]
 
 
 Token::
 
-    optional_line_token     ::=  "?"
+    optional_line_flag      ::=  "?"
     content_token           ::=  any_token | literal_token | misc_token | number_token
 
     any_token               ::=  "~"[capture]
@@ -96,15 +98,15 @@ Token::
     positive_sign           ::=  "+"
     negative_sign           ::=  "-"
 
-    num_type                ::=  integer | float | sci_not | decimal | general
+    num_type                ::=  integer | decimal | sci_not | float | general
     integer                 ::=  "i"
-    float                   ::=  "f"
-    sci_not                 ::=  "s"
     decimal                 ::=  "d"
+    sci_not                 ::=  "s"
+    float                   ::=  "f"
     general                 ::=  "g"
 
 
-Token Examples:
+**PROBABLY JUST REMOVE, SINCE EXAMPLES GIVEN IN THE TUTORIAL** Token Examples:
 
  * |cour|\ &.\ |/cour| -- Matches a single "word" of arbitrary content, with
    a following space. Whether a preceding space is required depends on the

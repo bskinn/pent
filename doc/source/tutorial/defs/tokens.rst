@@ -109,6 +109,11 @@ The 'number' token takes three required, single-character arguments:
    |cour|\ #[.+][.-+]g\ |/cour| for general (integer or float). |br|
    |nbsp|
 
+**FIX THIS** *Different number matchings are implemented because
+sometimes (often?) numbers in different formats have different
+semantic significance, and it's useful to be able to filter/capture
+based on format.*
+
 As with the 'misc' token, when matching in one-or-more quantity mode,
 the 'number' token interleaves *required* whitespace between each reptition.
 
