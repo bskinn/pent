@@ -23,6 +23,7 @@ whitespace definition are planned (:issue:`26`).
 
 
 .. toctree::
+    :maxdepth: 1
 
     Tokens <defs/tokens>
     Patterns <defs/patterns>

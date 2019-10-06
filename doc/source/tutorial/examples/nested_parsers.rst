@@ -116,7 +116,7 @@ it is necessary to convert each matrix to an |ndarray| separately:
 
 .. doctest:: orca_hess
 
-    >>> np.column_stack(np.asarray(block, dtype=float) for block in data[0])
+    >>> np.column_stack([np.asarray(block, dtype=float) for block in data[0]])
     array([[ 0.473532,  0.004379,  0.004379, -0.416666],
            [ 0.004785,  0.028807, -0.022335,  0.008067],
            [ 0.004785, -0.022335,  0.028807,  0.008067],
@@ -154,7 +154,7 @@ as was done above:
     Traceback (most recent call last):
     ...
     ValueError: setting an array element with a sequence.
-    >>> np.column_stack(np.asarray(block, dtype=float) for block in data2[0])
+    >>> np.column_stack([np.asarray(block, dtype=float) for block in data2[0]])
     Traceback (most recent call last):
     ...
     ValueError: all the input array dimensions except for the concatenation axis must match exactly

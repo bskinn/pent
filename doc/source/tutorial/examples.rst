@@ -7,6 +7,7 @@ This section of the tutorial contains examples of applications
 of ``pent`` to parsing of "real" (or, at least "real-like") datasets.
 
 .. toctree::
+    :maxdepth: 1
 
     examples/single_parser
     examples/nested_parsers

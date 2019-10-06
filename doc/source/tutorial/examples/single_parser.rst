@@ -98,6 +98,8 @@ the return value from |capture_body| is a length-two list,
 where each item of that list represents a 2x1 matrix.
 
 
+.. _tutorial-examples-singleparser-multiplevalues:
+
 Capturing Multiple Values per Line
 ----------------------------------
 

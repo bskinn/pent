@@ -11,7 +11,7 @@ separated from surrounding content by whitespace.
 
 All four kinds of tokens accept a flag that instructs the encapsulating
 |Parser| to capture the content matching the token for output.
-A subset of the tokens accept a flag that
+A subset of the tokens accepts a flag that
 alters how the |Parser| handles the presence or absence of whitespace
 following the content matching the token.
 
@@ -20,10 +20,10 @@ The 'Any' Token: |cour|\ ~\ |/cour|
 -----------------------------------
 
 The 'any' token will match **anything**, including a completely blank line.
-It behaves essentially the same as |cour|\ .*\ |/cour| in regex.
+It behaves essentially the same as "|cour|\ .*\ |/cour|" in regex.
 
 Currently, the 'any' token only accepts the 'capturing' flag
-(|cour|\ ~!\ |/cour|). Addition of support for the
+(becoming |cour|\ ~!\ |/cour|). Addition of support for the
 'space-after' flags is planned (:issue:`78`).
 
 Note that any content matched by a capturing 'any' token will be
@@ -36,8 +36,9 @@ The 'Misc' Token: |cour|\ &\ |/cour|
 The 'misc' token matches any sequence of non-whitespace characters.
 Its uses are similar to the 'any' token, except that its match
 is confined to a single whitespace-delimited piece of content.
-It is mainly intended for use on variable, non-numerical data,
-where the 'literal' token cannot be used.
+It is mainly intended for use on non-numerical data
+whose content is not constant, and thus
+the 'literal' token cannot be used.
 
 The 'misc' token has one required argument, indicating whether
 it should match exactly one piece of content
@@ -46,8 +47,9 @@ it should match exactly one piece of content
 the 'misc' token interleaves *required* whitespace
 between each reptition.
 
-The 'misc' token accepts both the capturing flag (**DOC LINK**)
-and the 'space-after' modifier flags (**DOC LINK**)
+The 'misc' token accepts both the
+:ref:`capturing flag <tutorial-defs-tokens-captureflag>`
+and the :ref:`space-after modifier flags <tutorial-defs-tokens-spaceflags>`.
 
 
 The 'Literal' Token: |cour|\ @\ |/cour|
@@ -59,8 +61,8 @@ in the token definition.
 
 Similar to the 'misc' token, the 'literal' token also has
 the quantity specifier as a required argument:
-either |cour|\ @.\ |/cour| for exactly one match
-or |cour|\ @+\ |/cour| for one-or-more matches.
+either "|cour|\ @.\ |/cour|" for exactly one match
+or "|cour|\ @+\ |/cour|" for one-or-more matches.
 
 The argument for the string to be matched follows the
 quantity argument. Thus, to match the text
@@ -75,9 +77,13 @@ The 'literal' token differs from the 'misc' and 'number' tokens
 in that when the one-or-more argument is used, it does **not**
 interleave required whitespace between the repetitions.
 This allows, e.g., a long sequence of hyphens to be represented
-by a token like |cour|\ @+-\ |/cour|. Similarly, a long
+by a token like "|cour|\ @+-\ |/cour|". Similarly, a long
 sequence of alternating hyphens and spaces could be represented
 by "|cour|\ '@+- '\ |/cour|".
+
+The 'literal' token accepts both the
+:ref:`capturing flag <tutorial-defs-tokens-captureflag>`
+and the :ref:`space-after modifier flags <tutorial-defs-tokens-spaceflags>`.
 
 
 The 'Number' Token: |cour|\ #\ |/cour|
@@ -109,26 +115,33 @@ The 'number' token takes three required, single-character arguments:
    |cour|\ #[.+][.-+]g\ |/cour| for general (integer or float). |br|
    |nbsp|
 
-**FIX THIS** *Different number matchings are implemented because
-sometimes (often?) numbers in different formats have different
-semantic significance, and it's useful to be able to filter/capture
-based on format.*
+The ability to specify different types of number formatting was implemented
+for the 'number' token because it's often the case that numbers printed
+in different formats have different semantic significance,
+and it's thus useful to be able to filter/capture based on that format.
+:ref:`This example <tutorial-examples-singleparser-multiplevalues>`
+illustrates a simplified case of this.
 
 As with the 'misc' token, when matching in one-or-more quantity mode,
 the 'number' token interleaves *required* whitespace between each reptition.
 
-The 'number' token accepts both the capturing flag (**DOC LINK**)
-and the 'space-after' modifier flags (**DOC LINK**).
+The 'number' token accepts both the
+:ref:`capturing flag <tutorial-defs-tokens-captureflag>`
+and the :ref:`space-after modifier flags <tutorial-defs-tokens-spaceflags>`.
 
 
 Token Flags
 -----------
+
+.. _tutorial-defs-tokens-captureflag:
 
 Capturing Flag: |cour|\ !\ |/cour|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **WRITE THIS** *Capturing*
 
+
+.. _tutorial-defs-tokens-spaceflags:
 
 Space-After Flags: |cour|\ o\ |/cour| and |cour|\ x\ |/cour|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
