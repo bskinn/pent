@@ -76,23 +76,25 @@ def std_wordify_close(p):
 
 _p_intnums = r"\d+"
 
-_p_floatnums = r"(\d+\.\d*|\d*\.\d+)"
+_p_decimalnums = r"(\d+\.\d*|\d*\.\d+)"
 
 _p_scinums = r"(\d+\.?\d*[{0}][+-]?\d+|\d*\.\d+[{0}][+-]?\d+)".format(
     std_scinot_markers
 )
 
-_p_decimalnums = r"({0}|{1})".format(_p_floatnums, _p_scinums)
+_p_floatnums = r"({0}|{1})".format(_p_decimalnums, _p_scinums)
 
 
-_p_generalnums = r"({0}|{1}|{2})".format(_p_floatnums, _p_scinums, _p_intnums)
+_p_generalnums = r"({0}|{1}|{2})".format(
+    _p_decimalnums, _p_scinums, _p_intnums
+)
 
 
 _p_nums = {
     Number.Integer: _p_intnums,
-    Number.Float: _p_floatnums,
-    Number.SciNot: _p_scinums,
     Number.Decimal: _p_decimalnums,
+    Number.SciNot: _p_scinums,
+    Number.Float: _p_floatnums,
     Number.General: _p_generalnums,
 }
 
