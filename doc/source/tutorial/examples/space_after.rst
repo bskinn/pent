@@ -3,9 +3,9 @@
 Required/Optional/Prohibited Trailing Whitespace
 ================================================
 
-By default, number (|cour|\ #\ |/cour|),
-misc (|cour|\ &\ |/cour|),
-and literal (|cour|\ @\ |/cour|) tokens
+By default, :ref:`number <tutorial-defs-tokens-numbertoken>` (|cour|\ #\ |/cour|),
+:ref:`misc <tutorial-defs-tokens-misctoken>` (|cour|\ &\ |/cour|),
+and :ref:`literal <tutorial-defs-tokens-literaltoken>` (|cour|\ @\ |/cour|) tokens
 require trailing whitespace to be present in the text
 in order to match:
 
@@ -26,7 +26,8 @@ in order to match:
     []
 
 ``pent`` provides a means to make this trailing whitespace
-either optional or prohibited, if needed.
+either optional or prohibited, if needed,
+via a :ref:`token-level flag <tutorial-defs-tokens-spaceflags>`.
 
 Optional trailing whitespace is indicated with an
 "|cour|\ o\ |/cour|" flag in the token:

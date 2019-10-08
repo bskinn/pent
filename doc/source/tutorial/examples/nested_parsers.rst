@@ -59,6 +59,12 @@ One way to construct a |Parser| for this internal block is as follows:
     >>> prs_inner.capture_body(text_inner)
     [[['0.473532', '0.004379'], ['0.004785', '0.028807'], ['0.004785', '-0.022335'], ['-0.418007', '0.008333']]]
 
+Note that even though the multiple decimal values in each row of the data block
+were matched by the single "|cour|\ #!+.d\ |/cour|" token in *body*,
+they were reported as separate values in the output.
+As currently implemented, ``pent`` will **always** split captured content
+at any internal whitespace; a further example of this with the 'any' token
+can be seen :ref:`here <tutorial-examples-misc-splittingofany>`.
 
 Defining the Outer |Parser|
 ---------------------------

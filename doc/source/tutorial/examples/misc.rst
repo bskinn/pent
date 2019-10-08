@@ -35,6 +35,8 @@ text is an arbitrary string describing the chemical system,
 and the data block provides the atomic symbol of each atom and
 its xyz position in space.
 
+.. _tutorial-examples-misc-splittingofany:
+
 The following |Parser| will enable capture of the entire contents
 of the string:
 
