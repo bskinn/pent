@@ -149,8 +149,18 @@ The 'number' token accepts both the
 and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
 
 
+.. _tutorial=defs-tokens-flags:
+
 Token Flags
 -----------
+
+Currently, two types of flags can be passed to tokens:
+:ref:`capture flag <tutorial-defs-tokens-captureflag>`
+and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
+
+If both flags are used in a given token, the space-after modifier
+flag must **precede** the capture flag.
+
 
 .. _tutorial-defs-tokens-captureflag:
 
@@ -159,8 +169,8 @@ Capture Flag: |cour|\ !\ |/cour|
 
 In most cases, not all of the data in a block of text is of interest
 for downstream processing. Thus, ``pent`` provides the token-level
-'capture' flag, "|cour|\ !\ |/cour|", which enables marking
-of the specific content that should be included in the results of
+'capture' flag, "|cour|\ !\ |/cour|", which marks
+the content of that token for inclusion in the output of
 :meth:`~pent.parser.Parser.capture_body` and
 :meth:`~pent.parser.Parser.capture_struct`.
 The 'capture' flag is an integral part of all of the
@@ -172,20 +182,40 @@ The 'capture' flag is an integral part of all of the
 Space-After Flags: |cour|\ o\ |/cour| and |cour|\ x\ |/cour|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, all tokens *REQUIRE* the presence of trailing whitespace (or EOL)
-in order to match. Implementing this requirement as the default behavior
-stems primarily from the fact that in the general case it's impossible
-to infer with confidence the location of the boundary between
-two adjacent numerical values without intervening spaces.
-(One exception would be if the data is generated in a standardized format,
-say with a constant number of digits after the decimal point;
-:issue:`66` aims to address this case.)
-This trailing-whitespace requirement was made the default for all tokens
-in order to provide a more consistent interface.
+With no space-after flag provided, all tokens *REQUIRE* the presence
+of trailing whitespace (or EOL)
+in order to match. This is because most content is anticipated to be
+whitespace-delineated, and thus this default leads to
+more concise |Parser| definitions.
 
-However, there are situations... **RESUME**
+However, there are situations where changing this behavior is
+useful for defining a well-targeted |Parser|, and some where
+changing it is necessary in order to compose
+a functional |Parser| at all.
 
-**WRITE THIS** *For space-after, prob just link to that tutorial page?*
+As an example, take the following line of text:
 
+.. code::
 
+    The foo is in the foo.
+
+The token "|cour|\ @.foo\ |/cour|"
+would match the first occurrence of the word "foo",
+because it has whitespace after it, but it would
+*not* match the second occurrence, since it is
+immediately followed by a period.
+
+In order to match both occurrences, the
+'optional trailing whitespace flag',
+"|cour|\ o\ |/cour|", could be added, leading
+to the token "|cour|\ @o.foo\ |/cour|".
+
+If it were desired only to match the second occurrence,
+the 'prohibited trailing whitespace flag',
+"|cour|\ x\ |/cour|", could be added,
+yielding "|cour|\ @x.foo\ |/cour|".
+
+:doc:`This tutorial example </tutorial/examples/space_after>`
+provides further illustration of the use of these flags
+in more-realistic situations.
 
