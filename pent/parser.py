@@ -76,7 +76,7 @@ class Parser:
         if res_head:
             rx += (
                 (
-                    "(?P<{}>".format(ParserField.Head) + res_head + r")\n?"
+                    "(?P<{}>".format(ParserField.Head) + res_head + ")"
                     if capture_sections
                     else "(" + res_head + ")"
                 )
