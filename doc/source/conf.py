@@ -123,13 +123,21 @@ rst_epilog = """
 
 """
 
-doctest_global_setup = """\
+doctest_global_setup = r"""\
 
 from textwrap import dedent
 
 import numpy as np
 
 import pent
+
+def check_pattern(*, pattern, text):
+    prs = pent.Parser(body=pattern)
+    print("MATCH" if len(prs.capture_body(text)) > 0 else "NO MATCH", end='\n\n')
+
+def show_capture(*, pattern, text):
+    prs = pent.Parser(body=pattern)
+    print(prs.capture_body(text), end='\n\n')
 
 """
 
