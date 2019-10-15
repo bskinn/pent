@@ -148,12 +148,12 @@ opt_1line_tail_expect_block = [
 
 
 opt_1line_tail_expect_struct = [
-    [[["FOOT"]], [[None]]],
+    [[["FOOT"]], []],
     [[["FOOT"]], [["FOOT"]]],
-    [[[None]], [[None]]],
-    [[["FOOT"]], [["FOOT"]], [[None]]],
-    [[[None]], [["FOOT"]], [[None]]],
-    [[[None]], [["FOOT"]], [[None]], [[None]], [[None]], [[None]]],
+    [[], []],
+    [[["FOOT"]], [["FOOT"]], []],
+    [[], [["FOOT"]], []],
+    [[], [["FOOT"]], [], [], [], []],
 ]
 
 
@@ -369,6 +369,7 @@ orca_opt_status = [
         ["0.0000063852", "YES"],
     ],
 ]
+
 
 orca_opt_status_optline = [
     [

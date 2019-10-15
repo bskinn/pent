@@ -165,6 +165,15 @@ class Parser:
         data = []
         for m in re.finditer(pat_re, text):
             chunk_caps = []
+
+            # Do not want to capture anything from a zero-length
+            # match; this leads to spurious [None] returns when
+            # the optional-line flag is used, as the entirely-optional
+            # nature of that regex will match a zero-length segment
+            # at (if nothing else) the end of the matched portion.
+            if len(m.group(0)) == 0:
+                continue
+
             for c in cls.generate_captures(m):
                 if c is None:
                     chunk_caps.append(None)
@@ -312,12 +321,20 @@ class Parser:
 
         # Always put possible whitespace to the end of the line.
         # Also include a format tag for closing optional-line grouping
-        pattern += r"[ \t]*{opline_close}($|(?=\n))"
+        pattern += r"[ \t]*{opline_close}"
+
+        # Per #89, this lookahead must also be optional for an
+        # optional line
+        pattern += "($|(?=\n))" + ("?" if optional_line else "")
 
         # Wrap pattern with parens and '?' if it's optional
-        # Otherwise just drop the formatting tags
+        # Otherwise just drop the formatting tags.
+        #
+        # The leading question mark in the opline_open
+        # substitution is to make the SOL/SOF lookbehind
+        # optional in the case of an optional line, per #89.
         pattern = pattern.format(
-            opline_open=("(" if optional_line else ""),
+            opline_open=("?(" if optional_line else ""),
             opline_close=(")?" if optional_line else ""),
         )
 

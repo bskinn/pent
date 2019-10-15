@@ -284,14 +284,13 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
 
         self.assertEqual(res, orca_opt_trajectory)
 
-    @ut.expectedFailure
     def test_ORCA_opt_progress_results_optline(self):
         """Confirm parse of optimization results block using optline."""
         import pent
 
         data = self.get_orca_opt_file()
 
-        from .testdata import orca_opt_status
+        from .testdata import orca_opt_status_optline
 
         prs = pent.Parser(
             body=(
@@ -310,7 +309,7 @@ class TestPentORCALiveData(ut.TestCase, SuperPent):
             )
         )
 
-        self.assertEqual(prs.capture_body(data), orca_opt_status)
+        self.assertEqual(prs.capture_body(data), orca_opt_status_optline)
 
 
 class TestPentMultiwfnLiveData(ut.TestCase, SuperPent):
