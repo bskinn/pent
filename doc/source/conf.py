@@ -93,6 +93,8 @@ rst_epilog = """
 
 .. |Parser| replace:: :class:`~pent.parser.Parser`
 
+.. |Parsers| replace:: :class:`Parsers <pent.parser.Parser>`
+
 .. |Token| replace:: :class:`~pent.token.Token`
 
 .. |ThruList| replace:: :class:`~pent.thrulist.ThruList`

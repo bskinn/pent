@@ -12,7 +12,7 @@ and the subset of content that should be captured by the |Parser| for output.
 
 The patterns are then packaged into a ``pent`` |Parser|,
 which is responsible for automatic generation of the regular expressions suitable
-for actually parsing and capturing the data.  |Parser|\ s are
+for actually parsing and capturing the data.  |Parsers| are
 constructed at minimum with a `body`, and optionally with a `head` and/or `tail`.
 When defined, all three of these can be any of:
 
@@ -32,8 +32,8 @@ that internal |Parser| will be matched one or more times.
 
 A formal grammar for the patterns and tokens is given below.
 A more detailed description of the |Parser| semantics and structure
-can be found :doc:`here </tutorial/definitions>`, and example data
-and |Parser|\ s to import them can be found :doc:`here </tutorial/examples>`.
+can be found :doc:`here </tutorial/basics>`, and example data
+and |Parsers| to import them can be found :doc:`here </tutorial/examples>`.
 
 **REFACTOR THESE INTO THE TUTORIAL** Some brief comments first:
 
@@ -60,7 +60,7 @@ and |Parser|\ s to import them can be found :doc:`here </tutorial/examples>`.
  * BEWARE of using too many |cour|\ any_token\ |/cour|\ s, as it can lead
    to regexes with prohibitively long parsing times.
 
- * SIMILARLY, nesting |Parser|\ s more than one level deep (e.g., much more than
+ * SIMILARLY, nesting |Parsers| more than one level deep (e.g., much more than
    an outer |Parser| holding an inner |Parser| in `body`) can lead to
    prohibitively slow regexes.
 

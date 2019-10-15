@@ -1,7 +1,7 @@
 .. Pattern-level semantics
 
-Nomenclature and Definitions: Patterns
-======================================
+Basic Usage: Patterns
+=====================
 
 A ``pent`` *pattern* is a series of whitespace-delimited
 :doc:`tokens <tokens>` that represents **all** non-whitespace
@@ -69,13 +69,15 @@ If a line contains more than one piece of non-whitespace text,
     >>> check_pattern(pattern="#+.i", text="-2 -1 0 1 2")
     MATCH
     <BLANKLINE>
-    >>> check_pattern(pattern="#+.i", text="-2 -1 foo 1 2")
+    >>> check_pattern(pattern="#+.i", text="-2 -1 foo 1 2")  # 'foo' is not an int
     NO MATCH
     <BLANKLINE>
 
 Be careful when using "|cour|\ ~\ |/cour|" and
 "|\cour|\ &+\ |/cour|", as they **may** match
 more aggressively than expected:
+
+.. doctest:: aggressive_matching
 
     >>> check_pattern(pattern="~ #+.i", text="foo bar 42 34")
     MATCH
@@ -99,12 +101,62 @@ more aggressively than expected:
 
 Punctuation will foul matches unless explicitly accounted for:
 
-*Commas, periods, etc.*
+.. doctest:: punctuation
 
-*Pattern commentary, some simple examples, links to other tutorial example pages*
+    >>> check_pattern(pattern="#+.i", text="1 2 ---- 3 4")
+    NO MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="#+.i &. #+.i", text="1 2 ---- 3 4")
+    MATCH
+    <BLANKLINE>
 
+
+In situations where punctuation is directly adjacent to the content
+to be captured, the :ref:`space-after flags <tutorial-basics-tokens-spaceflags>`
+must be used to modify ``pent``'s expectations for whitespace:
+
+.. doctest:: whitespace
+
+    >>> check_pattern(pattern="~ #..d @..", text="The value is 3.1415.")  # No space between '42' and '.'
+    NO MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="~ #x..d @..", text="The value is 3.1415.")
+    MATCH
+    <BLANKLINE>
+
+
+In situations where some initial content will definitely appear on a line,
+but some additional trailing content *may or may not* appear at the end of the line,
+it's important to use one of the space-after modifier flags in order for
+``pent`` to find a match. This is because the default required
+trailing whitespace will (naturally) *require* whitespace to be present
+between the end of the matched content and the end of the line,
+and if EOL immediately follows the content the pattern match will fail,
+since the required whitespace is absent:
+
+.. doctest:: eol_optional
+
+    >>> check_pattern(pattern="&. #.+i ~", text="always 42 sometimes")
+    MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="&. #.+i ~", text="always 42")
+    NO MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="&. #.+i ~", text="always 42   ")
+    MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="&. #x.+i ~", text="always 42")
+    MATCH
+    <BLANKLINE>
+
+
+.. _tutorial-basics-patterns-optionallineflag:
 
 Optional Line Flag: |cour|\ ?\ |/cour|
 --------------------------------------
 
-*DISCUSS*
+In some cases, an entire line of text will be present in some occurrences
+of a desired |Parser| match with a block of text, but absent in others.
+To accommodate such situations, ``pent`` recognizes an 'optional-line flag' in a pattern.
+This flag is a sole "|cour|\ ?\ |/cour|", occurring as the first "token"
+in the pattern ... **NEED TO RESUME HERE ONCE BEHAVIOR IS FIXED**

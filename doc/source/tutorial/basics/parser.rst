@@ -1,7 +1,7 @@
 .. Introducing the Parser semantics
 
-Nomenclature and Definitions: |Parser|
-======================================
+Basic Usage: |Parsers|
+======================
 
 *head/body/tail paradigm*
 

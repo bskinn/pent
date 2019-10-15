@@ -1,24 +1,24 @@
 .. Token-level semantics
 
-Nomenclature and Definitions: Tokens
-====================================
+Basic Usage: Tokens
+===================
 
 ``pent`` understands four kinds of tokens, which match varying types of content.
-One is an :ref:`'any' token <tutorial-defs-tokens-anytoken>`,
+One is an :ref:`'any' token <tutorial-basics-tokens-anytoken>`,
 which matches an arbitrary span of whitespace and/or
 non-whitespace content. The other three types are intended to match specific kinds of
 content within the line of text that are often, but not always,
 separated from surrounding content by whitespace.
 
-All four kinds of tokens accept a :ref:`flag <tutorial-defs-tokens-captureflag>`
+All four kinds of tokens accept a :ref:`flag <tutorial-basics-tokens-captureflag>`
 that instructs the encapsulating
 |Parser| to capture the content matching the token for output.
-A subset of the tokens accepts a :ref:`flag <tutorial-defs-tokens-spaceflags>`
+A subset of the tokens accepts a :ref:`flag <tutorial-basics-tokens-spaceflags>`
 that alters how the |Parser| handles the presence or absence of whitespace
 following the content matching the token.
 
 
-.. _tutorial-defs-tokens-anytoken:
+.. _tutorial-basics-tokens-anytoken:
 
 The 'Any' Token: |cour|\ ~\ |/cour|
 -----------------------------------
@@ -27,27 +27,27 @@ The 'any' token will match **anything**, including a completely blank line.
 It behaves essentially the same as "|cour|\ .*\ |/cour|" in regex.
 
 Currently, the 'any' token only accepts the
-:ref:`'capture' flag <tutorial-defs-tokens-captureflag>`
+:ref:`'capture' flag <tutorial-basics-tokens-captureflag>`
 (becoming "|cour|\ ~!\ |/cour|"). Addition of support for the
-:ref:`'space-after' flags <tutorial-defs-tokens-spaceflags>`
+:ref:`'space-after' flags <tutorial-basics-tokens-spaceflags>`
 is planned (:issue:`78`).
 
 Note that any content matched by a capturing 'any' token will be
 split at whitespace in |Parser| output.
 
 
-.. _tutorial-defs-tokens-misctoken:
+.. _tutorial-basics-tokens-misctoken:
 
 The 'Misc' Token: |cour|\ &\ |/cour|
 ------------------------------------
 
 The 'misc' token matches any sequence of non-whitespace characters.
-Its uses are similar to the :ref:`'any' token <tutorial-defs-tokens-anytoken>`,
+Its uses are similar to the :ref:`'any' token <tutorial-basics-tokens-anytoken>`,
 except that its match
 is confined to a single whitespace-delimited piece of content.
 It is mainly intended for use on non-numerical data
 whose content is not constant, and thus
-the :ref:`'literal' token <tutorial-defs-tokens-literaltoken>` cannot be used.
+the :ref:`'literal' token <tutorial-basics-tokens-literaltoken>` cannot be used.
 
 The 'misc' token has one required argument, indicating whether
 it should match exactly one piece of content
@@ -60,11 +60,11 @@ At this time, the functional difference between
 "|cour|\ ~\ |/cour|" and "|cour|\ &+\ |/cour|" is minimal.
 
 The 'misc' token accepts both the
-:ref:`capture flag <tutorial-defs-tokens-captureflag>`
-and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
+:ref:`capture flag <tutorial-basics-tokens-captureflag>`
+and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 
-.. _tutorial-defs-tokens-literaltoken:
+.. _tutorial-basics-tokens-literaltoken:
 
 The 'Literal' Token: |cour|\ @\ |/cour|
 ---------------------------------------
@@ -73,7 +73,7 @@ The 'literal' token matches an *exact* sequence of one or more
 whitespace-delimited characters, which is provided as a required argument
 in the token definition.
 
-Similar to the :ref:`'misc' token <tutorial-defs-tokens-misctoken>`,
+Similar to the :ref:`'misc' token <tutorial-basics-tokens-misctoken>`,
 the 'literal' token also has
 the quantity specifier as a required argument:
 either "|cour|\ @.\ |/cour|" for exactly one match
@@ -89,8 +89,8 @@ containing a space, the entire token can be enclosed in
 quotes: "|cour|\ '@.this has spaces'\ |/cour|".
 
 The 'literal' token differs from the
-:ref:`'misc' <tutorial-defs-tokens-misctoken>` and
-:ref:`'number' <tutorial-defs-tokens-numbertoken>` tokens
+:ref:`'misc' <tutorial-basics-tokens-misctoken>` and
+:ref:`'number' <tutorial-basics-tokens-numbertoken>` tokens
 in that when the one-or-more argument is used, it **prohibits**
 whitespace between the repetitions.
 This allows, e.g., a long sequence of hyphens to be represented
@@ -99,11 +99,11 @@ sequence of alternating hyphens and spaces could be represented
 by "|cour|\ '@+- '\ |/cour|".
 
 The 'literal' token accepts both the
-:ref:`capture flag <tutorial-defs-tokens-captureflag>`
-and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
+:ref:`capture flag <tutorial-basics-tokens-captureflag>`
+and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 
-.. _tutorial-defs-tokens-numbertoken:
+.. _tutorial-basics-tokens-numbertoken:
 
 The 'Number' Token: |cour|\ #\ |/cour|
 --------------------------------------
@@ -140,13 +140,13 @@ and it's thus useful to be able to filter/capture based on that format.
 :ref:`This example <tutorial-examples-singleparser-multiplevalues>`
 illustrates a simplified case of this.
 
-As with the :ref:`'misc' token <tutorial-defs-tokens-misctoken>`,
+As with the :ref:`'misc' token <tutorial-basics-tokens-misctoken>`,
 when matching in one-or-more quantity mode,
 the 'number' token interleaves *required* whitespace between each reptition.
 
 The 'number' token accepts both the
-:ref:`capture flag <tutorial-defs-tokens-captureflag>`
-and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
+:ref:`capture flag <tutorial-basics-tokens-captureflag>`
+and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 
 .. _tutorial=defs-tokens-flags:
@@ -155,14 +155,14 @@ Token Flags
 -----------
 
 Currently, two types of flags can be passed to tokens:
-:ref:`capture flag <tutorial-defs-tokens-captureflag>`
-and the :ref:`space-after <tutorial-defs-tokens-spaceflags>` modifier flags.
+:ref:`capture flag <tutorial-basics-tokens-captureflag>`
+and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 If both flags are used in a given token, the space-after modifier
 flag must **precede** the capture flag.
 
 
-.. _tutorial-defs-tokens-captureflag:
+.. _tutorial-basics-tokens-captureflag:
 
 Capture Flag: |cour|\ !\ |/cour|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -177,7 +177,7 @@ The 'capture' flag is an integral part of all of the
 :doc:`tutorial examples </tutorial/examples>`.
 
 
-.. _tutorial-defs-tokens-spaceflags:
+.. _tutorial-basics-tokens-spaceflags:
 
 Space-After Flags: |cour|\ o\ |/cour| and |cour|\ x\ |/cour|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

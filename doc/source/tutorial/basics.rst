@@ -1,10 +1,7 @@
 .. ~Glossary of terms, plus some explanation
 
-Nomenclature and Definitions
-============================
-
-**ADD LOTS OF LINKS TO RELEVANT EXAMPLE PAGES FROM THE TUTORIAL!!**
-
+Basic Usage
+===========
 
 ``pent`` searches text in a line-by-line fashion,
 where a line of text is delimited by the start/end
@@ -25,8 +22,8 @@ whitespace definition are planned (:issue:`26`).
 .. toctree::
     :maxdepth: 1
 
-    Tokens <defs/tokens>
-    Patterns <defs/patterns>
-    Parsers <defs/parser>
+    Tokens <basics/tokens>
+    Patterns <basics/patterns>
+    Parsers <basics/parser>
 
 
