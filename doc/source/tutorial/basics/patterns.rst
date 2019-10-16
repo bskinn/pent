@@ -159,4 +159,19 @@ In some cases, an entire line of text will be present in some occurrences
 of a desired |Parser| match with a block of text, but absent in others.
 To accommodate such situations, ``pent`` recognizes an 'optional-line flag' in a pattern.
 This flag is a sole "|cour|\ ?\ |/cour|", occurring as the first "token"
-in the pattern ... **NEED TO RESUME HERE ONCE BEHAVIOR IS FIXED**
+in the pattern. Inclusion of this flag will cause the pattern
+to match in the following three cases:
+
+1. A line is present that completely matches the optional pattern
+   (per usual behavior).
+
+2. A blank line (no non-whitespace content) is present where the
+   optional pattern would match.
+
+3. **NO** line is present where the optional pattern would match.
+
+It is difficult to construct meaningful examples of this behavior
+without using a full |Parser| construction; as such, see
+:doc:`this tutorial page </tutorial/examples/optional_line>`
+for more details.
+
