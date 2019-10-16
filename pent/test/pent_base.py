@@ -34,6 +34,7 @@ import re
 from textwrap import dedent
 import unittest as ut
 
+import pent
 from pent import ParserField
 from pent.errors import LineError
 from pent.thrulist import ThruList
@@ -951,6 +952,266 @@ class TestPentParserPatterns(ut.TestCase, SuperPent):
         self.assertEqual(result, expect)
 
 
+class TestPentParserOptlinePatterns(ut.TestCase, SuperPent):
+    """Confirming matching of optional-line patterns."""
+
+    def test_optional_1line_head(self):
+        """Confirm parsers with one optional line in head."""
+        prs = pent.Parser(head="? @!.foo", body="#!+.i")
+
+        # Many of these match because the "header" line is just
+        # ignored by the optional line of the head.
+        # NEED TO ROBUSTIFY WITH A CHECK ON THE HEAD CAPTURES!
+        good_texts = [
+            ("1 2 3", []),
+            ("1 2 3\n4 5 6", []),
+            ("foo\n1 2 3", [["foo"]]),
+            ("\n1 2 3", []),
+            ("foo\n\n\n1 2 3", []),
+            ("foobar\n1 2 3", []),
+        ]
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Head], tup[1])
+
+    def test_optional_2line_head(self):
+        """Confirm parsers with two optional lines in head."""
+        prs = pent.Parser(head=("? @!.foo", "? @!.bar"), body="#!+.i")
+
+        # Again, a couple of these match because the whole header
+        # is just ignored.
+        good_texts = [
+            ("1 2 3", []),
+            ("1 2 3\n4 5", []),
+            ("foo\n1 2 3", [["foo", None]]),
+            ("bar\n1 2 3", [[None, "bar"]]),
+            ("foobar\n1 2 3", [[None, None]]),
+            ("foo\n\n\n1 2 3", [[None, None]]),
+            ("foo\nbar\n1 2 3", [["foo", "bar"]]),
+            ("foo\n\n1 2 3", [["foo", None]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Head], tup[1])
+
+    def test_optional_lastline_head(self):
+        """Confirm parsers with one required & one optional line in head."""
+        prs = pent.Parser(head=("@!.foo", "? @!.bar"), body="#!+.i")
+
+        good_texts = [
+            ("foo\n1 2 3", [["foo", None]]),
+            ("foo\n\n1 2 3", [["foo", None]]),
+            ("foo\nbar\n1 2 3", [["foo", "bar"]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Head], tup[1])
+
+        bad_texts = ["foo\n\n\n1 2 3", "foo\nbaz\n1 2 3", "foo\nbar\n\n1 2 3"]
+
+        for i, text in enumerate(bad_texts):
+            with self.subTest("bad_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertEqual([], s)
+
+    def test_optional_firstline_head(self):
+        """Confirm parsers with one optional & one required line in head."""
+        prs = pent.Parser(head=("? @!.foo", "@!.bar"), body="#!+.i")
+
+        good_texts = [
+            ("bar\n1 2 3", [[None, "bar"]]),
+            ("foo\nbar\n1 2 3", [["foo", "bar"]]),
+            ("quuz\nbar\n1 2 3", [[None, "bar"]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Head], tup[1])
+
+        bad_texts = [
+            "foo\n1 2 3",
+            "foo\nbaz\n1 2 3",
+            "bar\n\n1 2 3",
+            "foo\nbar\n\n1 2 3",
+        ]
+
+        for i, text in enumerate(bad_texts):
+            with self.subTest("bad_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertEqual([], s)
+
+    def test_optional_body_line(self):
+        """Confirm optional line works inside body."""
+        prs = pent.Parser(
+            head="@.foo", body=("#!+.i", "? #!+.d"), tail="@.bar"
+        )
+
+        good_texts = [
+            dedent(
+                """
+                foo
+                1 2 3
+                1. 2. 3.
+                4 5 6
+                4. 5. 6.
+                bar
+                """
+            ),
+            dedent(
+                """
+                foo
+                1 2 3
+                4 5 6
+                7 8 9
+                7. 8. 9.
+                1 2 3
+                bar
+                """
+            ),
+        ]
+
+        for i, text in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertNotEqual([], s)
+
+    def test_optional_1line_tail(self):
+        """Confirm parsers with one optional line in tail."""
+        prs = pent.Parser(tail="? @!.foo", body="#!+.i")
+
+        # Many of these match because the "footer" line is just
+        # ignored by the optional line of the tail.
+        good_texts = [
+            ("1 2 3", []),
+            ("1 2 3\n4 5 6", []),
+            ("1 2 3\nfoo", [["foo"]]),
+            ("\n1 2 3\n", []),
+            ("1 2 3\n\nfoo", []),
+            ("1 2 3\nfoobar", []),
+        ]
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Tail], tup[1])
+
+    def test_optional_2line_tail(self):
+        """Confirm parsers with two optional lines in tail."""
+        prs = pent.Parser(tail=("? @!.foo", "? @!.bar"), body="#!+.i")
+
+        # Again, a couple of these match because the whole footer
+        # is just ignored.
+        good_texts = [
+            ("1 2 3", []),
+            ("1 2 3\n4 5", []),
+            ("1 2 3\nfoo", [["foo", None]]),
+            ("1 2 3\nbar", [[None, "bar"]]),
+            ("1 2 3\nfoobar\n", []),
+            ("1 2 3\n\nfoo", [[None, None]]),
+            ("1 2 3\nfoo\nbar", [["foo", "bar"]]),
+            ("1 2 3\nfoo\n\n", [["foo", None]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Tail], tup[1])
+
+    def test_optional_firstline_tail(self):
+        """Confirm parsers with one optional & one required line in tail."""
+        prs = pent.Parser(tail=("? @!.foo", "@!.bar"), body="#!+.i")
+
+        good_texts = [
+            ("1 2 3\nbar", [[None, "bar"]]),
+            ("1 2 3\n\nbar", [[None, "bar"]]),
+            ("1 2 3\nfoo\nbar", [["foo", "bar"]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Tail], tup[1])
+
+        bad_texts = ["1 2 3\n\n\nbar", "1 2 3\nfar\nbar", "1 2 3\n\nfoo\nbar"]
+
+        for i, text in enumerate(bad_texts):
+            with self.subTest("bad_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertEqual([], s)
+
+    def test_optional_lastline_tail(self):
+        """Confirm parsers with one required & one optional line in tail."""
+        prs = pent.Parser(tail=("@!.foo", "? @!.bar"), body="#!+.i")
+
+        good_texts = [
+            ("1 2 3\nfoo", [["foo", None]]),
+            ("1 2 3\nfoo\nbar", [["foo", "bar"]]),
+            ("1 2 3\nfoo\nquux", [["foo", None]]),
+        ]
+
+        for i, tup in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(tup[0])
+                self.assertNotEqual([], s)
+                self.assertEqual(s[pent.ParserField.Tail], tup[1])
+
+        bad_texts = [
+            "1 2 3\nbar",
+            "1 2 3\nfar\nbar",
+            "1 2 3\nbar",
+            "1 2 3\n\nfoo\nbar",
+        ]
+
+        for i, text in enumerate(bad_texts):
+            with self.subTest("bad_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertEqual([], s)
+
+    def test_absent_completely_optional_parser(self):
+        """Confirm match when an all-optional Parser section is absent."""
+        prs = pent.Parser(
+            head=pent.Parser(body="? &!. &!."),
+            body=pent.Parser(head="&!.", body="#!..i #!..i #!..i"),
+        )
+
+        good_texts = [
+            dedent(
+                """
+                   a b
+                   c
+                   1 2 3
+                   d
+                   4 5 6
+                   """
+            ),
+            dedent(
+                """
+                   c
+                   1 2 3
+                   d
+                   4 5 6
+                   """
+            ),
+        ]
+
+        for i, text in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertNotEqual([], s)
+
+
 def suite_base():
     """Create and return the test suite for base tests."""
     s = ut.TestSuite()
@@ -959,6 +1220,7 @@ def suite_base():
         [
             tl.loadTestsFromTestCase(TestPentCorePatterns),
             tl.loadTestsFromTestCase(TestPentParserPatterns),
+            tl.loadTestsFromTestCase(TestPentParserOptlinePatterns),
             tl.loadTestsFromTestCase(TestPentTokens),
             tl.loadTestsFromTestCase(TestPentThruList),
         ]
