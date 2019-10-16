@@ -1179,6 +1179,38 @@ class TestPentParserOptlinePatterns(ut.TestCase, SuperPent):
                 s = prs.capture_struct(text)
                 self.assertEqual([], s)
 
+    def test_absent_completely_optional_parser(self):
+        """Confirm match when an all-optional Parser section is absent."""
+        prs = pent.Parser(
+            head=pent.Parser(body="? &!. &!."),
+            body=pent.Parser(head="&!.", body="#!..i #!..i #!..i"),
+        )
+
+        good_texts = [
+            dedent(
+                """
+                   a b
+                   c
+                   1 2 3
+                   d
+                   4 5 6
+                   """
+            ),
+            dedent(
+                """
+                   c
+                   1 2 3
+                   d
+                   4 5 6
+                   """
+            ),
+        ]
+
+        for i, text in enumerate(good_texts):
+            with self.subTest("good_{}".format(i)):
+                s = prs.capture_struct(text)
+                self.assertNotEqual([], s)
+
 
 def suite_base():
     """Create and return the test suite for base tests."""

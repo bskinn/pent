@@ -158,9 +158,11 @@ class Parser:
             # This is unreachable at the moment
             raise SectionError("Invalid pattern string for capture")
 
-        if text is None:
-            # An all-optional section was entirely absent
-            return [[None]]
+        if text is None:  # pragma: no cover
+            # The changes implemented for optional-line handling (#89)
+            # appear to have made this irrelevant. However,
+            # it was included at one time, so keep the trap
+            raise RuntimeError("'text' was unexpectedly None")
 
         data = []
         for m in re.finditer(pat_re, text):
