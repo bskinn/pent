@@ -72,6 +72,9 @@ If a line contains more than one piece of non-whitespace text,
     >>> check_pattern(pattern="#+.i", text="-2 -1 foo 1 2")  # 'foo' is not an int
     NO MATCH
     <BLANKLINE>
+    >>> check_pattern(pattern="#+.i &. #+.i", text="-2 -1 foo 1 2")
+    MATCH
+    <BLANKLINE>
 
 Be careful when using "|cour|\ ~\ |/cour|" and
 "|\cour|\ &+\ |/cour|", as they **may** match
@@ -117,7 +120,7 @@ must be used to modify ``pent``'s expectations for whitespace:
 
 .. doctest:: whitespace
 
-    >>> check_pattern(pattern="~ #..d @..", text="The value is 3.1415.")  # No space between '42' and '.'
+    >>> check_pattern(pattern="~ #..d @..", text="The value is 3.1415.")  # No space between number and '.'
     NO MATCH
     <BLANKLINE>
     >>> check_pattern(pattern="~ #x..d @..", text="The value is 3.1415.")
@@ -128,7 +131,8 @@ must be used to modify ``pent``'s expectations for whitespace:
 In situations where some initial content will definitely appear on a line,
 but some additional trailing content *may or may not* appear at the end of the line,
 it's important to use one of the space-after modifier flags in order for
-``pent`` to find a match. This is because the default required
+``pent`` to find a match when the trailing content is absent.
+This is because the default required
 trailing whitespace will (naturally) *require* whitespace to be present
 between the end of the matched content and the end of the line,
 and if EOL immediately follows the content the pattern match will fail,
@@ -146,6 +150,9 @@ since the required whitespace is absent:
     MATCH
     <BLANKLINE>
     >>> check_pattern(pattern="&. #x.+i ~", text="always 42")
+    MATCH
+    <BLANKLINE>
+    >>> check_pattern(pattern="&. #x.+i ~", text="always 42 sometimes")
     MATCH
     <BLANKLINE>
 
@@ -172,6 +179,6 @@ to match in the following three cases:
 
 It is difficult to construct meaningful examples of this behavior
 without using a full |Parser| construction; as such, see
-:doc:`this tutorial page </tutorial/examples/optional_line>`
+:ref:`this tutorial page <tutorial-examples-optline-threetypes>`
 for more details.
 

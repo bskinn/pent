@@ -5,10 +5,10 @@ The Optional-Line Token
 
 In some situations, data is output in a fashion such
 that a line of, e.g., header text is present in
-some cases but not others. Take the following
-fictitious example:
+some parts of the content of interest, but not others.
+Take the following fictitious example:
 
-.. doctest:: optional_line
+.. doctest:: main
 
     >>> text = dedent("""
     ...     $DATA
@@ -26,7 +26,7 @@ fictitious example:
 
 This data block could be matched with triply nested |Parsers|:
 
-.. doctest:: optional_line
+.. doctest:: main
 
     >>> prs_3x = pent.Parser(
     ...     head="@.$DATA",
@@ -48,7 +48,7 @@ can sometimes lead to problematically slow parsing times.
 The :ref:`optional-line <tutorial-basics-patterns-optionallineflag>`
 pattern flag allows for a simpler |Parser| structure here:
 
-.. doctest:: optional_line
+.. doctest:: main
 
     >>> prs_opt = pent.Parser(
     ...     head=("? @.$DATA", "@.ITERATION #..i"),
@@ -72,7 +72,7 @@ lines containing decimals are *strictly* alternating,
 yet another alternative would be to include the integer 'header'
 lines as a non-captured portion of the *body*:
 
-.. doctest:: optional_line
+.. doctest:: main
 
     >>> prs_opt = pent.Parser(
     ...     head=("? @.$DATA", "@.ITERATION #..i"),
@@ -90,6 +90,50 @@ matrix. This may or may not be desirable, depending on the
 semantics of the data being captured.
 
 
+.. _tutorial-examples-optline-threetypes:
 
-*Examples of exactly how it matches*
-------------------------------------
+The Three Cases of Optional-Line Matches
+----------------------------------------
+
+As noted at the
+:ref:`'pattern' basic usage page <tutorial-basics-patterns-optionallineflag>`,
+a pattern with the optional flag will match in three situations:
+
+1. When a line is present matching the optional pattern:
+
+   .. doctest:: match_types
+
+       >>> prs = pent.Parser(body=("@!.a", "? @!.b", "@!.c"))
+       >>> prs.capture_body("""a
+       ...                     b
+       ...                     c""")
+       [[['a', 'b', 'c']]]
+
+2. When a blank line is present where the optional pattern would match:
+
+   .. doctest:: match_types
+
+       >>> prs.capture_body("""a
+       ...
+       ...                     c""")
+       [[['a', None, 'c']]]
+
+3. When there is **no** line present where the optional pattern would match:
+
+   .. doctest:: match_types
+
+       >>> prs.capture_body("""a
+       ...                     c""")
+       [[['a', None, 'c']]]
+
+If a line is present that does not match the optional pattern,
+the **entire** |Parser| will fail to match:
+
+.. doctest:: match_types
+
+    >>> prs.capture_body("""a
+    ...                     foo
+    ...                     c""")
+    []
+
+
