@@ -95,7 +95,7 @@ semantics of the data being captured.
 The Three Cases of Optional-Line Matches
 ----------------------------------------
 
-As noted at the
+More generally, as noted at the
 :ref:`'pattern' basic usage page <tutorial-basics-patterns-optionallineflag>`,
 a pattern with the optional flag will match in three situations:
 

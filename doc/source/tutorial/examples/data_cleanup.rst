@@ -1,6 +1,6 @@
 .. Example where data cleanup is needed
 
-Pre-Processing/Data Cleanup Example
-===================================
+\*Pre-Processing/Data Cleanup Example
+=====================================
 
 *pending*

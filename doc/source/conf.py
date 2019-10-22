@@ -85,6 +85,8 @@ rst_epilog = """
 
 .. |list| replace:: :class:`list`
 
+.. |tuple| replace:: :class:`tuple`
+
 .. |None| replace:: :obj:`None`
 
 .. |dict| replace:: :obj:`dict`

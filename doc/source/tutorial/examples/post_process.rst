@@ -1,7 +1,7 @@
 .. Post-processing example
 
-Post-Processing of Captured Data
-================================
+\*Post-Processing of Captured Data
+==================================
 
 Sometimes, data in text is laid out in a way such that
 ``pent`` can't retrieve *only* the data of interest
