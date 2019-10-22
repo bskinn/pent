@@ -1,4 +1,4 @@
-attrs<18
+attrs
 numpy
 sphinx>=2,<3
 sphinx_rtd_theme
