@@ -24,6 +24,6 @@ whitespace definition are planned (:issue:`26`).
 
     Tokens <basics/tokens>
     Patterns <basics/patterns>
-    Parsers <basics/parser>
+    Parsers <basics/parsers>
 
 
