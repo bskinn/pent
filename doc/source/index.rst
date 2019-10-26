@@ -60,6 +60,11 @@ and it will scrape the data directly from the text:
     >>> prs.capture_body(text)
     [[['0.000'], ['-3.853'], ['1.219']]]
 
+This is just one example of ``pent``\ 's parsing
+capabilities---it's an extremely flexible tool, which can retrieve
+just about anything you want from just about any
+surrounding text.
+
 Usage instructions for ``pent`` are provided in the
 :doc:`tutorial </tutorial>`, broken up into
 (1) an explanation of the
