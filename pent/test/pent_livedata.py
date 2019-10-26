@@ -539,4 +539,3 @@ def suite_live_gamess():
     tl = ut.TestLoader()
     s.addTests([tl.loadTestsFromTestCase(TestPentGAMESSLiveData)])
     return s
-

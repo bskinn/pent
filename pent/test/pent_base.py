@@ -1226,4 +1226,3 @@ def suite_base():
         ]
     )
     return s
-

@@ -147,4 +147,3 @@ class SpaceAfter(str, Enum):
 
     #: Following space prohibited
     Prohibited = "x"
-

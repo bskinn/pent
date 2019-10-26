@@ -326,4 +326,3 @@ class Token:
             return (self._group_open() + pat + self._group_close(), True)
         else:
             return pat, False
-

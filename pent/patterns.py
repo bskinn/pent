@@ -105,4 +105,3 @@ number_patterns = {}
 
 for (n, s) in itt.product(Number, Sign):
     number_patterns.update({(n, s): _p_signs[s] + _p_nums[n]})
-

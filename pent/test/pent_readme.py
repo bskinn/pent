@@ -56,4 +56,3 @@ def suite_doctest_readme():
     s.addTests([TestPentReadme])
 
     return s
-

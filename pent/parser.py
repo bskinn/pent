@@ -355,4 +355,3 @@ class Parser:
         """Perform instantiation-time stuff."""
         # Check pattern viability *now*
         self.pattern(capture_sections=False)
-

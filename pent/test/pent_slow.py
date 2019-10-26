@@ -120,4 +120,3 @@ def suite_base_slow():
     tl = ut.TestLoader()
     s.addTests([tl.loadTestsFromTestCase(TestPentParserPatternsSlow)])
     return s
-

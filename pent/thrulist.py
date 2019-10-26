@@ -44,4 +44,3 @@ class ThruList(list):
                 )
             else:
                 raise ThruListError(msg="Numeric index required for len != 1")
-

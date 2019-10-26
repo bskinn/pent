@@ -77,4 +77,3 @@ class ThruListError(PentError):  # pragma: no cover
     def __str__(self):
         """Generate a more-informative error message."""
         return "Invalid ThruList index: {}".format(self.msg)
-
