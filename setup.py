@@ -61,6 +61,6 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Utilities",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
     ],
 )

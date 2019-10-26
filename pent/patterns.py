@@ -9,7 +9,7 @@ r"""*Regex patterns for* ``pent``.
     2 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -105,7 +105,3 @@ number_patterns = {}
 
 for (n, s) in itt.product(Number, Sign):
     number_patterns.update({(n, s): _p_signs[s] + _p_nums[n]})
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

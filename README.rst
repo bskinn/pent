@@ -94,8 +94,7 @@ of lines, without writing **any** regex at all:
 
 .. code:: python
 
-    >>> with (pathlib.Path() / "pent" / "test" / "C2F4_01.hess").open() as f:
-    ...     data = f.read()
+    >>> data = pathlib.Path("pent", "test", "C2F4_01.hess").read_text()
     >>> prs = pent.Parser(
     ...     head=("@.$vibrational_frequencies", "#.+i"),
     ...     body=("#.+i #!..f")
@@ -128,7 +127,7 @@ column vector, because the data runs down the column in the file.
 ``pent`` can handle larger, more deeply nested data as well.
 Take `this 18x18 matrix <https://github.com/bskinn/pent/blob/cbb3c9b24c773b51b4988485b838537043ec8299/pent/test/C2F4_01.hess#L13-L71>`__
 within ``C2F4_01.hess``, for example.
-Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
+Here, it's necessary to pass a ``Parser`` as the *body* of another ``Parser``:
 
 .. code:: python
 
@@ -140,7 +139,7 @@ Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
     ...     )
     ... )
     >>> result = prs_hess.capture_body(data)
-    >>> arr = np.column_stack(np.array(_, dtype=float) for _ in result[0])
+    >>> arr = np.column_stack([np.array(_, dtype=float) for _ in result[0]])
     >>> print(arr[:3, :7])
     [[ 0.468819 -0.006771  0.020586 -0.38269   0.017874 -0.05449  -0.044552]
      [-0.006719  0.022602 -0.016183  0.010997 -0.033397  0.014422 -0.01501 ]
@@ -149,7 +148,9 @@ Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
 The need for the generator expression, the ``[0]`` index into ``result``,
 and the composition via ``np.column_stack`` arises
 due to the manner in which ``pent`` returns data from a nested match like this.
-See the `documentation <https://pent.readthedocs.io/en/latest>`__ for more information.
+See the `documentation <https://pent.readthedocs.io/en/latest>`__,
+in particular `this example <https://pent.readthedocs.io/en/latest/tutorial/examples/nested_parsers.html>`__
+for more information.
 
 The grammar of the ``pent`` mini-language is designed to be flexible enough that
 it should handle essentially all well-formed structured data, and even some data
@@ -160,20 +161,21 @@ parsing `this data block <https://github.com/bskinn/pent/blob/eaa79a09af88d3836d
 
 -----
 
-Alpha release(s) available on `PyPI <https://pypi.org/project/pent>`__: ``pip install pent``
+Beta releases available on `PyPI <https://pypi.org/project/pent>`__: ``pip install pent``
 
-Full documentation (pending) is hosted at
+Full documentation is hosted at
 `Read The Docs <http://pent.readthedocs.io/en/latest/>`__.
 
 Source on `GitHub <https://github.com/bskinn/pent>`__.  Bug reports,
-feature requests, and ``Parser`` pattern composition help requests
+feature requests, and ``Parser`` construction help requests
 are welcomed at the
 `Issues <https://github.com/bskinn/pent/issues>`__ page there.
 
-Copyright (c) Brian Skinn 2018
+Copyright (c) Brian Skinn 2018-2019
 
 License: The MIT License. See `LICENSE.txt <https://github.com/bskinn/pent/blob/master/LICENSE.txt>`__
 for full license terms.
+
 
 .. |cclib| replace:: ``cclib``
 

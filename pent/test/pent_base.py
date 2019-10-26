@@ -9,7 +9,7 @@ r"""*Core test objects for* ``pent`` *test suite*.
     3 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -1226,7 +1226,3 @@ def suite_base():
         ]
     )
     return s
-
-
-if __name__ == "__main__":
-    print("Module not executable.")

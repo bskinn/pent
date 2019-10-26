@@ -4,7 +4,11 @@ API (draft page)
 ================
 
 Unstructured API dump, to provide cross-reference targets
-for other portions of the docs
+for other portions of the docs.
+
+Any of the objects/attributes/methods documented here may
+become private implementation details in future
+versions of ``pent``.
 
 
 .. automodule:: pent.parser

@@ -9,7 +9,7 @@ r"""*Mini-language parser for* ``pent``.
     8 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -355,7 +355,3 @@ class Parser:
         """Perform instantiation-time stuff."""
         # Check pattern viability *now*
         self.pattern(capture_sections=False)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

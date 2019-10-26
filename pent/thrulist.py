@@ -9,7 +9,7 @@ r"""*Custom list object for* ``pent``.
     3 Oct 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -44,7 +44,3 @@ class ThruList(list):
                 )
             else:
                 raise ThruListError(msg="Numeric index required for len != 1")
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

@@ -9,7 +9,7 @@ r"""*Core package definition module for* ``pent``.
     3 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -60,4 +60,4 @@ from .token import Token
 from .utils import column_stack_2d
 
 
-__version__ = "0.2rc1"
+__version__ = "0.2.dev1"
