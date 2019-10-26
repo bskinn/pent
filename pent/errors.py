@@ -26,7 +26,7 @@ r"""*Custom exceptions for* ``pent``.
 
 
 class PentError(Exception):  # pragma: no cover
-    """Superclass for all custom |pent| errors."""
+    """Superclass for all custom pent errors."""
 
     pass
 

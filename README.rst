@@ -1,7 +1,8 @@
 pent Extracts Numerical Text
 ============================
 
-*Mini-language driven parser for structured numerical data*
+*Mini-language driven parser for structured numerical (or other) data
+in free text*
 
 **Current Development Version:**
 
@@ -73,8 +74,8 @@ but that's just exhausting drudgery if there are dozens of files involved.
 
 Automating the parsing via a line-by-line string search would work fine
 (this is how |cclib|_ implements its data imports), but a new line-by-line
-method must be implemented any time one encounters a new kind of dataset,
-and any time the formatting of a given dataset changes between software versions.
+method is needed for every new kind of dataset,
+and any time the formatting of a given dataset changes.
 
 It's not *too* hard to
 `write regex <https://github.com/bskinn/opan/blob/12c8e98de2a81bbd570c821644063d975e2ab03e/opan/hess.py#L688-L701>`__
@@ -145,7 +146,7 @@ Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
      [-0.006719  0.022602 -0.016183  0.010997 -0.033397  0.014422 -0.01501 ]
      [ 0.020559 -0.016184  0.066859 -0.033601  0.014417 -0.072836  0.045825]]
 
-The need for the ``for``/``in`` iteration expression, the ``[0]`` index into ``result``,
+The need for the generator expression, the ``[0]`` index into ``result``,
 and the composition via ``np.column_stack`` arises
 due to the manner in which ``pent`` returns data from a nested match like this.
 See the `documentation <https://pent.readthedocs.io/en/latest>`__ for more information.

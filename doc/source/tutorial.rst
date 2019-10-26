@@ -11,16 +11,22 @@ it's important to inspect your starting data carefully, often by
 loading it into a Python string, to be sure there aren't, say, a bunch of
 unprintable characters floating around and fouling the regex matches.
 
-This tutorial lays out some approaches to the process of constructing |Parser|\ s
-for real-world datasets, hopefully allowing new users to get quickly up to speed
-building their own |Parser|\ s. For more information about the
-specifics of the grammar of the tokens used herein, see the
+This tutorial starts by describing the basic structure of
+the semantic components of ``pent``'s parsing model:
+*tokens*, *patterns*, and |Parsers|.
+It then lays out some approaches to constructing |Parsers|
+for realistic datasets, with the goal of enabling new users
+to get quickly up to speed
+building their own |Parsers|.
+
+For a formal description of the
+grammar of the tokens used herein, see the
 :doc:`grammar`.
 
 
 .. toctree::
+    :maxdepth: 2
 
-    tutorial/single_parser
-    tutorial/nested_parsers
-    tutorial/post_processing
-    tutorial/data_cleanup
+    tutorial/basics
+    tutorial/examples
+

@@ -182,7 +182,7 @@ class Token:
         """Return match quantity.
 
         |None| for :attr:`pent.enums.Content.Any` or
-        :attr:`pent.enums.Content.OptionalLine
+        :attr:`pent.enums.Content.OptionalLine`
 
         """
         if self.is_any or self.is_optional_line:
