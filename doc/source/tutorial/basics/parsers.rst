@@ -1,7 +1,7 @@
 .. Introducing the Parser semantics
 
-Basic Usage: |Parsers|
-======================
+Basic Usage: Parsers
+====================
 
 The |Parser| is the main user-facing interface to ``pent``,
 where the patterns matching the data of interest
@@ -35,7 +35,11 @@ The syntax and matching structure of |Parsers| using
 these three kinds of arguments are illustrated below
 using trivial examples. Application of ``pent`` to
 more-realistic situations is demonstrated in the
-:doc:`examples section </tutorial/examples>` of the tutorial.
+:doc:`Examples section </tutorial/examples>` of the tutorial.
+
+In the below examples, most illustrations are of the use
+of *head*, rather than *tail*. However, the principles
+apply equally well to both.
 
 
 Matching with Single Patterns
@@ -102,7 +106,7 @@ Matching with Iterables of Patterns
 -----------------------------------
 
 Sometimes data is structured in such a way that
-it's necessary to association more than one line of text
+it's necessary to associate more than one line of text
 with a given portion of a |Parser|. This is most
 common with *head* and *tail*, but it can occur with
 *body* as well. These situations are addressed
@@ -145,7 +149,7 @@ rows of integers, both datasets would be retrieved:
     >>> pent.Parser(head="#++i", body="#!++d").capture_body(text)
     [[['1.5', '2.1', '1.1']], [['0.1', '0.4', '0.2']]]
 
-Situations where an iterable can be passed into *body* are less common,
+Situations calling for passing an iterable into *body* are less common,
 but can occur if there is a strictly repeating, cyclic pattern to the
 text to be parsed:
 
@@ -202,4 +206,68 @@ such as the
 Matching with a Nested |Parser|
 -------------------------------
 
-**RESUME**
+For data with more complex internal structure, often the best
+way to match it is to pass a |Parser| to one or more of
+*head*, *body*, or *tail*.
+
+In situations where the header or footer content has a variable
+number of lines that all match the same pattern, passing
+a |Parser| is often the most concise approach, as it
+exploits the implicit matching of one-or-more lines by
+the *body* of that internal |Parser|:
+
+.. doctest:: parsers
+
+    >>> text_head = """foo
+    ...                1 2 3
+    ...                bar
+    ...                bar
+    ...
+    ...                foo
+    ...                1 2 3
+    ...                4 5 6 7 8
+    ...                9 10
+    ...                bar
+    ...                bar
+    ...                bar"""
+    >>> prs_head = pent.Parser(
+    ...     head=pent.Parser(
+    ...         head="@.foo",
+    ...         body="#++i",
+    ...     ),
+    ...     body="@!.bar",
+    ... )
+    >>> prs_head.capture_body(text_head)
+    [[['bar'], ['bar']], [['bar'], ['bar'], ['bar']]]
+
+Another common use of an internal |Parser| is when
+the main data content itself has a header/body/footer structure,
+but it is also necessary to specify an overall header for the
+data in order to avoid capturing multiple times within the
+broader text:
+
+.. doctest:: parsers
+
+    >>> text_body = """WANTED
+    ...                foo
+    ...                bar
+    ...                bar
+    ...
+    ...                UNWANTED
+    ...                foo
+    ...                bar
+    ...                bar
+    ...                bar
+    ...                bar"""
+    >>> prs_body = pent.Parser(
+    ...     head="@.WANTED",
+    ...     body=pent.Parser(
+    ...         head="@.foo",
+    ...         body="@!.bar",
+    ...     ),
+    ... )
+    >>> prs_body.capture_body(text_body)
+    [[[['bar'], ['bar']]]]
+
+A clearer description of this approach is provided in
+:doc:`this tutorial example </tutorial/examples/nested_parsers>`.
