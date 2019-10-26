@@ -48,7 +48,8 @@ from the individual lines.
 ``pent`` **writes all this regex for you.**
 
 All you have to do is provide ``pent`` with the structure of
-the text, including which parts should be captured for output,
+the text using its custom mini-language,
+including which parts should be captured for output,
 and it will scrape the data directly from the text:
 
 .. doctest:: toy
