@@ -121,6 +121,3 @@ def suite_base_slow():
     s.addTests([tl.loadTestsFromTestCase(TestPentParserPatternsSlow)])
     return s
 
-
-if __name__ == "__main__":
-    print("Module not executable.")

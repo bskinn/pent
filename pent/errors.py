@@ -78,6 +78,3 @@ class ThruListError(PentError):  # pragma: no cover
         """Generate a more-informative error message."""
         return "Invalid ThruList index: {}".format(self.msg)
 
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

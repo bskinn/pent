@@ -57,6 +57,3 @@ def suite_doctest_readme():
 
     return s
 
-
-if __name__ == "__main__":
-    print("Module not executable.")

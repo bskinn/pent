@@ -327,6 +327,3 @@ class Token:
         else:
             return pat, False
 
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

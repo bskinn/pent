@@ -45,6 +45,3 @@ class ThruList(list):
             else:
                 raise ThruListError(msg="Numeric index required for len != 1")
 
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

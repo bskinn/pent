@@ -540,6 +540,3 @@ def suite_live_gamess():
     s.addTests([tl.loadTestsFromTestCase(TestPentGAMESSLiveData)])
     return s
 
-
-if __name__ == "__main__":
-    print("Module not executable.")

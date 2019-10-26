@@ -148,6 +148,3 @@ class SpaceAfter(str, Enum):
     #: Following space prohibited
     Prohibited = "x"
 
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

@@ -356,6 +356,3 @@ class Parser:
         # Check pattern viability *now*
         self.pattern(capture_sections=False)
 
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

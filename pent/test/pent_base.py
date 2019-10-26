@@ -1227,6 +1227,3 @@ def suite_base():
     )
     return s
 
-
-if __name__ == "__main__":
-    print("Module not executable.")
