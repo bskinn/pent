@@ -9,7 +9,7 @@ r"""*Utility functions for* ``pent``.
     14 Oct 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
