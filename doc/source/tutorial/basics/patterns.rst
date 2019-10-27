@@ -3,9 +3,9 @@
 Basic Usage: Patterns
 =====================
 
-A ``pent`` *pattern* is a series of whitespace-delimited
-:doc:`tokens <tokens>` that represents **all** non-whitespace
-content on a given line of text.
+A ``pent`` *pattern* is a series of :doc:`tokens <tokens>` that
+represents **all** non-whitespace content on a given line of text.
+The tokens (and their arguments) are delimited by whitespace.
 
 A blank line---one that is empty, or contains only
 whitespace---can be matched with an empty pattern string:
