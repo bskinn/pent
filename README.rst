@@ -1,33 +1,34 @@
 pent Extracts Numerical Text
 ============================
 
-*Mini-language driven parser for structured numerical data*
+*Mini-language driven parser for structured numerical (or other) data
+in free text*
 
 **Current Development Version:**
 
-.. image:: https://travis-ci.org/bskinn/pent.svg?branch=dev
+.. image::  https://img.shields.io/travis/bskinn/pent?label=travis-ci&logo=travis
     :target: https://travis-ci.org/bskinn/pent
 
-.. image:: https://codecov.io/gh/bskinn/pent/branch/dev/graph/badge.svg
+.. image:: https://codecov.io/gh/bskinn/pent/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/bskinn/pent
 
 **Most Recent Stable Release:**
 
-.. image:: https://img.shields.io/pypi/v/pent.svg
+.. image:: https://img.shields.io/pypi/v/pent.svg?logo=pypi
     :target: https://pypi.org/project/pent
 
-.. image:: https://img.shields.io/pypi/pyversions/pent.svg
+.. image:: https://img.shields.io/pypi/pyversions/pent.svg?logo=python
 
 **Info:**
 
-.. image:: https://img.shields.io/readthedocs/pent/latest.svg
+.. image:: https://img.shields.io/readthedocs/pent/latest
     :target: http://pent.readthedocs.io/en/latest/
 
 .. image:: https://img.shields.io/github/license/mashape/apistatus.svg
-    :target: https://github.com/bskinn/pent/blob/master/LICENSE.txt
+    :target: https://github.com/bskinn/pent/blob/stable/LICENSE.txt
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
+    :target: https://github.com/psf/black
 
 ----
 
@@ -73,8 +74,8 @@ but that's just exhausting drudgery if there are dozens of files involved.
 
 Automating the parsing via a line-by-line string search would work fine
 (this is how |cclib|_ implements its data imports), but a new line-by-line
-method must be implemented any time one encounters a new kind of dataset,
-and any time the formatting of a given dataset changes between software versions.
+method is needed for every new kind of dataset,
+and any time the formatting of a given dataset changes.
 
 It's not *too* hard to
 `write regex <https://github.com/bskinn/opan/blob/12c8e98de2a81bbd570c821644063d975e2ab03e/opan/hess.py#L688-L701>`__
@@ -93,8 +94,7 @@ of lines, without writing **any** regex at all:
 
 .. code:: python
 
-    >>> with (pathlib.Path() / "pent" / "test" / "C2F4_01.hess").open() as f:
-    ...     data = f.read()
+    >>> data = pathlib.Path("pent", "test", "C2F4_01.hess").read_text()
     >>> prs = pent.Parser(
     ...     head=("@.$vibrational_frequencies", "#.+i"),
     ...     body=("#.+i #!..f")
@@ -127,7 +127,7 @@ column vector, because the data runs down the column in the file.
 ``pent`` can handle larger, more deeply nested data as well.
 Take `this 18x18 matrix <https://github.com/bskinn/pent/blob/cbb3c9b24c773b51b4988485b838537043ec8299/pent/test/C2F4_01.hess#L13-L71>`__
 within ``C2F4_01.hess``, for example.
-Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
+Here, it's necessary to pass a ``Parser`` as the *body* of another ``Parser``:
 
 .. code:: python
 
@@ -139,16 +139,18 @@ Here, it's necessary to pass a ``Parser`` as the `body` of another ``Parser``:
     ...     )
     ... )
     >>> result = prs_hess.capture_body(data)
-    >>> arr = np.column_stack(np.array(_, dtype=float) for _ in result[0])
+    >>> arr = np.column_stack([np.array(_, dtype=float) for _ in result[0]])
     >>> print(arr[:3, :7])
     [[ 0.468819 -0.006771  0.020586 -0.38269   0.017874 -0.05449  -0.044552]
      [-0.006719  0.022602 -0.016183  0.010997 -0.033397  0.014422 -0.01501 ]
      [ 0.020559 -0.016184  0.066859 -0.033601  0.014417 -0.072836  0.045825]]
 
-The need for the ``for``/``in`` iteration expression, the ``[0]`` index into ``result``,
+The need for the generator expression, the ``[0]`` index into ``result``,
 and the composition via ``np.column_stack`` arises
 due to the manner in which ``pent`` returns data from a nested match like this.
-See the `documentation <https://pent.readthedocs.io/en/latest>`__ for more information.
+See the `documentation <https://pent.readthedocs.io/en/latest>`__,
+in particular `this example <https://pent.readthedocs.io/en/latest/tutorial/examples/nested_parsers.html>`__,
+for more information.
 
 The grammar of the ``pent`` mini-language is designed to be flexible enough that
 it should handle essentially all well-formed structured data, and even some data
@@ -159,20 +161,21 @@ parsing `this data block <https://github.com/bskinn/pent/blob/eaa79a09af88d3836d
 
 -----
 
-Alpha release(s) available on `PyPI <https://pypi.org/project/pent>`__: ``pip install pent``
+Beta releases available on `PyPI <https://pypi.org/project/pent>`__: ``pip install pent``
 
-Full documentation (pending) is hosted at
+Full documentation is hosted at
 `Read The Docs <http://pent.readthedocs.io/en/latest/>`__.
 
 Source on `GitHub <https://github.com/bskinn/pent>`__.  Bug reports,
-feature requests, and ``Parser`` pattern composition help requests
+feature requests, and ``Parser`` construction help requests
 are welcomed at the
 `Issues <https://github.com/bskinn/pent/issues>`__ page there.
 
-Copyright (c) Brian Skinn 2018
+Copyright (c) Brian Skinn 2018-2019
 
 License: The MIT License. See `LICENSE.txt <https://github.com/bskinn/pent/blob/master/LICENSE.txt>`__
 for full license terms.
+
 
 .. |cclib| replace:: ``cclib``
 

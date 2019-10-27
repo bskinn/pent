@@ -14,6 +14,7 @@
 #
 import os
 import os.path as osp
+import re
 import sys
 sys.path.insert(0, osp.abspath(osp.join(os.pardir, os.pardir)))
 
@@ -24,10 +25,12 @@ project = 'pent'
 copyright = '2018, Brian Skinn'
 author = 'Brian Skinn'
 
+from pent import __version__
+
 # The short X.Y version
-version = '0.1'
+version = re.match(r"\d+\.\d+", __version__).group()
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -75,6 +78,72 @@ exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+rst_epilog = """
+
+.. |str| replace:: :class:`str`
+
+.. |list| replace:: :class:`list`
+
+.. |tuple| replace:: :class:`tuple`
+
+.. |None| replace:: :obj:`None`
+
+.. |dict| replace:: :obj:`dict`
+
+.. |ndarray| replace:: :class:`~numpy.ndarray`
+
+.. |Parser| replace:: :class:`~pent.parser.Parser`
+
+.. |Parsers| replace:: :class:`Parsers <pent.parser.Parser>`
+
+.. |Token| replace:: :class:`~pent.token.Token`
+
+.. |ThruList| replace:: :class:`~pent.thrulist.ThruList`
+
+.. |capture_body| replace:: :meth:`~pent.parser.Parser.capture_body`
+
+.. |capture_struct| replace:: :meth:`~pent.parser.Parser.capture_struct`
+
+.. |license_txt| replace:: LICENSE.txt
+
+.. _license_txt: https://github.com/bskinn/pent/blob/master/LICENSE.txt
+
+.. |cour| raw:: html
+
+    <span style="font-family:courier;font-size:90%">
+
+.. |/cour| raw:: html
+
+    </span>
+
+.. |br| raw:: html
+
+    <br/>
+
+.. |nbsp| raw:: html
+
+    &nbsp;
+
+"""
+
+doctest_global_setup = r"""\
+
+from textwrap import dedent
+
+import numpy as np
+
+import pent
+
+def check_pattern(*, pattern, text):
+    prs = pent.Parser(body=pattern)
+    print("MATCH" if len(prs.capture_body(text)) > 0 else "NO MATCH", end='\n\n')
+
+def show_capture(*, pattern, text):
+    prs = pent.Parser(body=pattern)
+    print(prs.capture_body(text), end='\n\n')
+
+"""
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -168,9 +237,14 @@ texinfo_documents = [
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/', 'isphx/objects_python.inv')}
+intersphinx_mapping = {'python': ('https://docs.python.org/3/', (None, 'isphx/objects_python.inv')),
+                       'numpy': ('https://docs.scipy.org/doc/numpy/', (None, 'isphx/objects_numpy.inv')),}
 
 # -- Options for todo extension ----------------------------------------------
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# -- Options for sphinx_issues ----
+
+issues_github_path = "bskinn/pent"

@@ -9,7 +9,7 @@ r"""*Token handling for mini-language parser for* ``pent``.
     20 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -182,7 +182,7 @@ class Token:
         """Return match quantity.
 
         |None| for :attr:`pent.enums.Content.Any` or
-        :attr:`pent.enums.Content.OptionalLine
+        :attr:`pent.enums.Content.OptionalLine`
 
         """
         if self.is_any or self.is_optional_line:
@@ -326,7 +326,3 @@ class Token:
             return (self._group_open() + pat + self._group_close(), True)
         else:
             return pat, False
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

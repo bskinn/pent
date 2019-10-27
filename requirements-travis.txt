@@ -1,5 +1,5 @@
-attrs<18
-numpy==1.15
+attrs
+numpy
 pyparsing
 coverage
 codecov

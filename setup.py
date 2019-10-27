@@ -4,10 +4,11 @@ from setuptools import setup
 from pent import __version__
 
 
-NAME='pent'
+NAME = "pent"
+
 
 def readme():
-    with open('README.rst', 'r') as f:
+    with open("README.rst", "r") as f:
         content = f.read()
 
     # Helper function
@@ -18,14 +19,16 @@ def readme():
     # This one gets the badge image
     content = content_update(
         content,
-        r'(?<=/readthedocs/{0}/)\S+?(?=\.svg$)'.format(NAME),
-        'v' + __version__)
+        r"(?<=/readthedocs/{0}/)\S+?(?=\.svg$)".format(NAME),
+        "v" + __version__,
+    )
 
     # This one gets the RtD links
     content = content_update(
         content,
-        r'(?<={0}\.readthedocs\.io/en/)\S+?(?=[/>])'.format(NAME),
-        'v' + __version__)
+        r"(?<={0}\.readthedocs\.io/en/)\S+?(?=[/>])".format(NAME),
+        "v" + __version__,
+    )
 
     return content
 
@@ -35,6 +38,7 @@ setup(
     version=__version__,
     description="pent Extracts Numerical Text",
     long_description=readme(),
+    long_description_content_type="text/x-rst",
     url="https://www.github.com/bskinn/pent",
     license="MIT License",
     author="Brian Skinn",
@@ -51,13 +55,13 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Utilities",
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
     ],
 )

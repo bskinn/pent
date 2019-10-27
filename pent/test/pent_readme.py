@@ -9,7 +9,7 @@ r"""``README.rst`` test object for* ``pent`` *test suite*.
     25 Oct 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -56,7 +56,3 @@ def suite_doctest_readme():
     s.addTests([TestPentReadme])
 
     return s
-
-
-if __name__ == "__main__":
-    print("Module not executable.")

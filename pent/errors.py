@@ -9,7 +9,7 @@ r"""*Custom exceptions for* ``pent``.
     10 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -26,7 +26,7 @@ r"""*Custom exceptions for* ``pent``.
 
 
 class PentError(Exception):  # pragma: no cover
-    """Superclass for all custom |pent| errors."""
+    """Superclass for all custom pent errors."""
 
     pass
 
@@ -77,7 +77,3 @@ class ThruListError(PentError):  # pragma: no cover
     def __str__(self):
         """Generate a more-informative error message."""
         return "Invalid ThruList index: {}".format(self.msg)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")

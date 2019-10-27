@@ -9,7 +9,7 @@ r"""*SLOW test objects for* ``pent`` *test suite*.
     9 Oct 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -120,7 +120,3 @@ def suite_base_slow():
     tl = ut.TestLoader()
     s.addTests([tl.loadTestsFromTestCase(TestPentParserPatternsSlow)])
     return s
-
-
-if __name__ == "__main__":
-    print("Module not executable.")

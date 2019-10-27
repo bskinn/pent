@@ -9,7 +9,7 @@ r"""``Enums`` *for* ``pent``.
     3 Sep 2018
 
 **Copyright**
-    \(c) Brian Skinn 2018
+    \(c) Brian Skinn 2018-2019
 
 **Source Repository**
     http://www.github.com/bskinn/pent
@@ -33,14 +33,14 @@ class Number(str, Enum):
     #: Integer value; no decimal or scientific/exponential notation
     Integer = "i"
 
-    #: Floating-point value; no scientific/exponential notation
-    Float = "f"
+    #: Decimal floating-point value; no scientific/exponential notation
+    Decimal = "d"
 
     #: Scientific/exponential notation, where exponent is *required*
     SciNot = "s"
 
-    #: "Decimal" value; floating-point value with or without an exponent
-    Decimal = "d"
+    #: "Floating-point value with or without an exponent
+    Float = "f"
 
     #: "General" value; integer, float, or scientific notation
     General = "g"
@@ -147,7 +147,3 @@ class SpaceAfter(str, Enum):
 
     #: Following space prohibited
     Prohibited = "x"
-
-
-if __name__ == "__main__":  # pragma: no cover
-    print("Module not executable.")
