@@ -60,4 +60,4 @@ from .token import Token
 from .utils import column_stack_2d
 
 
-__version__ = "0.2.dev1"
+__version__ = "0.2"
