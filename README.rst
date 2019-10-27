@@ -149,7 +149,7 @@ The need for the generator expression, the ``[0]`` index into ``result``,
 and the composition via ``np.column_stack`` arises
 due to the manner in which ``pent`` returns data from a nested match like this.
 See the `documentation <https://pent.readthedocs.io/en/latest>`__,
-in particular `this example <https://pent.readthedocs.io/en/latest/tutorial/examples/nested_parsers.html>`__
+in particular `this example <https://pent.readthedocs.io/en/latest/tutorial/examples/nested_parsers.html>`__,
 for more information.
 
 The grammar of the ``pent`` mini-language is designed to be flexible enough that
