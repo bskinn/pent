@@ -6,7 +6,7 @@ in free text*
 
 **Current Development Version:**
 
-.. image:: https://travis-ci.org/bskinn/pent.svg?branch=master
+.. image::  https://img.shields.io/travis/bskinn/pent?label=travis-ci&logo=travis
     :target: https://travis-ci.org/bskinn/pent
 
 .. image:: https://codecov.io/gh/bskinn/pent/branch/master/graph/badge.svg
@@ -14,21 +14,21 @@ in free text*
 
 **Most Recent Stable Release:**
 
-.. image:: https://img.shields.io/pypi/v/pent.svg
+.. image:: https://img.shields.io/pypi/v/pent.svg?logo=pypi
     :target: https://pypi.org/project/pent
 
-.. image:: https://img.shields.io/pypi/pyversions/pent.svg
+.. image:: https://img.shields.io/pypi/pyversions/pent.svg?logo=python
 
 **Info:**
 
-.. image:: https://img.shields.io/readthedocs/pent/latest.svg
+.. image:: https://img.shields.io/readthedocs/pent/latest
     :target: http://pent.readthedocs.io/en/latest/
 
 .. image:: https://img.shields.io/github/license/mashape/apistatus.svg
     :target: https://github.com/bskinn/pent/blob/stable/LICENSE.txt
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/ambv/black
+    :target: https://github.com/psf/black
 
 ----
 
