@@ -146,7 +146,7 @@ The 'number' token takes three required, single-character arguments:
    |cour|\ #[.+][.-+]i\ |/cour| for integer, |br|
    |cour|\ #[.+][.-+]d\ |/cour| for decimal, |br|
    |cour|\ #[.+][.-+]s\ |/cour| for scientific notation, |br|
-   |cour|\ #[.+][.-+]f\ |/cour| for float (decimal or scinot) |br|
+   |cour|\ #[.+][.-+]f\ |/cour| for float (decimal or scientific notation) |br|
    |cour|\ #[.+][.-+]g\ |/cour| for general (integer or float).
 
 The ability to specify different types of number formatting was implemented
