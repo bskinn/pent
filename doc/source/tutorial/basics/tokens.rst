@@ -20,10 +20,14 @@ following the content matching the token.
 
 .. _tutorial-basics-tokens-anytoken:
 
-The 'Any' Token: |cour|\ ~\ |/cour|
------------------------------------
+'Any'
+-----
 
-The 'any' token will match **anything**, including a completely blank line.
+The 'any' token:
+
+|cour|\ ~\ |/cour|
+
+...will match **anything**, including a completely blank line.
 It behaves essentially the same as "|cour|\ .*\ |/cour|" in regex.
 
 Currently, the 'any' token only accepts the
@@ -38,10 +42,14 @@ split at whitespace in |Parser| output.
 
 .. _tutorial-basics-tokens-misctoken:
 
-The 'Misc' Token: |cour|\ &\ |/cour|
-------------------------------------
+'Misc'
+------
 
-The 'misc' token matches any sequence of non-whitespace characters.
+The 'misc' token:
+
+|cour|\ &\ |/cour|
+
+...matches any sequence of non-whitespace characters.
 Its uses are similar to the :ref:`'any' token <tutorial-basics-tokens-anytoken>`,
 except that its match
 is confined to a single whitespace-delimited piece of content.
@@ -66,10 +74,14 @@ and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 .. _tutorial-basics-tokens-literaltoken:
 
-The 'Literal' Token: |cour|\ @\ |/cour|
----------------------------------------
+'Literal'
+---------
 
-The 'literal' token matches an *exact* sequence of one or more
+The 'literal' token:
+
+|cour|\ @\ |/cour|
+
+...matches an *exact* sequence of one or more
 whitespace-delimited characters, which is provided as a required argument
 in the token definition.
 
@@ -105,10 +117,14 @@ and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 .. _tutorial-basics-tokens-numbertoken:
 
-The 'Number' Token: |cour|\ #\ |/cour|
---------------------------------------
+'Number'
+--------
 
-The 'number' token allows for selectively matching numbers of varying
+The 'number' token:
+
+|cour|\ #\ |/cour|
+
+...allows for selectively matching numbers of varying
 types in the text being parsed; in particular, matches can be constrained 
 by sign (positive, negative, or either) or by format
 (integer, decimal, or scientific notation; or, combinations of these).
@@ -164,8 +180,10 @@ flag must **precede** the capture flag.
 
 .. _tutorial-basics-tokens-captureflag:
 
-Capture Flag: |cour|\ !\ |/cour|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Capture Flag
+~~~~~~~~~~~~
+
+|cour|\ !\ |/cour|
 
 In most cases, not all of the data in a block of text is of interest
 for downstream processing. Thus, ``pent`` provides the token-level
@@ -179,8 +197,14 @@ The 'capture' flag is an integral part of all of the
 
 .. _tutorial-basics-tokens-spaceflags:
 
-Space-After Flags: |cour|\ o\ |/cour| and |cour|\ x\ |/cour|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Space-After Flags
+~~~~~~~~~~~~~~~~~
+
+|cour|\ o\ |/cour|
+
+...and:
+
+|cour|\ x\ |/cour|
 
 With no space-after flag provided, all tokens *REQUIRE* the presence
 of trailing whitespace (or EOL)
