@@ -38,6 +38,7 @@ setup(
     version=__version__,
     description="pent Extracts Numerical Text",
     long_description=readme(),
+    long_description_content_type="text/x-rst",
     url="https://www.github.com/bskinn/pent",
     license="MIT License",
     author="Brian Skinn",
