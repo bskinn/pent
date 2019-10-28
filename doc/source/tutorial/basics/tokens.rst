@@ -17,11 +17,15 @@ A subset of the tokens accepts a :ref:`flag <tutorial-basics-tokens-spaceflags>`
 that alters how the |Parser| handles the presence or absence of whitespace
 following the content matching the token.
 
+Additionally, two of the four token types accept *required* arguments,
+which specify with more precision the content that the token should match.
+These required arguments are explained in the respective sections below.
+
 
 .. _tutorial-basics-tokens-anytoken:
 
-The 'Any' Token: |cour|\ ~\ |/cour|
------------------------------------
+The 'Any' Token: ``~``
+----------------------
 
 The 'any' token will match **anything**, including a completely blank line.
 It behaves essentially the same as "|cour|\ .*\ |/cour|" in regex.
@@ -38,8 +42,8 @@ split at whitespace in |Parser| output.
 
 .. _tutorial-basics-tokens-misctoken:
 
-The 'Misc' Token: |cour|\ &\ |/cour|
-------------------------------------
+The 'Misc' Token: ``&``
+-----------------------
 
 The 'misc' token matches any sequence of non-whitespace characters.
 Its uses are similar to the :ref:`'any' token <tutorial-basics-tokens-anytoken>`,
@@ -66,8 +70,8 @@ and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 .. _tutorial-basics-tokens-literaltoken:
 
-The 'Literal' Token: |cour|\ @\ |/cour|
----------------------------------------
+The 'Literal' Token: ``@``
+--------------------------
 
 The 'literal' token matches an *exact* sequence of one or more
 whitespace-delimited characters, which is provided as a required argument
@@ -105,8 +109,8 @@ and the :ref:`space-after <tutorial-basics-tokens-spaceflags>` modifier flags.
 
 .. _tutorial-basics-tokens-numbertoken:
 
-The 'Number' Token: |cour|\ #\ |/cour|
---------------------------------------
+The 'Number' Token: ``#``
+-------------------------
 
 The 'number' token allows for selectively matching numbers of varying
 types in the text being parsed; in particular, matches can be constrained 
@@ -164,8 +168,8 @@ flag must **precede** the capture flag.
 
 .. _tutorial-basics-tokens-captureflag:
 
-Capture Flag: |cour|\ !\ |/cour|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Capture Flag: ``!``
+~~~~~~~~~~~~~~~~~~~
 
 In most cases, not all of the data in a block of text is of interest
 for downstream processing. Thus, ``pent`` provides the token-level
@@ -179,8 +183,8 @@ The 'capture' flag is an integral part of all of the
 
 .. _tutorial-basics-tokens-spaceflags:
 
-Space-After Flags: |cour|\ o\ |/cour| and |cour|\ x\ |/cour|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Space-After Flags: ``o`` and ``x``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With no space-after flag provided, all tokens *REQUIRE* the presence
 of trailing whitespace (or EOL)
@@ -195,7 +199,7 @@ a functional |Parser| at all.
 
 As an example, take the following line of text:
 
-.. code::
+.. code-block:: none
 
     The foo is in the foo.
 

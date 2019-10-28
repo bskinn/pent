@@ -66,6 +66,9 @@ capabilities---it's an extremely flexible tool, which can retrieve
 just about anything you want from just about any
 surrounding text.
 
+``pent`` is available on PyPI, and thus can be installed
+via "|cour|\ pip install pent\ |/cour|".
+
 Usage instructions for ``pent`` are provided in the
 :doc:`tutorial </tutorial>`, broken up into
 (1) an explanation of the

@@ -3,9 +3,10 @@
 Basic Usage: Patterns
 =====================
 
-A ``pent`` *pattern* is a series of whitespace-delimited
-:doc:`tokens <tokens>` that represents **all** non-whitespace
-content on a given line of text.
+A ``pent`` *pattern* is a series of :doc:`tokens <tokens>`
+that represents **all** non-whitespace content
+on a given line of text. Each token (along with its
+arguments and flags) is delimited by whitespace.
 
 A blank line---one that is empty, or contains only
 whitespace---can be matched with an empty pattern string:
@@ -159,8 +160,8 @@ since the required whitespace is absent:
 
 .. _tutorial-basics-patterns-optionallineflag:
 
-Optional Line Flag: |cour|\ ?\ |/cour|
---------------------------------------
+Optional Line Flag: ``?``
+-------------------------
 
 In some cases, an entire line of text will be present in some occurrences
 of a desired |Parser| match with a block of text, but absent in others.
